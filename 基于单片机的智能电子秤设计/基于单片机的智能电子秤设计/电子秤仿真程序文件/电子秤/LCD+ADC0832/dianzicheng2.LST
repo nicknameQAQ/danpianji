@@ -1,0 +1,557 @@
+C51 COMPILER V8.02   DIANZICHENG2                                                          03/27/2009 20:41:42 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE DIANZICHENG2
+OBJECT MODULE PLACED IN dianzicheng2.OBJ
+COMPILER INVOKED BY: D:\Èí¼þ\C51\BIN\C51.EXE dianzicheng2.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include<reg51.h>
+   2          #include<intrins.h>
+   3          #include <absacc.h>
+   4          #include <math.h>
+   5          
+   6          #define uchar unsigned char
+   7          #define uint   unsigned int
+   8          #define BUSY  0x80                               //³£Á¿¶¨Òå
+   9          #define DATAPORT P0
+  10          
+  11          sbit ADCS =P3^5; 
+  12          sbit ADDI =P3^7;  
+  13          sbit ADDO =P3^7;  
+  14          sbit ADCLK =P3^6;  
+  15          
+  16          sbit LCM_RS=P2^0;
+  17          sbit LCM_RW=P2^1;
+  18          sbit LCM_EN=P2^2;
+  19          uint x1,y1,z1=0,w1,temp1;
+  20          uchar ad_data,k,n,m,e,num,s;                              //²ÉÑùÖµ´æ´¢
+  21          sbit beep =P3^0;                         
+  22                             
+  23          char press_data;                                  //±ê¶È±ä»»´æ´¢µ¥Ôª
+  24          unsigned char ad_alarm;                           //±¨¾¯Öµ´æ´¢µ¥Ôª
+  25          unsigned char press_ge=0;                        //ÏÔÊ¾Öµ°ÙÎ»
+  26          unsigned char press_shifen=0;                        //ÏÔÊ¾ÖµÊ®Î»
+  27          unsigned char press_baifen=0;                         //ÏÔÊ¾Öµ¸öÎ»
+  28          unsigned char press_qianfen=0;                        //ÏÔÊ¾ÖµÊ®·ÖÎ»
+  29          
+  30          uchar code str0[]={"Weight:  .   Kg "};
+  31          uchar code str2[]={"Price:          "};
+  32          uchar code str3[]={"Total:             "};
+  33          uchar code table2[]={0x37,0x38,0x39,0xfd,0x34,0x35,0x36,0x78,0x31,0x32,0x33,0x2d,0x3d,0x30,0x2e,0x2b}; //¼
+             -üÅÌÂë
+  34          
+  35          void delay(uint);
+  36          void lcd_wait(void);
+  37          void delay_LCM(uint);                                                                                                   //LCDÑÓÊ±×Ó³ÌÐò
+  38          void initLCM( void);                                                                                                    //LCD³õÊ¼»¯×Ó³ÌÐò
+  39          void lcd_wait(void);                                                                                                    //LCD¼ì²âÃ¦×Ó³ÌÐò
+  40          void WriteCommandLCM(uchar WCLCM,uchar BusyC);                              //Ð´Ö¸Áîµ½ICM×Óº¯Êý
+  41          void WriteDataLCM(uchar WDLCM);                                             //Ð´Êý¾Ýµ½LCM×Óº¯Êý
+  42          void DisplayOneChar(uchar X,uchar Y,uchar DData);                           //ÏÔÊ¾Ö¸¶¨×ø±êµÄÒ»¸ö×Ö·û×Óº¯Êý
+  43          void DisplayListChar(uchar X,uchar Y,uchar code *DData);                                         //ÏÔÊ¾Ö¸¶¨×ø±êµÄÒ»´®×Ö·û×Óº¯Êý
+  44          void weishu(uint m);  
+  45          void weishu1(uint m);           
+  46          void display(void); 
+  47          uchar Adc0832(unsigned char channel);                                                                                                                   
+  48          void alarm(void);
+  49          void data_pro(void);
+  50          /**********main funcation************/
+  51           
+  52          void main(void)
+  53          { 
+  54   1          delay(500);                      //ÏµÍ³ÑÓÊ±500msÆô¶¯
+C51 COMPILER V8.02   DIANZICHENG2                                                          03/27/2009 20:41:42 PAGE 2   
+
+  55   1              //ad_data=0;                       //²ÉÑùÖµ´æ´¢µ¥Ôª³õÊ¼»¯Îª0
+  56   1              initLCM( );
+  57   1              
+  58   1              WriteCommandLCM(0x01,1);                    //ÇåÏÔÊ¾ÆÁ
+  59   1          DisplayListChar(0,0,str0);
+  60   1              DisplayListChar(0,1,str2);
+  61   1              while(1)
+  62   1          {
+  63   2                 ad_data =Adc0832(0);    //²ÉÑùÖµ´æ´¢µ¥Ôª³õÊ¼»¯Îª0
+  64   2                 alarm();
+  65   2                 data_pro();
+  66   2                 display();
+  67   2              if(k==1)
+  68   2           {
+  69   3            DisplayOneChar((s+7),1,table2[num-1]);
+  70   3                x1=m;
+  71   3                y1=n;
+  72   3                y1=y1*10+x1;
+  73   3           }
+  74   2       
+  75   2          if(k=='*')
+  76   2         {
+  77   3           data_pro();
+  78   3               WriteCommandLCM(0x01,1);
+  79   3               weishu(z1);
+  80   3               k=0;
+  81   3          }
+  82   2          if(k=='=')
+  83   2              {       
+  84   3                  z1=z1*temp1;
+  85   3                  WriteCommandLCM(0x01,1);
+  86   3              DisplayListChar(0,1,str3);
+  87   3                      s=0;
+  88   3              weishu1(765);
+  89   3                  k=0;
+  90   3              }
+  91   2              if(k==' ')
+  92   2              {
+  93   3                 WriteCommandLCM(0x80+0x40,1);
+  94   3                 WriteCommandLCM(0x01,1);
+  95   3                 z1=0; 
+  96   3                 s=0;     //·ÀÖ¹ÇåÁãÊ±Ö¸ÕëºóÒÆ¶¯
+  97   3              }
+  98   2        }
+  99   1      }
+ 100          
+ 101          
+ 102          /*********ÑÓÊ±K*1ms,12.000mhz**********/
+ 103          
+ 104          void delay(uint k)
+ 105          {
+ 106   1         uint i,j;
+ 107   1         for(i=0;i<k;i++)
+ 108   1          for(j=0;j<100;j++);
+ 109   1      }   
+ 110           /**********Ð´Ö¸Áîµ½ICM×Óº¯Êý************/
+ 111          
+ 112          void WriteCommandLCM(uchar WCLCM,uchar BusyC)
+ 113          {
+ 114   1          if(BusyC)
+ 115   1              lcd_wait();
+ 116   1              DATAPORT=WCLCM;
+C51 COMPILER V8.02   DIANZICHENG2                                                          03/27/2009 20:41:42 PAGE 3   
+
+ 117   1          LCM_RS=0;                   // Ñ¡ÖÐÖ¸Áî¼Ä´æÆ÷
+ 118   1          LCM_RW=0;     
+ 119   1              LCM_RW=0;               // Ð´Ä£Ê½       
+ 120   1          LCM_EN=1;    
+ 121   1              _nop_();   
+ 122   1              _nop_();
+ 123   1         _nop_();
+ 124   1         _nop_();
+ 125   1         _nop_();
+ 126   1         _nop_();
+ 127   1         _nop_();
+ 128   1          LCM_EN=0;
+ 129   1         
+ 130   1      }
+ 131          
+ 132           /**********Ð´Êý¾Ýµ½LCM×Óº¯Êý************/
+ 133          
+ 134          void WriteDataLCM(uchar WDLCM)
+ 135          { 
+ 136   1          lcd_wait( );             //¼ì²âÃ¦ÐÅºÅ    
+ 137   1              DATAPORT=WDLCM;
+ 138   1          LCM_RS=1;                // Ñ¡ÖÐÊý¾Ý¼Ä´æÆ÷
+ 139   1          LCM_RW=0;                    // Ð´Ä£Ê½
+ 140   1          LCM_EN=1;
+ 141   1          _nop_();
+ 142   1                 _nop_();
+ 143   1                 _nop_();
+ 144   1                 _nop_();
+ 145   1                 _nop_();
+ 146   1                 _nop_();
+ 147   1                 _nop_();
+ 148   1              _nop_();
+ 149   1          LCM_EN=0;
+ 150   1      }
+ 151          /***********lcmÄÚ²¿µÈ´ýº¯Êý*************/
+ 152          
+ 153          void lcd_wait(void)
+ 154          {
+ 155   1          DATAPORT=0xff;           //¶ÁLCDÇ°Èôµ¥Æ¬»úÊä³öµÍµçÆ½,¶ø¶Á³öLCDÎª¸ßµçÆ½,Ôò³åÍ»,Proteus·ÂÕæ»áÓÐÏÔÊ¾Âß¼­»ÆÉ«
+ 156   1              LCM_EN=1;
+ 157   1          LCM_RS=0;     
+ 158   1              LCM_RW=0; 
+ 159   1          LCM_RW=1;   
+ 160   1          _nop_();
+ 161   1          _nop_();
+ 162   1          _nop_();
+ 163   1          _nop_();
+ 164   1          _nop_();
+ 165   1          _nop_();
+ 166   1              _nop_();
+ 167   1          while(DATAPORT&BUSY)  
+ 168   1              {  LCM_EN=0;
+ 169   2                 _nop_();
+ 170   2          _nop_();
+ 171   2          _nop_();
+ 172   2          _nop_();
+ 173   2          _nop_();
+ 174   2          _nop_();
+ 175   2          _nop_();
+ 176   2          _nop_();
+ 177   2                 LCM_EN=1;
+ 178   2          _nop_();
+C51 COMPILER V8.02   DIANZICHENG2                                                          03/27/2009 20:41:42 PAGE 4   
+
+ 179   2          _nop_();
+ 180   2          _nop_();
+ 181   2          _nop_();
+ 182   2          _nop_();
+ 183   2              _nop_();
+ 184   2              _nop_();
+ 185   2                 }     
+ 186   1              LCM_EN=0;       
+ 187   1              
+ 188   1      }
+ 189          
+ 190          /**********LCM³õÊ¼»¯×Óº¯Êý***********/
+ 191          
+ 192          void initLCM( )
+ 193          {  
+ 194   1          LCM_EN=0; 
+ 195   1              DATAPORT=0;     
+ 196   1              delay(15);
+ 197   1              WriteCommandLCM(0x38,0);    //Èý´ÎÏÔÊ¾Ä£Ê½ÉèÖÃ£¬²»¼ì²âÃ¦ÐÅºÅ
+ 198   1          delay(5); 
+ 199   1          WriteCommandLCM(0x38,0);
+ 200   1          delay(5); 
+ 201   1          WriteCommandLCM(0x38,0);
+ 202   1          delay(5); 
+ 203   1      
+ 204   1          WriteCommandLCM(0x38,1);    //8bitÊý¾Ý´«ËÍ£¬2ÐÐÏÔÊ¾£¬5*7×ÖÐÍ£¬¼ì²âÃ¦ÐÅºÅ
+ 205   1          WriteCommandLCM(0x08,1);    //¹Ø±ÕÏÔÊ¾£¬¼ì²âÃ¦ÐÅºÅ
+ 206   1          WriteCommandLCM(0x01,1);    //ÇåÆÁ£¬¼ì²âÃ¦ÐÅºÅ
+ 207   1          WriteCommandLCM(0x06,1);    //ÏÔÊ¾¹â±êÓÒÒÆÉèÖÃ£¬¼ì²âÃ¦ÐÅºÅ
+ 208   1          WriteCommandLCM(0x0c,1);    //ÏÔÊ¾ÆÁ´ò¿ª£¬¹â±ê²»ÏÔÊ¾£¬²»ÉÁË¸£¬¼ì²âÃ¦ÐÅºÅ
+ 209   1          TMOD=0x11;
+ 210   1              EA=1;
+ 211   1          ET1=1;
+ 212   1              TR1=1;
+ 213   1              k=0;
+ 214   1              x1=0;
+ 215   1              y1=0;
+ 216   1              z1=0;
+ 217   1      }
+ 218          
+ 219          /****ÏÔÊ¾Ö¸¶¨×ø±êµÄÒ»¸ö×Ö·û×Óº¯Êý****/
+ 220          
+ 221          void DisplayOneChar(uchar X,uchar Y,uchar DData)
+ 222          
+ 223          {
+ 224   1          Y&=0x01;
+ 225   1          X&=0x0f;
+ 226   1          if(Y)
+ 227   1              X|=0x40;               //ÈôyÎª1£¨ÏÔÊ¾µÚ¶þÐÐ£©£¬µØÖ·Âë+0X40
+ 228   1          X|=0x80;                    //Ö¸ÁîÂëÎªµØÖ·Âë+0X80
+ 229   1          WriteCommandLCM(X,1);
+ 230   1          WriteDataLCM(DData);
+ 231   1      }
+ 232          
+ 233          /*******ÏÔÊ¾Ö¸¶¨×ø±êµÄÒ»´®×Ö·û×Óº¯Êý*****/
+ 234           
+ 235          void DisplayListChar(uchar X,uchar Y,uchar code *DData)
+ 236          {
+ 237   1          uchar ListLength=0;
+ 238   1          Y&=0x01;
+ 239   1          X&=0x0f;
+ 240   1          while(X<16)
+C51 COMPILER V8.02   DIANZICHENG2                                                          03/27/2009 20:41:42 PAGE 5   
+
+ 241   1          {
+ 242   2              DisplayOneChar(X,Y,DData[ListLength]);
+ 243   2              ListLength++;
+ 244   2              X++;
+ 245   2          }
+ 246   1      }
+ 247          
+ 248           /*****************ÏµÍ³ÏÔÊ¾×Óº¯Êý*****************/
+ 249          
+ 250          void display(void)
+ 251          {
+ 252   1              WriteCommandLCM(0x0c,1);                                //ÏÔÊ¾ÆÁ´ò¿ª£¬¹â±ê²»ÏÔÊ¾£¬²»ÉÁË¸£¬¼ì²âÃ¦ÐÅºÅ    
+ 253   1              DisplayListChar(0,0,str0);      
+ 254   1              //DisplayListChar(0,1,str2);    
+ 255   1      
+ 256   1      
+ 257   1              DisplayOneChar(8,0,press_ge+0x30);
+ 258   1              DisplayOneChar(10,0,press_shifen+0x30);
+ 259   1              DisplayOneChar(11,0,press_baifen+0x30);
+ 260   1          DisplayOneChar(12,0,press_qianfen+0x30);
+ 261   1              delay(1000);                               //ÎÈ¶¨ÏÔÊ¾
+ 262   1      }
+ 263          /************
+ 264          ¶ÁADC0832º¯Êý
+ 265          ************/
+ 266          
+ 267          //²É¼¯²¢·µ»Ø
+ 268          uchar Adc0832(unsigned char channel)     //AD×ª»»£¬·µ»Ø½á¹û
+ 269          {
+ 270   1           uchar i=0;
+ 271   1          uchar j;
+ 272   1          uint dat=0;
+ 273   1          uchar ndat=0;
+ 274   1      
+ 275   1          if(channel==0)channel=2;
+ 276   1          if(channel==1)channel=3;
+ 277   1          ADDI=1;
+ 278   1          _nop_();
+ 279   1          _nop_();
+ 280   1          ADCS=0;//À­µÍCS¶Ë
+ 281   1          _nop_();
+ 282   1          _nop_();
+ 283   1          ADCLK=1;//À­¸ßCLK¶Ë
+ 284   1          _nop_();
+ 285   1          _nop_();
+ 286   1          ADCLK=0;//À­µÍCLK¶Ë,ÐÎ³ÉÏÂ½µÑØ1
+ 287   1          _nop_();
+ 288   1          _nop_();
+ 289   1          ADCLK=1;//À­¸ßCLK¶Ë
+ 290   1          ADDI=channel&0x1;
+ 291   1          _nop_();
+ 292   1          _nop_();
+ 293   1          ADCLK=0;//À­µÍCLK¶Ë,ÐÎ³ÉÏÂ½µÑØ2
+ 294   1          _nop_();
+ 295   1          _nop_();
+ 296   1          ADCLK=1;//À­¸ßCLK¶Ë
+ 297   1          ADDI=(channel>>1)&0x1;
+ 298   1          _nop_();
+ 299   1          _nop_();
+ 300   1          ADCLK=0;//À­µÍCLK¶Ë,ÐÎ³ÉÏÂ½µÑØ3
+ 301   1          ADDI=1;//¿ØÖÆÃüÁî½áÊø 
+ 302   1          _nop_();
+C51 COMPILER V8.02   DIANZICHENG2                                                          03/27/2009 20:41:42 PAGE 6   
+
+ 303   1          _nop_();
+ 304   1          dat=0;
+ 305   1          for(i=0;i<8;i++)
+ 306   1          {
+ 307   2              dat|=ADDO;//ÊÕÊý¾Ý
+ 308   2              ADCLK=1;
+ 309   2              _nop_();
+ 310   2              _nop_();
+ 311   2              ADCLK=0;//ÐÎ³ÉÒ»´ÎÊ±ÖÓÂö³å
+ 312   2              _nop_();
+ 313   2              _nop_();
+ 314   2              dat<<=1;
+ 315   2              if(i==7)dat|=ADDO;
+ 316   2          }  
+ 317   1          for(i=0;i<8;i++)
+ 318   1          {
+ 319   2              j=0;
+ 320   2              j=j|ADDO;//ÊÕÊý¾Ý
+ 321   2              ADCLK=1;
+ 322   2              _nop_();
+ 323   2              _nop_();
+ 324   2              ADCLK=0;//ÐÎ³ÉÒ»´ÎÊ±ÖÓÂö³å
+ 325   2              _nop_();
+ 326   2              _nop_();
+ 327   2              j=j<<7;
+ 328   2              ndat=ndat|j;
+ 329   2              if(i<7)ndat>>=1;
+ 330   2          }
+ 331   1          ADCS=1;//À­µÍCS¶Ë
+ 332   1          ADCLK=0;//À­µÍCLK¶Ë
+ 333   1          ADDO=1;//À­¸ßÊý¾Ý¶Ë,»Øµ½³õÊ¼×´Ì¬
+ 334   1          dat<<=8;
+ 335   1          dat|=ndat;
+ 336   1          return(dat);            //return ad k         
+ 337   1      }
+ 338          
+ 339          
+ 340          void data_pro(void)
+ 341          {
+ 342   1            unsigned int;
+ 343   1            float  press;                       
+ 344   1      
+ 345   1                if(0<ad_data<256)                                   
+ 346   1                      {                           
+ 347   2                          int vary=ad_data;                                                                   
+ 348   2                              press=(0.019531*vary);                  
+ 349   2                                                                                                                        
+ 350   2                              temp1=(int)(press*1000);                        //·Å´ó1000±¶£¬±ãÓÚºóÃæµÄ¼ÆËã
+ 351   2                                                                                              
+ 352   2                                                                                                              
+ 353   2                              press_ge=temp1/1000;                            //È¡Ñ¹Á¦Öµ°ÙÎ»
+ 354   2                              press_shifen=(temp1%1000)/100;                  //È¡Ñ¹Á¦ÖµÊ®Î»
+ 355   2                              press_baifen=((temp1%1000)%100)/10;             //È¡Ñ¹Á¦Öµ¸öÎ»
+ 356   2                              press_qianfen=((temp1%1000)%100)%10;                    //È¡Ñ¹Á¦ÖµÊ®·ÖÎ»
+ 357   2      
+ 358   2                         }        
+ 359   1                               
+ 360   1      }
+ 361          /*****************±¨¾¯×Óº¯Êý*******************/
+ 362          
+ 363          void alarm(void)
+ 364          {
+C51 COMPILER V8.02   DIANZICHENG2                                                          03/27/2009 20:41:42 PAGE 7   
+
+ 365   1               if(ad_data>=256)                        
+ 366   1      
+ 367   1                 beep=0;          //ÔòÆô¶¯±¨¾¯
+ 368   1              
+ 369   1                else
+ 370   1                     beep=1;            
+ 371   1      }
+ 372          void weishu(uint m)
+ 373          {  
+ 374   1         uchar wei4,wei3,wei2,wei1,wei0;
+ 375   1         wei4=m/10000;
+ 376   1         wei3=m%10000/1000;
+ 377   1         wei2=m%1000/100;
+ 378   1         wei1=m%100/10;
+ 379   1         wei0=m%10;
+ 380   1         DisplayOneChar(7,1,0x30+wei4);
+ 381   1         DisplayOneChar(8,1,0x30+wei3);       
+ 382   1         DisplayOneChar(10,1,0x30+wei2);
+ 383   1              //DisplayOneChar(10,1,'.');
+ 384   1         DisplayOneChar(11,1,0x30+wei1);
+ 385   1         DisplayOneChar(12,1,0x30+wei0);
+ 386   1      
+ 387   1      }
+ 388          void weishu1(uint m)
+ 389          {  
+ 390   1         uchar wei5,wei4,wei3,wei2,wei1,wei0;
+ 391   1         wei5=m/100000;
+ 392   1         wei4=m%100000/10000;
+ 393   1         wei3=m%10000/1000;
+ 394   1         wei2=m%1000/100;
+ 395   1         wei1=m%100/10;
+ 396   1         wei0=m%10;
+ 397   1         DisplayOneChar(7,1,0x30+wei4);
+ 398   1         DisplayOneChar(8,1,0x30+wei3);
+ 399   1         DisplayOneChar(9,1,'.');     
+ 400   1         DisplayOneChar(10,1,0x30+wei2);
+ 401   1         //DisplayOneChar(10,1,'.');
+ 402   1         DisplayOneChar(11,1,0x30+wei1);
+ 403   1         DisplayOneChar(12,1,0x30+wei0);
+ 404   1      
+ 405   1      }
+ 406           void temer1() interrupt 3
+ 407          { uchar temp;
+ 408   1        EX1=0;
+ 409   1        P1=0xfe;
+ 410   1        temp=P1;
+ 411   1        temp=temp&0xf0;
+ 412   1        if(temp!=0xf0)
+ 413   1        {
+ 414   2          delay(5);
+ 415   2              temp=P1;
+ 416   2          temp=temp&0xf0;
+ 417   2              while(temp!=0xf0)
+ 418   2              {
+ 419   3                temp=P1;
+ 420   3                switch(temp)
+ 421   3                {
+ 422   4                  case 0xee:num=1;n=7;k=1,s++;break;
+ 423   4                  case 0xde:num=2;n=8;k=1,s++;break;
+ 424   4                  case 0xbe:num=3;n=9;k=1,s++;break;
+ 425   4                  case 0x7e:num=4;k='/',s++;break;
+ 426   4                }
+C51 COMPILER V8.02   DIANZICHENG2                                                          03/27/2009 20:41:42 PAGE 8   
+
+ 427   3                while(temp!=0xf0)
+ 428   3                {
+ 429   4                      temp=P1;
+ 430   4              temp=temp&0xf0;
+ 431   4                }
+ 432   3              //DisplayOneChar((s+6),1,table2[num-1]);
+ 433   3              }
+ 434   2        } 
+ 435   1        P1=0xfd;
+ 436   1        temp=P1;
+ 437   1        temp=temp&0xf0;
+ 438   1        if(temp!=0xf0)
+ 439   1        {
+ 440   2          delay(5);
+ 441   2              temp=P1;
+ 442   2          temp=temp&0xf0;
+ 443   2              while(temp!=0xf0)
+ 444   2              {
+ 445   3                temp=P1;
+ 446   3                switch(temp)
+ 447   3                {
+ 448   4                  case 0xed:num=5;n=4;k=1;s++;break;
+ 449   4                  case 0xdd:num=6;n=5;k=1;s++;break;
+ 450   4                  case 0xbd:num=7;n=6;k=1;s++;break;
+ 451   4                  case 0x7d:num=8;k='*';s++;break;
+ 452   4                }
+ 453   3                while(temp!=0xf0)
+ 454   3                {
+ 455   4                      temp=P1;
+ 456   4              temp=temp&0xf0;
+ 457   4                }
+ 458   3              //DisplayOneChar(k+6,1,table2[num-1]);
+ 459   3              }
+ 460   2        } 
+ 461   1        P1=0xfb;
+ 462   1        temp=P1;
+ 463   1        temp=temp&0xf0;
+ 464   1        if(temp!=0xf0)
+ 465   1        {
+ 466   2          delay(5);
+ 467   2              temp=P1;
+ 468   2          temp=temp&0xf0;
+ 469   2              while(temp!=0xf0)
+ 470   2              {
+ 471   3                temp=P1;
+ 472   3                switch(temp)
+ 473   3                {
+ 474   4                  case 0xeb:num=9;n=1;k=1;s++;break;
+ 475   4                  case 0xdb:num=10;n=2;k=1;s++;break;
+ 476   4                  case 0xbb:num=11;n=3;k=1;s++;break;
+ 477   4                  case 0x7b:num=12;k='-';s++;break;
+ 478   4                }
+ 479   3                while(temp!=0xf0)
+ 480   3                {
+ 481   4                      temp=P1;
+ 482   4              temp=temp&0xf0;
+ 483   4                }
+ 484   3      //      DisplayOneChar(k+6,1,table2[num-1]);
+ 485   3      
+ 486   3              }
+ 487   2        } 
+ 488   1        P1=0xf7;
+C51 COMPILER V8.02   DIANZICHENG2                                                          03/27/2009 20:41:42 PAGE 9   
+
+ 489   1        temp=P1;
+ 490   1        temp=temp&0xf0;
+ 491   1        if(temp!=0xf0)
+ 492   1        {
+ 493   2          delay(5);
+ 494   2              temp=P1;
+ 495   2          temp=temp&0xf0;
+ 496   2              while(temp!=0xf0)
+ 497   2              {
+ 498   3                temp=P1;
+ 499   3                switch(temp)
+ 500   3                {
+ 501   4                  case 0xe7:num=13;k=' ';break;
+ 502   4                  case 0xd7:num=14;n=0;k=1;s++;;break;
+ 503   4                  case 0xb7:num=15;k='=';s++;break;
+ 504   4                  case 0x77:num=16;k='+';s++;;break;
+ 505   4                }
+ 506   3                while(temp!=0xf0)
+ 507   3                {
+ 508   4                      temp=P1;
+ 509   4              temp=temp&0xf0;
+ 510   4                }
+ 511   3              //DisplayOneChar(k+6,1,table2[num-1]);
+ 512   3               }
+ 513   2         
+ 514   2        } 
+ 515   1        EX1=1;
+ 516   1       }
+ 517          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1719    ----
+   CONSTANT SIZE    =     70    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     23      27
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

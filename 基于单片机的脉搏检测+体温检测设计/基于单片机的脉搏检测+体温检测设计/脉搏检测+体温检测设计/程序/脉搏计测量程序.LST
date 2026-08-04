@@ -1,0 +1,665 @@
+C51 COMPILER V9.01   _霾撇_量程序                                                        06/19/2020 22:17:32 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE _霾撇_量程序
+OBJECT MODULE PLACED IN 脉搏计测量程序.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 脉搏计测量程序.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include <reg52.h>               //调用单片机头文件
+   2          #define uchar unsigned char  //无符号字符型 宏定义      变量范围0~255
+   3          #define uint  unsigned int       //无符号整型 宏定义    变量范围0~65535
+   4          #include<DS18N02.h>
+   5          #include <intrins.h>
+   6          #include "eeprom52.h"
+*** WARNING C280 IN LINE 75 OF EEPROM52.H: 'sector_addr': unreferenced local variable
+*** WARNING C280 IN LINE 77 OF EEPROM52.H: 'iSectorAddr': unreferenced local variable
+*** WARNING C280 IN LINE 86 OF EEPROM52.H: 'byte_addr': unreferenced local variable
+   7          
+   8          
+   9          #define DBPort P0               
+  10          
+  11          unsigned char i=0,timecount=0,displayOK=0,rate=0,rate1=0,aa=0,time1=0,flat300ms=0;
+  12          unsigned int time[6]={0};
+  13          unsigned int oneminte=0;
+  14          unsigned int ReadTempDate;
+  15          unsigned char S_temp_H,S_temp_L,S_heart_H,S_heart_L;
+  16          unsigned char yemian=0,biaozhi=0;
+  17          
+  18          
+  19          sbit K1 = P1^0; //菜单
+  20          sbit K2 = P1^1;  //加
+  21          sbit K3 = P1^2;  //减
+  22          sbit Buzzer= P1^7;  //控制
+  23          
+  24          
+  25          sbit rs = P2^5 ; 
+  26          sbit rw = P2^6 ;
+  27          sbit ep = P2^7 ;
+  28          
+  29          
+  30          bit flag=1;
+  31           
+  32          
+  33          /******************把数据保存到单片机内部eeprom中******************/
+  34          void write_eeprom()
+  35          {
+  36   1              SectorErase(0x2000);
+  37   1              byte_write(0x2000, S_heart_H);
+  38   1              byte_write(0x2001, S_heart_L);
+  39   1              byte_write(0x2002, S_temp_H);
+  40   1              byte_write(0x2003, S_temp_L);
+  41   1              
+  42   1              
+  43   1          byte_write(0x2060, a_a);    
+  44   1      }
+  45          
+  46          /******************把数据从单片机内部eeprom中读出来*****************/
+  47          void read_eeprom()
+  48          {
+  49   1              S_heart_H = byte_read(0x2000);
+  50   1              S_heart_L = byte_read(0x2001);
+  51   1              S_temp_H = byte_read(0x2002);
+  52   1              S_temp_L = byte_read(0x2003);
+C51 COMPILER V9.01   _霾撇_量程序                                                        06/19/2020 22:17:32 PAGE 2   
+
+  53   1          a_a      = byte_read(0x2060);
+  54   1      }
+  55          
+  56          /**************开机自检eeprom初始化*****************/
+  57          void init_eeprom()
+  58          {
+  59   1              read_eeprom();          //先读
+  60   1              if(a_a != 2)            //新的单片机初始单片机内问eeprom
+  61   1              {
+  62   2                      S_heart_H = 120;
+  63   2                  S_heart_L = 60;
+  64   2                  S_temp_H = 38;
+  65   2                  S_temp_L = 5;
+  66   2                      a_a = 2;
+  67   2                      write_eeprom();
+  68   2              }       
+  69   1      }
+  70          
+  71          /***********************1ms延时函数*****************************/
+  72          void delay_1ms(uint q)
+  73          {
+  74   1              uint i,j;
+  75   1              for(i=0;i<q;i++)
+  76   1                      for(j=0;j<110;j++);
+  77   1      }
+  78          
+  79          
+  80          /********************************************************************
+  81          * 名称 : delay_uint()
+  82          * 功能 : 小延时。
+  83          * 输入 : 无
+  84          * 输出 : 无
+  85          ***********************************************************************/
+  86          void delay_uint(uint q)
+  87          {
+  88   1              while(q--);
+  89   1      }
+  90          
+  91          
+  92          typedef bit BOOL  ; 
+  93          
+  94          
+  95          uchar data_byte;
+  96          
+  97          void delay(uchar ms)
+  98          {       // 延时子程序
+  99   1               uchar i ;
+ 100   1               while(ms--)
+ 101   1               {
+ 102   2                      for(i = 0 ; i<250;i++) ;
+ 103   2               }
+ 104   1      }
+ 105          
+ 106          void delay1()//延时10us
+ 107          {
+ 108   1              uchar i;
+ 109   1              i--;
+ 110   1              i--;
+ 111   1              i--;
+ 112   1              i--;
+ 113   1              i--;
+ 114   1              i--;
+C51 COMPILER V9.01   _霾撇_量程序                                                        06/19/2020 22:17:32 PAGE 3   
+
+ 115   1      }
+ 116          void longdelay(uchar s) //长延时
+ 117          {
+ 118   1               while(s--)
+ 119   1               {
+ 120   2                      delay(10) ;
+ 121   2               }
+ 122   1      }
+ 123          
+ 124          
+ 125          /************************LCD模块******************************************/
+ 126          
+ 127          BOOL lcd_bz()//测试LCD忙碌状态
+ 128          {      
+ 129   1               BOOL result ;
+ 130   1               rs = 0 ;
+ 131   1               rw = 1 ;
+ 132   1               ep = 1 ;
+ 133   1               result = (BOOL)(P0 & 0x80) ;
+ 134   1               ep = 0 ;
+ 135   1               return result ; 
+ 136   1      }
+ 137          
+ 138          void write_cmd(uchar cmd)// 写指令
+ 139          {       
+ 140   1              while(lcd_bz()) ;
+ 141   1          P0 = cmd ;
+ 142   1              ep = 1 ;
+ 143   1              ep = 0 ;  
+ 144   1      }
+ 145          
+ 146          void write_addr(uchar addr)//写地址
+ 147          {       
+ 148   1              write_cmd(addr|0x80) ;
+ 149   1      }
+ 150          
+ 151          void write_byte(uchar dat)//写字节
+ 152          {      
+ 153   1              while(lcd_bz()) ;
+ 154   1              rs = 1 ;
+ 155   1              rw = 0 ;
+ 156   1              ep = 0 ;
+ 157   1              P0 = dat ;
+ 158   1              ep = 1 ;
+ 159   1              ep = 0 ; 
+ 160   1      }
+ 161          
+ 162          void lcd_init()// 初始化
+ 163          {       
+ 164   1               write_cmd(0x38) ; 
+ 165   1               delay(1);
+ 166   1               write_cmd(0x08) ;  
+ 167   1               delay(1);
+ 168   1               write_cmd(0x01) ; 
+ 169   1               delay(1);
+ 170   1               write_cmd(0x06) ;
+ 171   1               delay(1);
+ 172   1               write_cmd(0x0c) ; 
+ 173   1               delay(1);
+ 174   1      }
+ 175          
+ 176           display(uchar addr, uchar q)//在某一地址上显示一字节
+C51 COMPILER V9.01   _霾撇_量程序                                                        06/19/2020 22:17:32 PAGE 4   
+
+ 177          {        
+ 178   1               delay(1) ;
+ 179   1               write_addr(addr) ;
+ 180   1         write_byte(q) ;
+ 181   1              // longdelay(1) ;
+ 182   1               
+ 183   1      }
+ 184          
+ 185          
+ 186          void show1()
+ 187          {     
+ 188   1                   lcd_init();// 初始化   
+ 189   1                   //  Welcome
+ 190   1               
+ 191   1                      
+ 192   1                       display(0x05,'W');
+ 193   1               display(0x06,'e');
+ 194   1                       display(0x07,'l');
+ 195   1                       display(0x08,'c');
+ 196   1                       display(0x09,'o');
+ 197   1                       display(0x0a,'m');
+ 198   1               display(0x0b,'e');
+ 199   1                   longdelay(50);//短暂延时
+ 200   1                      
+ 201   1        
+ 202   1                       display(0x42,' ');
+ 203   1               display(0x43,' '); 
+ 204   1                       display(0x44,' ');
+ 205   1                       display(0x45,' ');
+ 206   1                       display(0x46,' ');
+ 207   1                       display(0x48,' ');
+ 208   1                   display(0x49,' ');
+ 209   1                   display(0x4a,' ');
+ 210   1                       display(0x4b,' ');
+ 211   1                   longdelay(50);//短暂延时
+ 212   1              
+ 213   1      
+ 214   1      }
+ 215          
+ 216          
+ 217          void key() //按键程序 选择菜单模式
+ 218          {
+ 219   1           
+ 220   1                if(!K1)
+ 221   1                         {  
+ 222   2                                 delay_1ms(20);
+ 223   2                                  if(!K1)
+ 224   2                               {   
+ 225   3                                               while(!K1)
+ 226   3                                                 ;
+ 227   3                                                        yemian++;
+ 228   3                                                        if(yemian>=5) { yemian=0; } 
+ 229   3                                                                      
+ 230   3                   }
+ 231   2                         }
+ 232   1      }
+ 233          
+ 234          
+ 235          
+ 236          
+ 237          void shezhi()  //对里面的数值进行修改
+ 238          {
+C51 COMPILER V9.01   _霾撇_量程序                                                        06/19/2020 22:17:32 PAGE 5   
+
+ 239   1         if(!K2)            //按下按键
+ 240   1                {
+ 241   2                 delay_1ms(20);
+ 242   2                      if(!K2)
+ 243   2                        { 
+ 244   3                  if(yemian==1) 
+ 245   3                    {                                                         
+ 246   4                                      S_heart_H+=1;       //没按下一次，数值加1
+ 247   4                                      if(S_heart_H>=200)  {S_heart_H=200;}
+ 248   4                      write_eeprom();       //保存数据
+ 249   4                                       
+ 250   4                       display(0x46,S_heart_H/100+'0');
+ 251   4                           display(0x47,S_heart_H%100/10+'0');
+ 252   4                       display(0x48,S_heart_H%100%10+'0');                            
+ 253   4                    }
+ 254   3                                                              
+ 255   3                 if(yemian==2) 
+ 256   3                    {                                                         
+ 257   4                                      S_heart_L+=1;       //没按下一次，数值加1
+ 258   4                                      if(S_heart_L>=200)  {S_heart_L=200;}
+ 259   4                      write_eeprom();       //保存数据
+ 260   4                                       
+ 261   4                       display(0x46,S_heart_L/100+'0');
+ 262   4                           display(0x47,S_heart_L%100/10+'0');
+ 263   4                       display(0x48,S_heart_L%100%10+'0');                            
+ 264   4                    }
+ 265   3                                                              
+ 266   3                              if(yemian==3) 
+ 267   3                    {                                                         
+ 268   4                                  S_temp_H+=1;       //没按下一次，数值加1
+ 269   4                                      if(S_temp_H>=125)  {S_temp_H=125;}
+ 270   4                      write_eeprom();       //保存数据
+ 271   4                                         
+ 272   4                                         display(0x46,S_temp_H/100+'0');
+ 273   4                             display(0x47,S_temp_H%100/10+'0');
+ 274   4                         display(0x48,S_temp_H%100%10+'0');
+ 275   4                   }
+ 276   3                               
+ 277   3                              if(yemian==4) 
+ 278   3                    {                                                         
+ 279   4                                  S_temp_L+=1;       //没按下一次，数值加1
+ 280   4                                      if(S_temp_L>=125)  {S_temp_L=125;}
+ 281   4                      write_eeprom();       //保存数据
+ 282   4                                         
+ 283   4                                         display(0x46,S_temp_L/100+'0');
+ 284   4                             display(0x47,S_temp_L%100/10+'0');
+ 285   4                         display(0x48,S_temp_L%100%10+'0');
+ 286   4                   }  
+ 287   3                                      
+ 288   3                 }
+ 289   2                                        // while(!K2);      //等待按键 弹起  屏蔽此句，可以实现按键按下不放开时，连加技术功能，
+ 290   2                                                                //   不过需要将上面延时去抖时间延长效果才好。建议改为： delay_LCD(50);  
+ 291   2            }
+ 292   1                               
+ 293   1                               
+ 294   1         if(!K3)            //按下按键
+ 295   1               {
+ 296   2                delay_1ms(20);
+ 297   2                      if(!K3)
+ 298   2                        { 
+ 299   3                 if(yemian==1) 
+ 300   3                   {                                                          
+C51 COMPILER V9.01   _霾撇_量程序                                                        06/19/2020 22:17:32 PAGE 6   
+
+ 301   4                                  
+ 302   4                                      if(S_heart_H<=1)  {S_heart_H=1;}
+ 303   4                                      S_heart_H-=1;       //没按下一次，数值加1
+ 304   4                      write_eeprom();       //保存数据
+ 305   4                                      
+ 306   4                                       display(0x46,S_heart_H/100+'0');
+ 307   4                           display(0x47,S_heart_H%100/10+'0');
+ 308   4                       display(0x48,S_heart_H%100%10+'0');                            
+ 309   4      
+ 310   4                               }
+ 311   3      
+ 312   3                               if(yemian==2) 
+ 313   3                   {                                                          
+ 314   4                                  
+ 315   4                                      if(S_heart_L<=1)  {S_heart_L=1;}
+ 316   4                                      S_heart_L-=1;       //没按下一次，数值加1
+ 317   4                      write_eeprom();       //保存数据
+ 318   4                                      
+ 319   4                                       display(0x46,S_heart_L/100+'0');
+ 320   4                           display(0x47,S_heart_L%100/10+'0');
+ 321   4                       display(0x48,S_heart_L%100%10+'0');                            
+ 322   4      
+ 323   4                               }
+ 324   3                                                              
+ 325   3                              if(yemian==3) 
+ 326   3                    { 
+ 327   4                                  if(S_temp_H<=1)  {S_temp_H=1;}                                                      
+ 328   4                                  S_temp_H-=1;       //没按下一次，数值加1
+ 329   4                      write_eeprom();       //保存数据
+ 330   4      
+ 331   4                                  display(0x46,S_temp_H/100+'0');
+ 332   4                          display(0x47,S_temp_H%100/10+'0');
+ 333   4                      display(0x48,S_temp_H%100%10+'0');
+ 334   4      
+ 335   4                              
+ 336   4                               }
+ 337   3                               
+ 338   3                         if(yemian==4) 
+ 339   3                    { 
+ 340   4                                  if(S_temp_L<=1)  {S_temp_L=1;}                                                      
+ 341   4                                  S_temp_L-=1;       //没按下一次，数值加1
+ 342   4                      write_eeprom();       //保存数据
+ 343   4      
+ 344   4                                  display(0x46,S_temp_L/100+'0');
+ 345   4                          display(0x47,S_temp_L%100/10+'0');
+ 346   4                      display(0x48,S_temp_L%100%10+'0');
+ 347   4      
+ 348   4                              
+ 349   4                               }              
+ 350   3                 }
+ 351   2                                      //   while(!K3);      //等待按键 弹起  //等待按键 弹起  屏蔽此句，可以实现按键按下不放开时，连加技术功
+             -能，
+ 352   2                                                                //   不过需要将上面延时去抖时间延长效果才好。建议改为： delay_LCD(50);  
+ 353   2                }
+ 354   1      
+ 355   1                      
+ 356   1      } 
+ 357          
+ 358          void wendumaibo()
+ 359          {
+ 360   1      
+ 361   1              if(displayOK==0)//如果显示关
+C51 COMPILER V9.01   _霾撇_量程序                                                        06/19/2020 22:17:32 PAGE 7   
+
+ 362   1                      {
+ 363   2                          display(0x06,'W');
+ 364   2                  display(0x07,'a');
+ 365   2                          display(0x08,'i');
+ 366   2                              display(0x09,'t');
+ 367   2                              display(0x0a,'i');
+ 368   2                              display(0x0b,'n');
+ 369   2                              display(0x0c,'g');
+ 370   2                              flag=1;
+ 371   2                              oneminte=0;//加上这个，当displayOK标志位没有置1时，都清零计数，等待重新检测中计数。
+ 372   2                      }
+ 373   1                      
+ 374   1                      if(displayOK==1 && oneminte<=200)//如果显示开
+ 375   1                      {
+ 376   2                              flag=0;
+ 377   2                          display(0x06,'T');
+ 378   2                  display(0x07,'e');
+ 379   2                          display(0x08,'s');
+ 380   2                              display(0x09,'t');
+ 381   2                              display(0x0a,'i');
+ 382   2                              display(0x0b,'n');
+ 383   2                              display(0x0c,'g');
+ 384   2                      }
+ 385   1               
+ 386   1                  ReadTempDate=ReadTemperature();
+ 387   1              display(0x46,ReadTempDate/100+'0');
+ 388   1                  display(0x47,ReadTempDate%100/10+'0');
+ 389   1              display(0x48,'.');
+ 390   1                  display(0x49,ReadTempDate%100%10+'0');
+ 391   1                      display(0x4a,0xdf);
+ 392   1                      display(0x4b,'C');              
+ 393   1      }
+ 394          
+ 395          
+ 396          void baojin()
+ 397          {
+ 398   1        if(  ( (rate*6<S_heart_L  ||  rate*6>S_heart_H) &&  oneminte>200 )  ||  ReadTempDate>=S_temp_H*10 ||  Re
+             -adTempDate<=S_temp_L*10 )             {  Buzzer=0; }
+ 399   1      
+ 400   1        if(    oneminte>=0  &&  oneminte<200  &&    ReadTempDate<S_temp_H*10  &&  ReadTempDate>S_temp_L*10  )   
+             -  {  Buzzer=1; }
+ 401   1      }
+ 402          
+ 403          /*************定时器0初始化程序***************/
+ 404          void time_init()          
+ 405          {
+ 406   1              EA   = 1;                 //开总中断
+ 407   1              TMOD = 0X01;      //定时器0、定时器1工作方式1
+ 408   1              ET0  = 1;                 //开定时器0中断 
+ 409   1              TR0  = 1;                 //允许定时器0定时
+ 410   1      }
+ 411          
+ 412          
+ 413          /***********外部中断0初始化程序****************/
+ 414          void init_int0()          //外部中断0初始化程序
+ 415          {
+ 416   1              EX0=1;                    //允许外部中断0中断
+ 417   1              EA=1;                     //开总中断
+ 418   1              IT0 = 1;                  //外部中断0负跳变中断
+ 419   1      }
+ 420          
+ 421          /****************主函数***************/
+C51 COMPILER V9.01   _霾撇_量程序                                                        06/19/2020 22:17:32 PAGE 8   
+
+ 422          void main()
+ 423          {       
+ 424   1          ReadTemperature();
+ 425   1          show1();//显示问候语和其他信息
+ 426   1              time_init(); //初始化定时器 
+ 427   1              init_int0(); //外部中断0初始化程序
+ 428   1          init_eeprom();                              //读eeprom数据
+ 429   1              while(1)
+ 430   1              {       
+ 431   2            key(); //按键扫描
+ 432   2            if(flat300ms>=4)  //200ms
+ 433   2                 {
+ 434   3                  flat300ms=0;
+ 435   3      //==================主界面===================
+ 436   3                        if(yemian==0)  
+ 437   3                              {
+ 438   4                                if(biaozhi==0)
+ 439   4                                       {
+ 440   5                         biaozhi=1;
+ 441   5      
+ 442   5                                         lcd_init();// 初始化
+ 443   5                                         display(0x00,'H');
+ 444   5                                         display(0x01,'e');
+ 445   5                                         display(0x02,'a');
+ 446   5                                         display(0x03,'r');
+ 447   5                                         display(0x04,'t');
+ 448   5                                         display(0x05,':');
+ 449   5      
+ 450   5                                         display(0x40,'T');
+ 451   5                                         display(0x41,'e');
+ 452   5                                         display(0x42,'m');
+ 453   5                                         display(0x43,'p');
+ 454   5                                         display(0x44,':');
+ 455   5                       }
+ 456   4                     wendumaibo();
+ 457   4                                 baojin();
+ 458   4                     }
+ 459   3      
+ 460   3      //==================脉搏报警上限 设置===================
+ 461   3                        if(yemian==1)  
+ 462   3                              {
+ 463   4                                if(biaozhi==1)
+ 464   4                                       {
+ 465   5                         biaozhi=2;
+ 466   5                                         Buzzer=1;
+ 467   5                                         lcd_init();// 初始化
+ 468   5                                         display(0x04,'H');
+ 469   5                                         display(0x05,'e');
+ 470   5                                         display(0x06,'a');
+ 471   5                                         display(0x07,'r');
+ 472   5                                         display(0x08,'t');
+ 473   5                                         display(0x09,'-');
+ 474   5                                         display(0x0a,'H');
+ 475   5      
+ 476   5                                       display(0x46,S_heart_H/100+'0');
+ 477   5                           display(0x47,S_heart_H%100/10+'0');
+ 478   5                       display(0x48,S_heart_H%100%10+'0');                              
+ 479   5                     }
+ 480   4                      shezhi();
+ 481   4                     }
+ 482   3      
+ 483   3      //==================脉搏报警下限 设置===================
+C51 COMPILER V9.01   _霾撇_量程序                                                        06/19/2020 22:17:32 PAGE 9   
+
+ 484   3                        if(yemian==2)  
+ 485   3                              {
+ 486   4                                if(biaozhi==2)
+ 487   4                                       {
+ 488   5                         biaozhi=3;
+ 489   5                                         Buzzer=1;
+ 490   5                                         lcd_init();// 初始化
+ 491   5                                         display(0x04,'H');
+ 492   5                                         display(0x05,'e');
+ 493   5                                         display(0x06,'a');
+ 494   5                                         display(0x07,'r');
+ 495   5                                         display(0x08,'t');
+ 496   5                                         display(0x09,'-');
+ 497   5                                         display(0x0a,'L');
+ 498   5      
+ 499   5                                       display(0x46,S_heart_L/100+'0');
+ 500   5                           display(0x47,S_heart_L%100/10+'0');
+ 501   5                       display(0x48,S_heart_L%100%10+'0');                              
+ 502   5                     }
+ 503   4                      shezhi();
+ 504   4                     }
+ 505   3                                         
+ 506   3      //==================温度报警 上限设置===================
+ 507   3                        if(yemian==3)  
+ 508   3                              {
+ 509   4                                if(biaozhi==3)
+ 510   4                                       {
+ 511   5                         biaozhi=4;
+ 512   5                                         Buzzer=1;
+ 513   5                                         lcd_init();// 初始化
+ 514   5                                        
+ 515   5                                         display(0x05,'T');
+ 516   5                                         display(0x06,'e');
+ 517   5                                         display(0x07,'m');
+ 518   5                                         display(0x08,'p');
+ 519   5                                         display(0x09,'-');
+ 520   5                                         display(0x0a,'H');
+ 521   5      
+ 522   5                                         display(0x46,S_temp_H/100+'0');
+ 523   5                             display(0x47,S_temp_H%100/10+'0');
+ 524   5                         display(0x48,S_temp_H%100%10+'0');                             
+ 525   5                      }
+ 526   4                      shezhi();
+ 527   4                     }                    
+ 528   3      
+ 529   3      //==================温度报警 下限设置===================
+ 530   3                        if(yemian==4)  
+ 531   3                              {
+ 532   4                                if(biaozhi==4)
+ 533   4                                       {
+ 534   5                         biaozhi=0;
+ 535   5                                         Buzzer=1;
+ 536   5                                         lcd_init();// 初始化
+ 537   5                                        
+ 538   5                                         display(0x05,'T');
+ 539   5                                         display(0x06,'e');
+ 540   5                                         display(0x07,'m');
+ 541   5                                         display(0x08,'p');
+ 542   5                                         display(0x09,'-');
+ 543   5                                         display(0x0a,'L');
+ 544   5      
+ 545   5                                         display(0x46,S_temp_L/100+'0');
+C51 COMPILER V9.01   _霾撇_量程序                                                        06/19/2020 22:17:32 PAGE 10  
+
+ 546   5                             display(0x47,S_temp_L%100/10+'0');
+ 547   5                         display(0x48,S_temp_L%100%10+'0');                             
+ 548   5                      }
+ 549   4                      shezhi();
+ 550   4                     }                    
+ 551   3            
+ 552   3                      
+ 553   3                 }
+ 554   2          }
+ 555   1       }
+ 556          
+ 557          
+ 558          void int0() interrupt 0
+ 559          {
+ 560   1              if(time1>=8)
+ 561   1               {
+ 562   2                        time1=0;
+ 563   2                if(i==3)//记录到超过等于3次时间
+ 564   2                              {
+ 565   3                                      i=1;//计数从1开始
+ 566   3                                      displayOK=1;    //测得3次开始显示
+ 567   3                  }   
+ 568   2                              
+ 569   2                      
+ 570   2                              if( oneminte>200 && flag==0 && yemian==0) 
+ 571   2                     { 
+ 572   3                                       flag=1;
+ 573   3                                       rate1=rate*6;
+ 574   3                      
+ 575   3                                       display(0x09,'/');
+ 576   3                               display(0x0a,'m');
+ 577   3                           display(0x0b,'i');
+ 578   3                       display(0x0c,'n');
+ 579   3                                       
+ 580   3                        display(0x06,rate1/100+'0');
+ 581   3                                    display(0x07,rate1%100/10+'0');
+ 582   3                                    display(0x08,rate1%100%10+'0');
+ 583   3                    }
+ 584   2              
+ 585   2                      }
+ 586   1              
+ 587   1      }
+ 588          
+ 589          
+ 590          /*************定时器0中断服务程序***************/
+ 591          void time0_int() interrupt 1
+ 592          {       
+ 593   1              TH0 = 0x3c;
+ 594   1              TL0 = 0xb0;     // 50ms  12M
+ 595   1              timecount++;//每50ms一次计数
+ 596   1          oneminte++;
+ 597   1              flat300ms++;
+ 598   1              if(timecount>50 &&yemian==0 )     //当超过50*50ms=2.5s左右没有检测到信号停止显示
+ 599   1              {
+ 600   2                              i=0;//数据个数清零
+ 601   2                              timecount=0;//50ms计数清零
+ 602   2                              displayOK=0;//显示关
+ 603   2                          oneminte=0;
+ 604   2                          rate=0; 
+ 605   2                          display(0x06,'W');
+ 606   2                  display(0x07,'a');
+ 607   2                          display(0x08,'i');
+C51 COMPILER V9.01   _霾撇_量程序                                                        06/19/2020 22:17:32 PAGE 11  
+
+ 608   2                              display(0x09,'t');
+ 609   2                              display(0x0a,'i');
+ 610   2                              display(0x0b,'n');
+ 611   2                              display(0x0c,'g');
+ 612   2                      
+ 613   2                      
+ 614   2        }
+ 615   1      }
+*** WARNING C290 IN LINE 183 OF 脉搏计测量程序.C: missing return value
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2318    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     32       7
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1       1
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  4 WARNING(S),  0 ERROR(S)

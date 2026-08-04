@@ -1,0 +1,4 @@
+原理图和PCB用Protel99、仿真图用Protues、程序用Keil4
+1.Protues下载链接：http://pan.baidu.com/s/1xwOd4 （这是绿色版，不用安装，解压后直接在BIN文件夹打开蓝色图标“ISIS.EXE”，然后打开对应的仿真文件.DNS即可）
+2.Keil4下载链接：http://pan.baidu.com/s/1pJJWSen  （按照《Readme.txt》安装，再破解，破解说明参照文档，下载地址：http://pan.baidu.com/s/1i3xr2w1）
+3.Protel下载链接：http://pan.baidu.com/s/1hqjDw2o （按照《安装说明.txt》安装，目前Protel只兼容XP系统，WIN7.8.9.10等系统需要用DXP2004或者AD09等，Altium Designer Summer 09的下载链接：http://pan.baidu.com/s/1qWN7ybE）

@@ -1,0 +1,23 @@
+C51 COMPILER V8.02   单只按键縚制数码管筥动显蔩                                            08/01/2011 13:49:46 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE 单只按键縚制数码管筥动显蔩
+OBJECT MODULE PLACED IN 单只按键控制数码管滚动显示.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 单只按键控制数码管滚动显示.C BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     66    ----
+   CONSTANT SIZE    =     17    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

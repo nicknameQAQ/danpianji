@@ -1,0 +1,51 @@
+C51 COMPILER V9.01   DS18B20                                                               06/10/2020 09:47:29 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE DS18B20
+OBJECT MODULE PLACED IN ds18b20.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE ds18b20.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          
+   2                     *********************************************************************/
+*** ERROR C141 IN LINE 2 OF DS18B20.C: syntax error near '/'
+   3          #include<AT89X52.h>                                //½«AT89X52.hÍ·ÎÄ¼ş°üº¬µ½Ö÷³ÌĞò
+   4          #include<intrins.h>                                //½«intrins.hÍ·ÎÄ¼ş°üº¬µ½Ö÷³ÌĞò£¨µ÷ÓÃÆäÖĞµÄ_nop_()¿Õ²Ù×÷º¯ÊıÑÓÊ±£©
+   5          #define uint unsigned int                  //±äÁ¿ÀàĞÍºê¶¨Òå£¬ÓÃuint±íÊ¾ÎŞ·ûºÅÕûĞÎ£¨16Î»£©
+   6          #define uchar unsigned char                //±äÁ¿ÀàĞÍºê¶¨Òå£¬ÓÃuchar±íÊ¾ÎŞ·ûºÅ×Ö·ûĞÍ£¨8Î»£©
+   7          
+   8          uchar max=0x00,min=0x00;                   //maxÊÇÉÏÏŞ±¨¾¯ÎÂ¶È£¬minÊÇÏÂÏŞ±¨¾¯ÎÂ¶È
+   9          
+  10          bit   s=0;                                                 //sÊÇµ÷ÕûÉÏÏÂÏŞÎÂ¶ÈÊ±ÎÂ¶ÈÉÁË¸µÄ±êÖ¾Î»£¬s=0²»ÏÔÊ¾200ms£¬s=1ÏÔÊ¾1s×óÓÒ
+  11          bit   s1=0;                                                //s1±êÖ¾Î»ÓÃÓÚÉÏÏÂÏŞ²é¿´Ê±µÄÏÔÊ¾
+  12          void display1(uint z);                     //ÉùÃ÷display1£¨£©º¯Êı£¨display.hÍ·ÎÄ¼şÖĞµÄº¯Êı£¬ds18b20.hÒªÓÃÓ¦ÏÈÉùÃ÷£©
+  13          #include"ds18b20.h"                                //½«ds18b20.hÍ·ÎÄ¼ş°üº¬µ½Ö÷³ÌĞò
+  14          #include"keyscan.h"                                //½«keyscan.hÍ·ÎÄ¼ş°üº¬µ½Ö÷³ÌĞò
+  15          #include"display.h"                                //½«display.hÍ·ÎÄ¼ş°üº¬µ½Ö÷³ÌĞò
+  16          
+  17          /***********************Ö÷º¯Êı************************/
+  18          void main()
+  19          {
+  20   1               beer=1;                                           //¹Ø±Õ·äÃùÆ÷
+  21   1               led=1;                                            //¹Ø±ÕLEDµÆ
+  22   1               timer1_init(0);                           //³õÊ¼»¯¶¨Ê±Æ÷1£¨Î´Æô¶¯¶¨Ê±Æ÷1£©
+  23   1               get_temperature(1);               //Ê×´ÎÆô¶¯DS18B20»ñÈ¡ÎÂ¶È£¨DS18B20ÉÏµãºó×Ô¶¯½«EEPROMÖĞµÄÉÏÏÂÏŞÎÂ¶È¸´ÖÆµ½THºÍTL¼
+             -Ä´æÆ÷£©
+  24   1               while(1)                                          //Ö÷Ñ­»·
+  25   1               {       
+  26   2                       keyscan();                                //°´¼üÉ¨Ãæº¯Êı
+  27   2                       get_temperature(0);       //»ñÈ¡ÎÂ¶Èº¯Êı
+  28   2                       //keyscan();                              //°´¼üÉ¨Ãæº¯Êı
+  29   2                       display(temp,temp_d*0.625);//ÏÔÊ¾º¯Êı
+  30   2                       alarm();                                       //±¨¾¯º¯Êı
+  31   2                       //keyscan();                              //°´¼üÉ¨Ãæº¯Êı
+  32   2               }
+  33   1      }   
+  34          
+  35          
+  36          
+  37          
+  38          
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  1 ERROR(S)

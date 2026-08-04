@@ -1,0 +1,4 @@
+DXP格式用            Altium designer Summer 软件打开 
+protel99格式格式用   protel99SE 软件打开 
+PDF格式用            PDF 软件打开 
+Word格式用           Word 或用WPS 软件打开 

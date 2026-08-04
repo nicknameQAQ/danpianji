@@ -1,0 +1,127 @@
+BL51 BANKED LINKER/LOCATER V6.00                                                        08/02/2011  10:48:53  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.00, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE 生日歌.obj TO 生日歌 RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  生日歌.obj (蒧日歌)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+
+
+LINK MAP OF MODULE:  生日歌 (蒧日歌)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0002H     UNIT         _DATA_GROUP_
+            IDATA   000AH     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     0061H     UNIT         ?PR?PLAYMUSIC?蒧日歌
+            CODE    0064H     0034H     UNIT         ?CO?蒧日歌
+            CODE    0098H     001EH     UNIT         ?PR?_DELAY?蒧日歌
+            CODE    00B6H     0012H     UNIT         ?PR?MAIN?蒧日歌
+            CODE    00C8H     000CH     UNIT         ?C_C51STARTUP
+
+
+
+OVERLAY MAP OF MODULE:   生日歌 (蒧日歌)
+
+
+SEGMENT                          DATA_GROUP 
+  +--> CALLED SEGMENT          START    LENGTH
+----------------------------------------------
+?C_C51STARTUP                  -----    -----
+  +--> ?PR?MAIN?蒧日歌
+
+?PR?MAIN?蒧日歌                -----    -----
+  +--> ?PR?PLAYMUSIC?蒧日歌
+  +--> ?PR?_DELAY?蒧日歌
+
+?PR?PLAYMUSIC?蒧日歌           0008H    0002H
+  +--> ?CO?蒧日歌
+  +--> ?PR?_DELAY?蒧日歌
+
+
+
+SYMBOL TABLE OF MODULE:  生日歌 (蒧日歌)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        蒧日歌
+BL51 BANKED LINKER/LOCATER V6.00                                                      08/02/2011  10:48:53  PAGE 2
+
+
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0090H         PUBLIC        P1
+  D:00B0H         PUBLIC        P3
+  C:0003H         PUBLIC        PlayMusic
+  C:00B6H         PUBLIC        main
+  C:007EH         PUBLIC        SONG_LONG
+  C:0064H         PUBLIC        SONG_TONE
+  B:00B0H.0       PUBLIC        BUZZER
+  C:0098H         PUBLIC        _delay
+  B:0090H.0       PUBLIC        K1
+  -------         PROC          _DELAY
+  D:0006H         SYMBOL        x
+  -------         DO            
+  D:0006H         SYMBOL        i
+  D:0004H         SYMBOL        j
+  -------         ENDDO         
+  C:0098H         LINE#         20
+  C:0098H         LINE#         21
+  C:0098H         LINE#         23
+  C:00A1H         LINE#         24
+  C:00B5H         LINE#         25
+  -------         ENDPROC       _DELAY
+  -------         PROC          PLAYMUSIC
+  -------         DO            
+  D:0002H         SYMBOL        i
+  D:0008H         SYMBOL        j
+  D:0006H         SYMBOL        k
+  -------         ENDDO         
+  C:0003H         LINE#         27
+  C:0003H         LINE#         28
+  C:0003H         LINE#         29
+  C:0006H         LINE#         30
+  C:0014H         LINE#         31
+  C:0014H         LINE#         32
+  C:002DH         LINE#         33
+  C:002DH         LINE#         34
+  C:002FH         LINE#         35
+  C:004BH         LINE#         36
+  C:0055H         LINE#         37
+  C:005CH         LINE#         38
+  C:0061H         LINE#         39
+  C:0063H         LINE#         40
+  -------         ENDPROC       PLAYMUSIC
+  -------         PROC          MAIN
+  C:00B6H         LINE#         42
+  C:00B6H         LINE#         43
+  C:00B6H         LINE#         44
+  C:00B9H         LINE#         45
+  C:00B9H         LINE#         46
+  C:00B9H         LINE#         47
+  C:00BCH         LINE#         48
+  C:00BCH         LINE#         49
+  C:00BFH         LINE#         50
+  C:00C6H         LINE#         51
+  C:00C6H         LINE#         52
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        蒧日歌
+BL51 BANKED LINKER/LOCATER V6.00                                                      08/02/2011  10:48:53  PAGE 3
+
+
+
+Program Size: data=11.0 xdata=0 code=212
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

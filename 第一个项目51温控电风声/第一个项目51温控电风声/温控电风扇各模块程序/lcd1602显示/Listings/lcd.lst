@@ -1,0 +1,212 @@
+C51 COMPILER V9.54   LCD                                                                   04/21/2018 16:51:08 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE LCD
+OBJECT MODULE PLACED IN .\Objects\lcd.obj
+COMPILER INVOKED BY: D:\keil5\C51\BIN\C51.EXE lcd.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\lcd.lst
+                    -) TABS(2) OBJECT(.\Objects\lcd.obj)
+
+line level    source
+
+   1          #include<reg52.h>
+   2          #include<intrins.h>
+   3          typedef unsigned char uint8;
+   4          typedef unsigned int uint16;
+   5          typedef unsigned long uint32;
+   6          unsigned char i;  
+   7          sbit rs=P2^6;
+   8          sbit rw=P2^5;
+   9          sbit e=P2^7;
+  10          sbit dq=P3^7;
+  11          //sbit moto=P1^1; //直流电机
+  12          //sbit k1=P3^0;
+  13          uint8 d[16]="   tempertury   ";
+  14          uint8 num[10]="0123456789";
+  15          uint8 a,c,temp;
+  16          void delay(uint16 i)
+  17          {
+  18   1        while(i--);
+  19   1      }
+  20          void wrc(uint8 c)
+  21          {
+  22   1        delay(1000);
+  23   1        rs=0;
+  24   1        rw=0;
+  25   1        e=0;
+  26   1        P0=c;
+  27   1        e=1;
+  28   1        delay(10);
+  29   1        e=0;
+  30   1      }
+  31          void wrd(uint8 dat)
+  32          {
+  33   1        delay(1000);
+  34   1        rs=1;
+  35   1        rw=0;
+  36   1        e=0;
+  37   1        P0=dat;
+  38   1        e=1;
+  39   1        delay(10);
+  40   1        e=0;
+  41   1        rs=0;
+  42   1      }
+  43          void lcdinit()
+  44          {
+  45   1        delay(1000);
+  46   1        wrc(0x38);
+  47   1        wrc(0x38);
+  48   1        wrc(0x38);
+  49   1        wrc(0x06);
+  50   1        wrc(0x0c);
+  51   1        wrc(0x01);
+  52   1      }
+  53          void ds18b20init()    //18b20的初始化
+  54          {
+C51 COMPILER V9.54   LCD                                                                   04/21/2018 16:51:08 PAGE 2   
+
+  55   1        dq=1;
+  56   1        delay(1);
+  57   1        dq=0;
+  58   1        delay(80);
+  59   1        dq=1;
+  60   1        delay(5);
+  61   1        dq=0;
+  62   1        delay(20);
+  63   1        dq=1;
+  64   1        delay(35);
+  65   1      }
+  66          void ds18b20wr(uint8 dat)   //18b20写数据
+  67          {
+  68   1        uint8 i;
+  69   1        for(i=0;i<8;i++)
+  70   1        {
+  71   2          dq=0;
+  72   2          dq=dat&0x01;
+  73   2          dat>>=1;
+  74   2          delay(8);//在时序上只有这一块对时序要求最准确，他的时间必须大于15us
+  75   2          dq=1;
+  76   2          delay(1);
+  77   2        } 
+  78   1      }
+  79          uint8 ds18b20rd()     //18b20读数据
+  80          {
+  81   1        uint8 value,i;
+  82   1        for(i=0;i<8;i++)  
+  83   1        {
+  84   2          dq=0;
+  85   2          value>>=1;
+  86   2          dq=1;
+  87   2          if(dq==1)value|=0x80;
+  88   2          delay(8);//在这一块也对时间要求特别准确，整段程序必须大于60us   
+  89   2        }
+  90   1        return value;
+  91   1      }
+  92          uint8 readtemp()        //读取温度内需要复位的
+  93          {
+  94   1        uint8 b;
+  95   1        ds18b20init();    //初始化
+  96   1        ds18b20wr(0xcc);   //发送忽略ROM指令
+  97   1        ds18b20wr(0x44);   //发送温度转换指令
+  98   1        delay(100);
+  99   1        ds18b20init();     //初始化
+ 100   1        ds18b20wr(0xcc);   //发送忽略ROM指令
+ 101   1        ds18b20wr(0xbe);   //发读暂存器指令
+ 102   1        a=ds18b20rd();   //温度的低八位
+ 103   1        b=ds18b20rd();   //温度的高八位
+ 104   1        b<<=4;       //ssss s***；s为标志位s=0表示温度值为正数，s=1温度值为负数
+ 105   1        c=b&0x80;   //温度正负标志位确认
+ 106   1        b+=(a&0xf0)>>4;
+ 107   1        a=a&0x0f;   //温度的小数部分
+ 108   1        return b;
+ 109   1      }
+ 110          void display()
+ 111          {
+ 112   1        uint16 i,k;
+ 113   1        float dio;
+ 114   1        dio=a*0.0625;
+ 115   1        k=dio*10000;//取小数点后两位有效数字
+ 116   1        wrc(0x80+0x00);
+C51 COMPILER V9.54   LCD                                                                   04/21/2018 16:51:08 PAGE 3   
+
+ 117   1        for(i=0;i<16;i++)
+ 118   1        {
+ 119   2          wrd(d[i]);
+ 120   2        }
+ 121   1        wrc(0x80+0x43);
+ 122   1        if(c==0x80) //读取到负温度即为补码，要将其转换成源码
+ 123   1        {
+ 124   2          wrd('-');
+ 125   2          temp=temp-1;
+ 126   2          temp=(~temp)|0x80;//负数的补码即为反码+1；而负数的反码为其源码取反，除了符号位；正数的补码等于正数的反码
+             -等于正数的源码
+ 127   2        } 
+ 128   1        else
+ 129   1        {
+ 130   2          wrd('+');
+ 131   2          temp=(temp);
+ 132   2        }     
+ 133   1        wrd(num[temp/100]);
+ 134   1        wrd(num[temp%100/10]);
+ 135   1        wrd(num[temp%100%10]);
+ 136   1        wrd('.');
+ 137   1        wrd(num[k/1000]);
+ 138   1        wrd(num[k%1000/100]);
+ 139   1        wrd(0xdf);
+ 140   1        wrd('C');
+ 141   1      }
+ 142          //void keypros()
+ 143          //{
+ 144          //  if(k1==0)     
+ 145          //  { 
+ 146          //    delay(1000);   
+ 147          //    if(k1==0)  
+ 148          //    {
+ 149          //      moto=1;
+ 150          //     
+ 151          //      
+ 152          //    }}}
+ 153          //void motospeed(uint16 i)
+ 154          //{
+ 155          //  while(i--)
+ 156          //  {
+ 157          //    moto=~moto;
+ 158          //  }   
+ 159          //}
+ 160          void main()
+ 161          {
+ 162   1      //  moto=0;
+ 163   1      lcdinit();
+ 164   1        while(1)
+ 165   1        {
+ 166   2      //    keypros();
+ 167   2      temp=readtemp();
+ 168   2      display();
+ 169   2        //具体的温度和速度范围自己可以设置
+ 170   2          if(temp>0&&temp<22) //速度1
+ 171   2      //    motospeed(0);
+ 172   2        if(temp>22&&temp<24) //速度1
+ 173   2          i=1;
+ 174   2          if(temp>24&&temp<26) //速度2
+ 175   2          i=2;
+ 176   2        if(temp>26&&temp<30) //速度3
+ 177   2          i=3;
+C51 COMPILER V9.54   LCD                                                                   04/21/2018 16:51:08 PAGE 4   
+
+ 178   2        
+ 179   2      
+ 180   2        }   
+ 181   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    569    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     30       6
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

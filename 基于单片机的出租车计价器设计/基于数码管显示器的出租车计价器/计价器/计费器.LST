@@ -1,0 +1,173 @@
+C51 COMPILER V9.53.0.0   ______                                                            11/24/2016 10:27:38 PAGE 1   
+
+
+C51 COMPILER V9.53.0.0, COMPILATION OF MODULE ______
+OBJECT MODULE PLACED IN 计费器.OBJ
+COMPILER INVOKED BY: E:\C51\BIN\C51.EXE 计费器.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include<reg51.h>
+   2          #define uint unsigned int
+   3          #define uchar unsigned char
+   4          sbit duan=P2^6;   //定义段选
+   5          sbit wei=P2^7;    //定义位选
+   6          sbit dain=P0^7;   //定义小数点开启位
+   7          uchar code table[]={
+   8          0x3f,0x06,0x5b,0x4f,0x66,
+   9          0x6d,0x7d,0x07,0x7f,0x6f};
+  10          uint S,H,jin_e;     //定义里程数和金额
+  11          uchar x,y;
+  12          void delay(uint z);
+  13          void init();
+  14          void xianshi();
+  15          void main()
+  16          {
+  17   1        init();//初始化 
+  18   1        while(1)
+  19   1        {   
+  20   2          xianshi();
+  21   2        }
+  22   1        
+  23   1      }
+  24          void delay(uint z)//延时函数
+  25          {
+  26   1        
+  27   1        for(x=z;x>0;x--)
+  28   1          {
+  29   2          for(y=110;y>0;y--)
+  30   2            {
+  31   3            }
+  32   2          }
+  33   1      }
+  34          void init()         //初始化函数
+  35          {
+  36   1        S=0;
+  37   1        H=0;
+  38   1        jin_e=50;
+  39   1        duan=0;
+  40   1        wei=0;
+  41   1        TMOD=0x50;        //设T1工作方式1计数；
+  42   1        TH1=(65536-56)/256;
+  43   1        TL1=(65536-56)%256;
+  44   1        ET1=1;      //开启T1中断
+  45   1        EA=1;       //开启总中断
+  46   1        TR1=1;      //开启定时
+  47   1      }
+  48          void zhongduan() interrupt 3    //中断服务子程序
+  49          {S++;
+  50   1        TH1=(65536-56)/256;
+  51   1        TL1=(65536-56)%256;
+  52   1        if(S<=20)//判断是否超过两公里
+  53   1          jin_e=50;
+  54   1        else
+  55   1          if(S%5==0)//判断是否行使了500m
+C51 COMPILER V9.53.0.0   ______                                                            11/24/2016 10:27:38 PAGE 2   
+
+  56   1           {  
+  57   2              H=(S-20)/5;
+  58   2              jin_e=50+(8*H);
+  59   2           }
+  60   1        
+  61   1        
+  62   1      }
+  63          void xianshi()
+  64          {
+  65   1      
+  66   1        uchar qian,bai,shi,ge,baiyuan,shiyuan,yuan,jiao;
+  67   1        //里程数分解
+  68   1        qian=S/1000;
+  69   1        bai=(S/100)%10;
+  70   1        shi=(S%100)/10;
+  71   1        ge=S%10;
+  72   1        //价格分解
+  73   1        baiyuan=jin_e/1000;
+  74   1        shiyuan=(jin_e/100)%10;
+  75   1        yuan=(jin_e%100)/10;
+  76   1        jiao=jin_e%10;
+  77   1        
+  78   1        //duan=0;wei=0;
+  79   1        //显示里程数
+  80   1        P0=0xfe;
+  81   1        wei=1;
+  82   1        wei=0;
+  83   1        P0=table[qian];
+  84   1        duan=1;
+  85   1        duan=0;
+  86   1        delay(1);
+  87   1        
+  88   1        P0=0xfd;
+  89   1        wei=1;
+  90   1        wei=0;
+  91   1        P0=table[bai];
+  92   1        duan=1;
+  93   1        duan=0;
+  94   1        delay(1);
+  95   1        
+  96   1        P0=0xfb;
+  97   1        wei=1;
+  98   1        wei=0;
+  99   1        P0=table[shi];
+ 100   1        dain=1;
+ 101   1        duan=1;
+ 102   1        duan=0;
+ 103   1        delay(1);
+ 104   1        
+ 105   1        P0=0xf7;
+ 106   1        wei=1;
+ 107   1        wei=0;
+ 108   1        P0=table[ge];
+ 109   1        duan=1; 
+ 110   1        duan=0;
+ 111   1        delay(1);
+ 112   1        
+ 113   1        //显示价格
+ 114   1        P0=0xef;
+ 115   1        wei=1;
+ 116   1        wei=0;
+ 117   1        P0=table[baiyuan];
+C51 COMPILER V9.53.0.0   ______                                                            11/24/2016 10:27:38 PAGE 3   
+
+ 118   1        duan=1;
+ 119   1        duan=0;
+ 120   1        delay(1);
+ 121   1        
+ 122   1        P0=0xdf;
+ 123   1        wei=1;
+ 124   1        wei=0;
+ 125   1        P0=table[shiyuan];
+ 126   1        duan=1; 
+ 127   1        duan=0;
+ 128   1        delay(1);
+ 129   1        
+ 130   1        P0=0xbf;
+ 131   1        wei=1;
+ 132   1        wei=0;
+ 133   1        P0=table[yuan];
+ 134   1        dain=1;
+ 135   1        duan=1; 
+ 136   1        duan=0;
+ 137   1        delay(1);
+ 138   1        
+ 139   1        P0=0x7f;
+ 140   1        wei=1;
+ 141   1        wei=0;
+ 142   1        P0=table[jiao]; 
+ 143   1        duan=1; 
+ 144   1        duan=0;
+ 145   1        delay(1);
+ 146   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    469    ----
+   CONSTANT SIZE    =     10    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      8       5
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

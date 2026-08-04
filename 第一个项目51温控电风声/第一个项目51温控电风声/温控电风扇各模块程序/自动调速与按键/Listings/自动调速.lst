@@ -1,0 +1,85 @@
+C51 COMPILER V9.54   ________                                                              04/21/2018 16:51:59 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE ________
+OBJECT MODULE PLACED IN .\Objects\自动调速.obj
+COMPILER INVOKED BY: D:\keil5\C51\BIN\C51.EXE 自动调速.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\自
+                    -动调速.lst) TABS(2) OBJECT(.\Objects\自动调速.obj)
+
+line level    source
+
+   1          #include<reg52.h>
+   2          
+   3          
+   4          
+   5          //自动调速包含案件程序
+   6          
+   7          
+   8          
+   9          sbit K1=P3^0;//低速
+  10          sbit K2=P3^1;//中速
+  11          sbit K3=P3^2;//高速
+  12          
+  13          sbit K4=P3^3;//按下为自动
+  14            
+  15          unsigned int i;
+  16          
+  17          ////////////延时函数///////////////
+  18          
+  19          void  Delay(unsigned int count) 
+  20          {
+  21   1      unsigned char i;
+  22   1      while(count--)
+  23   1      {for(i=0;i<115;i++);}
+  24   1      }
+  25          
+  26          
+  27          
+  28          void buzidong()
+  29          {
+  30   1      if(K1==0)
+  31   1      {Delay(200);i=7;}
+  32   1      if(K2==0)
+  33   1      {Delay(200);i=6;}
+  34   1      if(K3==0)
+  35   1      {Delay(200);i=5;}
+  36   1      
+  37   1      }
+  38          void zidong()
+  39          {//具体的温度和速度范围自己可以设置
+  40   1          if(temp>0&&temp<22) //速度1
+*** ERROR C202 IN LINE 40 OF 自动调速.c: 'temp': undefined identifier
+  41   1      //    i=6;
+  42   1        if(temp>22&&temp<24) //速度1
+*** ERROR C202 IN LINE 42 OF 自动调速.c: 'temp': undefined identifier
+  43   1          i=4;
+  44   1          if(temp>24&&temp<26) //速度2
+*** ERROR C202 IN LINE 44 OF 自动调速.c: 'temp': undefined identifier
+  45   1          i=2;
+  46   1        if(temp>26&&temp<30) //速度3
+*** ERROR C202 IN LINE 46 OF 自动调速.c: 'temp': undefined identifier
+  47   1          i=0;
+  48   1        
+  49   1      {
+  50   2      DS18B20PRO();
+C51 COMPILER V9.54   ________                                                              04/21/2018 16:51:59 PAGE 2   
+
+  51   2      
+  52   2      
+  53   2      }
+  54   1      }
+  55          void main()
+  56          {
+  57   1      
+  58   1      while(1)
+  59   1      {
+  60   2      
+  61   2      
+  62   2      buzidong();
+  63   2      
+  64   2      if(K4==0)
+  65   2      {zidong();}
+  66   2      }
+  67   1      }
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  4 ERROR(S)

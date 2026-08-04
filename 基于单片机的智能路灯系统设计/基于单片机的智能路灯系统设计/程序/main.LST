@@ -1,0 +1,974 @@
+C51 COMPILER V9.00   MAIN                                                                  05/31/2020 12:32:34 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: F:\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /******定义头文件**************/
+   2          #include<reg52.h> 
+   3          #include <INTRINS.H> 
+   4          #include"lcd.h"
+   5          #include "ds1302.h"
+   6          /******类型重定义*************/
+   7          typedef unsigned char uchar;
+   8          typedef unsigned int  uint;
+   9          /******引脚定义***************/
+  10          sbit key_1 = P1^0;                      //定义4个按键
+  11          sbit key_2 = P1^1;
+  12          sbit key_3 = P1^2;
+  13          sbit key_4 = P1^3;
+  14          sbit led_1 = P1^4;
+  15          sbit Beep = P2^3;                                       //定义声光报警
+  16          sbit AD_clk = P3^4;                                     //定义ADC0832           
+  17          sbit AD_do = P3^5; 
+  18          sbit AD_di = P3^5;
+  19          sbit AD_cs = P3^6; 
+  20          sbit red_sr = P3^7;                                     //红外检测
+  21          
+  22          /******定义变量***************/
+  23          char hour,min,sec;                                              //定义小时、分钟、秒变量
+  24          char time;
+  25          char work_time_Start = 16,work_time_End = 5;            //设定起始、结束时间
+  26          bit light_flag; 
+  27          uchar light;                                                    //定义光照强度
+  28          uchar light_limit;                                              //定义光照阈值
+  29          uchar Data;
+  30          /******声明函数***************/
+  31          void delayms(unsigned int x);                   //延时函数
+  32          void display();                                                 //显示
+  33          void Read_time();
+  34          void set_work_time();                                   //设定工作时间
+  35          void set_limit_light();                                 //设定光照阈值
+  36          void work();                                                    //工作状态
+  37          void set_time();                                                //设定时间
+  38          void delay10ms(int d);
+  39          void InitTimer0(void);                                  //T0定时器初始化程序
+  40          uchar AD(bit Channel);                                  //ADC0832程序
+  41          
+  42          void main()
+  43          {
+  44   1              Beep = led_1 = 0;                                       //声光报警，LED关闭
+  45   1              InitTimer0();                                           //T0定时器初始化程序
+  46   1              LcdInit();                                                      //lcd1602初始化
+  47   1              while(1)
+  48   1              {
+  49   2                      Ds1302ReadTime();                               //读取时间
+  50   2                      set_work_time();                                //设定工作时间
+  51   2                      set_limit_light();                              //设定光照阈值
+  52   2                      set_time();
+  53   2                      light = AD(0);                                  //读取ADC0832数值                                       
+  54   2                      display();                                              //显示
+  55   2                      work();                                                 //工作状态
+C51 COMPILER V9.00   MAIN                                                                  05/31/2020 12:32:34 PAGE 2   
+
+  56   2              }
+  57   1      }
+  58          void Timer0Interrupt(void) interrupt 1
+  59          {
+  60   1              static uchar count;
+  61   1          TH0 = 0x0D8;
+  62   1          TL0 = 0x0F0;
+  63   1              count ++;
+  64   1              if(count>=100)
+  65   1              {
+  66   2                      time ++;
+  67   2                      count = 0;
+  68   2          }
+  69   1              //add your code here
+  70   1      }
+  71          /*******************************************************************************
+  72          * 函数名         : InitTimer0()
+  73          * 函数功能               : T0定时器初始化程序
+  74          * 输入           : 无
+  75          * 输出           : 无
+  76          *******************************************************************************/
+  77          void InitTimer0(void)
+  78          {
+  79   1          TMOD = 0x01;
+  80   1          TH0 = 0x0D8;
+  81   1          TL0 = 0x0F0;
+  82   1          EA = 0;
+  83   1          ET0 = 1;
+  84   1          TR0 = 1;
+  85   1      }
+  86          /*******************************************************************************
+  87          * 函数名         : work()
+  88          * 函数功能               : 工作状态
+  89          * 输入           : 无
+  90          * 输出           : 无
+  91          *******************************************************************************/
+  92          void work()
+  93          {
+  94   1              Read_time();                                    //转换时间
+  95   1              if(work_time_End!=0 && work_time_Start!=0)                      //工作时间已设置
+  96   1              {
+  97   2                      if(hour >= work_time_Start)                                             //当前时间大于起始时间，如起始时间为19：00，当前时间为21：00。
+  98   2                      {
+  99   3                              Data = AD(1);
+ 100   3                              led_1 = 1;                                                                      //点亮LED
+ 101   3                              if(Data < 50)                                                           //未检测到LED点亮
+ 102   3                                      Beep = 1;                                                               //声光报警
+ 103   3                              else                                                                            //检测到Led点亮
+ 104   3                                      Beep = 0;                                                               //停止报警
+ 105   3                      }
+ 106   2                      else if(hour < work_time_End)   //当前时间小于结束时间，如结束时间为06：00，当前时间为04：00。
+ 107   2                      {
+ 108   3                              if(red_sr)                                      //检测到人或车
+ 109   3                              {
+ 110   4                                      time = 0;
+ 111   4                                      light_flag = 1;                 //LED标志置1，开始T0定时器计时，点亮LED，10s后LED标志清零，LED熄灭
+ 112   4                              }
+ 113   3                              if(light_flag)                                  //LED标志置1，检测到人或车
+ 114   3                              {
+ 115   4                                      led_1 = 1;                                      //点亮LED
+ 116   4                                      EA = 1;                                         //开启中断
+ 117   4                                      if(time > 10)                           //10s后
+C51 COMPILER V9.00   MAIN                                                                  05/31/2020 12:32:34 PAGE 3   
+
+ 118   4                                      {
+ 119   5                                              light_flag = 0;                 //LED标志清零
+ 120   5                                              EA = 0;                                 //关中断
+ 121   5                                              time = 0;                               //计时清零
+ 122   5                                      }
+ 123   4                                      Data = AD(1);
+ 124   4                                      if(Data < 50)                           //未检测到LED点亮
+ 125   4                                              Beep = 1;                               //声光报警
+ 126   4                                      else                                            //检测到Led点亮
+ 127   4                                              Beep = 0;                               //停止报警              
+ 128   4                              }
+ 129   3                              else
+ 130   3                                      led_1 = 0;
+ 131   3                      }
+ 132   2                      else
+ 133   2                      {
+ 134   3                              if(light < light_limit)
+ 135   3                              {
+ 136   4                                      led_1 = 1;
+ 137   4                                      Data = AD(1);
+ 138   4                                      if(Data < 50)                                                           //未检测到LED点亮
+ 139   4                                              Beep = 1;                                                               //声光报警
+ 140   4                                      else                                                                            //检测到Led点亮
+ 141   4                                              Beep = 0;                                                               //停止报警
+ 142   4                              }
+ 143   3                              else
+ 144   3                                      led_1 = Beep = 0;
+ 145   3                      }
+ 146   2              }               
+ 147   1      }
+ 148          /*******************************************************************************
+ 149          * 函数名         : set_work_time()
+ 150          * 函数功能               : 设定工作时间
+ 151          * 输入           : 无
+ 152          * 输出           : 无
+ 153          *******************************************************************************/
+ 154          void set_work_time()
+ 155          {
+ 156   1              if(key_2 == 0)                                                                          //设置键按下
+ 157   1              {
+ 158   2                      delayms(10);                                                                    //延时消抖
+ 159   2                      if(key_2 == 0)                                                                  //再次判断
+ 160   2                      {
+ 161   3                              while(key_2 == 0);
+ 162   3                              LcdWriteCom(0x01);                                                      //清屏
+ 163   3                              delayms(10);
+ 164   3                              LcdWriteCom(0x80);                                              //显示
+ 165   3                              LcdWriteData('S');
+ 166   3                              LcdWriteData('E');
+ 167   3                              LcdWriteData('T');
+ 168   3                              LcdWriteData('-');
+ 169   3                              LcdWriteData('w');
+ 170   3                              LcdWriteData('o');
+ 171   3                              LcdWriteData('r');
+ 172   3                              LcdWriteData('k');
+ 173   3                              LcdWriteData(' ');
+ 174   3                              LcdWriteData('t');
+ 175   3                              LcdWriteData('i');
+ 176   3                              LcdWriteData('m');
+ 177   3                              LcdWriteData('e');
+ 178   3                              for(;;)                                                                         //设定工作时间段
+ 179   3                              {
+C51 COMPILER V9.00   MAIN                                                                  05/31/2020 12:32:34 PAGE 4   
+
+ 180   4                                      LcdWriteCom(0xc0);
+ 181   4                                      LcdWriteData('s');
+ 182   4                                      LcdWriteData('t');
+ 183   4                                      LcdWriteData('a');
+ 184   4                                      LcdWriteData('r');
+ 185   4                                      LcdWriteData('t');
+ 186   4                                      LcdWriteData(':');
+ 187   4                                      LcdWriteCom(0xca);
+ 188   4                                      LcdWriteData(0x30+work_time_Start%100/10);
+ 189   4                                      LcdWriteData(0x30+work_time_Start%10);
+ 190   4                                      if(key_2 == 0)                                                  //按键2按下，每按一次+5
+ 191   4                                      {
+ 192   5                                              delayms(10);
+ 193   5                                              if(key_2 == 0)
+ 194   5                                              {
+ 195   6                                                      while(key_2 == 0);
+ 196   6                                                      work_time_Start+=1;
+ 197   6                                                      if(work_time_Start > 24)
+ 198   6                                                              work_time_Start = 24;
+ 199   6                                              }
+ 200   5                                      }
+ 201   4                                      if(key_3 == 0)                                                  //按键3按下，每按一次-5
+ 202   4                                      {
+ 203   5                                              delayms(10);
+ 204   5                                              if(key_3 == 0)
+ 205   5                                              {
+ 206   6                                                      while(key_3 == 0);
+ 207   6                                                      work_time_Start -=1;
+ 208   6                                                      if(work_time_Start<=work_time_End)              //禁止起始时间小于结束时间
+ 209   6                                                              work_time_Start = work_time_End;
+ 210   6                                              }
+ 211   5                                      }
+ 212   4                                      if(key_4 == 0)                                                  //按键4按下，输入下一项
+ 213   4                                      {
+ 214   5                                              delayms(10);
+ 215   5                                              if(key_4 == 0)
+ 216   5                                              {
+ 217   6                                                      while(key_4 == 0);
+ 218   6                                                      LcdWriteCom(0x01);
+ 219   6                                                      break;
+ 220   6                                              }
+ 221   5                                      }
+ 222   4                              }
+ 223   3                              for(;;)                                                                         //设定工作时间段
+ 224   3                              {
+ 225   4                                      LcdWriteCom(0xc0);
+ 226   4                                      LcdWriteData('s');
+ 227   4                                      LcdWriteData('t');
+ 228   4                                      LcdWriteData('o');
+ 229   4                                      LcdWriteData('p');
+ 230   4                                      LcdWriteData(' ');
+ 231   4                                      LcdWriteData(':');
+ 232   4                                      LcdWriteCom(0xca);
+ 233   4                                      LcdWriteData(0x30+work_time_End%100/10);
+ 234   4                                      LcdWriteData(0x30+work_time_End%10);
+ 235   4                                      if(key_2 == 0)
+ 236   4                                      {
+ 237   5                                              delayms(10);
+ 238   5                                              if(key_2 == 0)
+ 239   5                                              {
+ 240   6                                                      while(key_2 == 0);
+ 241   6                                                      work_time_End += 1;
+C51 COMPILER V9.00   MAIN                                                                  05/31/2020 12:32:34 PAGE 5   
+
+ 242   6                                                      if(work_time_End > work_time_Start)             //禁止结束时间大于开始时间
+ 243   6                                                              work_time_End = work_time_Start;
+ 244   6                                              }
+ 245   5                                      }
+ 246   4                                      if(key_3 == 0)
+ 247   4                                      {
+ 248   5                                              delayms(10);
+ 249   5                                              if(key_3 == 0)
+ 250   5                                              {
+ 251   6                                                      while(key_3 == 0);
+ 252   6                                                      work_time_End -=1;
+ 253   6                                                      if(work_time_End < 0)
+ 254   6                                                              work_time_End = 0;
+ 255   6                                              }
+ 256   5                                      }
+ 257   4                                      if(key_4 == 0)
+ 258   4                                      {
+ 259   5                                              delayms(10);
+ 260   5                                              if(key_4 == 0)
+ 261   5                                              {
+ 262   6                                                      while(key_4 == 0);
+ 263   6                                                      LcdWriteCom(0x01);
+ 264   6                                                      break;
+ 265   6                                              }
+ 266   5                                      }
+ 267   4                              }
+ 268   3                      }
+ 269   2              }       
+ 270   1      }
+ 271          /*******************************************************************************
+ 272          * 函数名         : set_limit_light()
+ 273          * 函数功能               : 设定光照阈值
+ 274          * 输入           : 无
+ 275          * 输出           : 无
+ 276          *******************************************************************************/
+ 277          void set_limit_light()
+ 278          {
+ 279   1              if(key_3 == 0)                                                                          //键3按下
+ 280   1              {
+ 281   2                      delayms(10);                                                                    //延时消抖
+ 282   2                      if(key_3 == 0)                                                                  //再次判断
+ 283   2                      {
+ 284   3                              while(key_3 == 0);
+ 285   3                              LcdWriteCom(0x01);                                                      //清屏
+ 286   3                              delayms(10);
+ 287   3                              LcdWriteCom(0x80);                                              //显示
+ 288   3                              LcdWriteData('S');
+ 289   3                              LcdWriteData('E');
+ 290   3                              LcdWriteData('T');
+ 291   3                              LcdWriteData('-');
+ 292   3                              LcdWriteData('L');
+ 293   3                              LcdWriteData('i');
+ 294   3                              LcdWriteData('g');
+ 295   3                              LcdWriteData('h');
+ 296   3                              LcdWriteData('t');
+ 297   3                              LcdWriteData('-');
+ 298   3                              LcdWriteData('L');
+ 299   3                              LcdWriteData('i');
+ 300   3                              LcdWriteData('m');
+ 301   3                              LcdWriteData('i');
+ 302   3                              LcdWriteData('t');
+ 303   3                              for(;;)                                                                         //设定光照阈值
+C51 COMPILER V9.00   MAIN                                                                  05/31/2020 12:32:34 PAGE 6   
+
+ 304   3                              {
+ 305   4                                      LcdWriteCom(0xc0);
+ 306   4                                      LcdWriteData('D');
+ 307   4                                      LcdWriteData('a');
+ 308   4                                      LcdWriteData('t');
+ 309   4                                      LcdWriteData('a');
+ 310   4                                      LcdWriteData(':');
+ 311   4                                      LcdWriteCom(0xca);
+ 312   4                                      LcdWriteData(0x30+light_limit%1000/100);
+ 313   4                                      LcdWriteData(0x30+light_limit%100/10);
+ 314   4                                      LcdWriteData(0x30+light_limit%10);
+ 315   4                                      if(key_2 == 0)                                                  //按键2按下，每按一次+5
+ 316   4                                      {
+ 317   5                                              delayms(10);
+ 318   5                                              if(key_2 == 0)
+ 319   5                                              {
+ 320   6                                                      while(key_2 == 0);
+ 321   6                                                      light_limit += 5;
+ 322   6                                                      if(light_limit > 250)
+ 323   6                                                              light_limit = 250;
+ 324   6                                              }
+ 325   5                                      }
+ 326   4                                      if(key_3 == 0)                                                  //按键3按下，每按一次-5
+ 327   4                                      {
+ 328   5                                              delayms(10);
+ 329   5                                              if(key_3 == 0)
+ 330   5                                              {
+ 331   6                                                      while(key_3 == 0);
+ 332   6                                                      light_limit -= 5;
+ 333   6                                                      if(light_limit < 10)
+ 334   6                                                              light_limit = 10;
+ 335   6                                              }
+ 336   5                                      }
+ 337   4                                      if(key_4 == 0)                                                  //按键4按下，输入下一项
+ 338   4                                      {
+ 339   5                                              delayms(10);
+ 340   5                                              if(key_4 == 0)
+ 341   5                                              {
+ 342   6                                                      while(key_4 == 0);
+ 343   6                                                      LcdWriteCom(0x01);
+ 344   6                                                      break;
+ 345   6                                              }
+ 346   5                                      }
+ 347   4                              }
+ 348   3                      }
+ 349   2              }       
+ 350   1      }
+ 351          /*******************************************************************************
+ 352          * 函数名         : read_time()
+ 353          * 函数功能               : 转换时间
+ 354          * 输入           : 无
+ 355          * 输出           : 无
+ 356          *******************************************************************************/
+ 357          void Read_time()
+ 358          {
+ 359   1              hour = (Time_1[2]/16)*10 + (Time_1[2]&0x0f);
+ 360   1              min = (Time_1[1]/16)*10 + (Time_1[1]&0x0f);
+ 361   1              sec = (Time_1[0]/16)*10 + (Time_1[0]&0x0f);
+ 362   1      }
+ 363          /*******************************************************************************
+ 364          * 函数名         : display()
+ 365          * 函数功能               : 主界面显示函数
+C51 COMPILER V9.00   MAIN                                                                  05/31/2020 12:32:34 PAGE 7   
+
+ 366          * 输入           : 无
+ 367          * 输出           : 无
+ 368          *******************************************************************************/
+ 369          void display()
+ 370          {
+ 371   1              LcdWriteCom(0x80);      
+ 372   1              LcdWriteData('2');
+ 373   1              LcdWriteData('0');
+ 374   1              LcdWriteData('0'+Time_1[6]/16);                 //年
+ 375   1              LcdWriteData('0'+(Time_1[6]&0x0f));
+ 376   1              LcdWriteData('-');
+ 377   1              LcdWriteData('0'+Time_1[4]/16);                 //月
+ 378   1              LcdWriteData('0'+(Time_1[4]&0x0f));
+ 379   1              LcdWriteData('-');
+ 380   1              LcdWriteData('0'+Time_1[3]/16);                 //日
+ 381   1              LcdWriteData('0'+(Time_1[3]&0x0f));
+ 382   1              LcdWriteData(' ');
+ 383   1      
+ 384   1              LcdWriteCom(0x8e);
+ 385   1              LcdWriteData('0'+time%100/10);
+ 386   1              LcdWriteData('0'+time%10);
+ 387   1              
+ 388   1              
+ 389   1              LcdWriteCom(0xc0);      
+ 390   1              LcdWriteData('0'+Time_1[2]/16);                 //时
+ 391   1              LcdWriteData('0'+(Time_1[2]&0x0f));
+ 392   1              LcdWriteData(':');
+ 393   1              LcdWriteData('0'+Time_1[1]/16);                 //分
+ 394   1              LcdWriteData('0'+(Time_1[1]&0x0f));
+ 395   1              LcdWriteData(':');
+ 396   1              LcdWriteData('0'+Time_1[0]/16);                 //秒
+ 397   1              LcdWriteData('0'+(Time_1[0]&0x0f));     
+ 398   1      
+ 399   1              LcdWriteCom(0xcd);                                              //显示当前光照强度
+ 400   1              LcdWriteData('0'+light/100);
+ 401   1              LcdWriteData('0'+light%100/10);
+ 402   1              LcdWriteData('0'+light%10);
+ 403   1      }
+ 404          /*******************************************************************************
+ 405          * 函数名         : delayms()
+ 406          * 函数功能               : 延时函数，ms级别
+ 407          * 输入           : 无
+ 408          * 输出           : 无
+ 409          *******************************************************************************/
+ 410          void delayms(unsigned int x)   //0.14ms误差 0us
+ 411          {
+ 412   1              unsigned char i;
+ 413   1              while(x--)
+ 414   1              {
+ 415   2                      for (i = 0; i<13; i++)
+ 416   2                      {}
+ 417   2              }
+ 418   1      }
+ 419          /*************************************************************
+ 420          * 函 数 名         : delay10ms
+ 421          * 函数功能                 : 延时函数，延时时间10ms*d
+ 422          * 输    入         : 无
+ 423          * 输    出         : 无
+ 424          *************************************************************/
+ 425          void delay10ms(int d)   //误差 0us
+ 426          {
+ 427   1          unsigned char a,b,c;
+C51 COMPILER V9.00   MAIN                                                                  05/31/2020 12:32:34 PAGE 8   
+
+ 428   1          for(c=d;c>0;c--)
+ 429   1              for(b=38;b>0;b--)
+ 430   1                  for(a=130;a>0;a--);
+ 431   1      }
+ 432          /*************************************************************
+ 433          * 函 数 名         : set_time()
+ 434          * 函数功能                 : 设置时间
+ 435          * 输    入         : 无
+ 436          * 输    出         : 无
+ 437          *************************************************************/
+ 438          void set_time()                                                         
+ 439          {
+ 440   1              char time_flag = 0;                     //定义一个时间变量
+ 441   1              char time_flag_1 = 0;
+ 442   1                 if(key_1==0)                         //进入设置时间
+ 443   1                 {
+ 444   2                      while(key_1==0);
+ 445   2                      //设置年
+ 446   2                      time_flag = Time_1[6]/16;               //取出DS1302 年的十位
+ 447   2                      time_flag_1 = (Time_1[6]&0x0f);
+ 448   2                      for(;;)
+ 449   2                      {                               
+ 450   3                              LcdWriteCom(0x82);  //显示坐标   
+ 451   3                              LcdWriteCom(0x0e);  //光标
+ 452   3                              delay10ms(50);  
+ 453   3                              LcdWriteCom(0x0c);  //光标                      
+ 454   3                              if(key_2 ==0)
+ 455   3                              {
+ 456   4                                      while(key_2==0);                         //时间加
+ 457   4                                      time_flag++;
+ 458   4                              }
+ 459   3                              if(key_3 ==0)                                   
+ 460   3                              {
+ 461   4                                      while(key_3==0);                  //时间减
+ 462   4                                      time_flag--;
+ 463   4                              }
+ 464   3                              if(time_flag>=9)                                           //显示范围
+ 465   3                                      time_flag = 9;
+ 466   3                              else if(time_flag<=0)
+ 467   3                                      time_flag = 0;
+ 468   3      
+ 469   3                              LcdWriteData(time_flag+'0');   //在lcd1602进行显示
+ 470   3                              
+ 471   3                              if(key_4 ==0)                                   //确认
+ 472   3                              {
+ 473   4                                      while(key_4==0);                  //时间减
+ 474   4                                      Time_1[6] = time_flag*16;                       //时间写入数组
+ 475   4                                      break;
+ 476   4                              }
+ 477   3                      }
+ 478   2                      
+ 479   2                      for(;;)
+ 480   2                      {
+ 481   3                              LcdWriteCom(0x83);  //显示坐标   
+ 482   3                              LcdWriteCom(0x0e);  //光标
+ 483   3                              delay10ms(50);  
+ 484   3                              LcdWriteCom(0x0c);  //光标      
+ 485   3      
+ 486   3                              
+ 487   3                              if(key_2 ==0)
+ 488   3                              {
+ 489   4                                      while(key_2==0);                         //时间加
+C51 COMPILER V9.00   MAIN                                                                  05/31/2020 12:32:34 PAGE 9   
+
+ 490   4                                      time_flag_1++;
+ 491   4                              }
+ 492   3                              if(key_3 ==0)                                   
+ 493   3                              {
+ 494   4                                      while(key_3==0);                  //时间减
+ 495   4                                      time_flag_1--;
+ 496   4                              }
+ 497   3                              if(time_flag_1>=9)                                         //显示范围
+ 498   3                                      time_flag_1 = 9;
+ 499   3                              else if(time_flag_1<=0)
+ 500   3                                      time_flag_1 = 0;
+ 501   3      
+ 502   3                              LcdWriteData(time_flag_1+'0');   //在lcd1602进行显示
+ 503   3                              
+ 504   3                              if(key_4 ==0)                                   //确认
+ 505   3                              {
+ 506   4                                      while(key_4==0);                  //时间减
+ 507   4                                      Time_1[6] += time_flag_1;       //时间写入数组
+ 508   4                                      break;
+ 509   4                              }
+ 510   3                      }
+ 511   2      
+ 512   2                      //设置月
+ 513   2                      time_flag = Time_1[4]/16;               //取出DS1302 月的十位
+ 514   2                      time_flag_1 = (Time_1[4]&0x0f);
+ 515   2                      for(;;)
+ 516   2                      {
+ 517   3                              LcdWriteCom(0x85);  //显示坐标   
+ 518   3                              LcdWriteCom(0x0e);  //光标
+ 519   3                              delay10ms(50);  
+ 520   3                              LcdWriteCom(0x0c);  //光标      
+ 521   3      
+ 522   3                              
+ 523   3                              if(key_2 ==0)
+ 524   3                              {
+ 525   4                                      while(key_2==0);                         //时间加
+ 526   4                                      time_flag++;
+ 527   4                              }
+ 528   3                              if(key_3 ==0)                                   
+ 529   3                              {
+ 530   4                                      while(key_3==0);                  //时间减
+ 531   4                                      time_flag--;
+ 532   4                              }
+ 533   3                              if(time_flag>=9)                                           //显示范围
+ 534   3                                      time_flag = 9;
+ 535   3                              else if(time_flag<=0)
+ 536   3                                      time_flag = 0;
+ 537   3      
+ 538   3                              LcdWriteData(time_flag+'0');   //在lcd1602进行显示
+ 539   3                              
+ 540   3                              if(key_4 ==0)                                   //确认
+ 541   3                              {
+ 542   4                                      while(key_4==0);                  //时间减
+ 543   4                                      Time_1[4] = time_flag*16;                       //时间写入数组
+ 544   4                                      break;
+ 545   4                              }
+ 546   3                      }
+ 547   2      
+ 548   2                      for(;;)
+ 549   2                      {
+ 550   3                              LcdWriteCom(0x86);  //显示坐标   
+ 551   3                              LcdWriteCom(0x0e);  //光标
+C51 COMPILER V9.00   MAIN                                                                  05/31/2020 12:32:34 PAGE 10  
+
+ 552   3                              delay10ms(50);  
+ 553   3                              LcdWriteCom(0x0c);  //光标              
+ 554   3                              if(key_2 ==0)
+ 555   3                              {
+ 556   4                                      while(key_2==0);                         //时间加
+ 557   4                                      time_flag_1++;
+ 558   4                              }
+ 559   3                              if(key_3 ==0)                                   
+ 560   3                              {
+ 561   4                                      while(key_3==0);                  //时间减
+ 562   4                                      time_flag_1--;
+ 563   4                              }
+ 564   3                              if(time_flag_1>=9)                                         //显示范围
+ 565   3                                      time_flag_1 = 9;
+ 566   3                              else if(time_flag_1<=0)
+ 567   3                                      time_flag_1 = 0;
+ 568   3      
+ 569   3                              LcdWriteData(time_flag_1+'0');   //在lcd1602进行显示
+ 570   3                              
+ 571   3                              if(key_4 ==0)                                   //确认
+ 572   3                              {
+ 573   4                                      while(key_4==0);                  //时间减
+ 574   4                                      Time_1[4] += time_flag_1;       //时间写入数组
+ 575   4                                      break;
+ 576   4                              }
+ 577   3                      }
+ 578   2      
+ 579   2                      //设置日
+ 580   2                      time_flag = Time_1[3]/16;               //取出DS1302 日的十位
+ 581   2                      time_flag_1 = (Time_1[3]&0x0f);
+ 582   2                      for(;;)
+ 583   2                      {
+ 584   3                              LcdWriteCom(0x88);  //显示坐标   
+ 585   3                              LcdWriteCom(0x0e);  //光标
+ 586   3                              delay10ms(50);  
+ 587   3                              LcdWriteCom(0x0c);  //光标      
+ 588   3      
+ 589   3                              
+ 590   3                              if(key_2 ==0)
+ 591   3                              {
+ 592   4                                      while(key_2==0);                         //时间加
+ 593   4                                      time_flag++;
+ 594   4                              }
+ 595   3                              if(key_3 ==0)                                   
+ 596   3                              {
+ 597   4                                      while(key_3==0);                  //时间减
+ 598   4                                      time_flag--;
+ 599   4                              }
+ 600   3                              if(time_flag>=9)                                           //显示范围
+ 601   3                                      time_flag = 9;
+ 602   3                              else if(time_flag<=0)
+ 603   3                                      time_flag = 0;
+ 604   3      
+ 605   3                              LcdWriteData(time_flag+'0');   //在lcd1602进行显示
+ 606   3                              
+ 607   3                              if(key_4 ==0)                                   //确认
+ 608   3                              {
+ 609   4                                      while(key_4==0);                  //时间减
+ 610   4                                      Time_1[3] = time_flag*16;                       //时间写入数组
+ 611   4                                      break;
+ 612   4                              }
+ 613   3                      }
+C51 COMPILER V9.00   MAIN                                                                  05/31/2020 12:32:34 PAGE 11  
+
+ 614   2      
+ 615   2                      for(;;)
+ 616   2                      {
+ 617   3                              LcdWriteCom(0x89);  //显示坐标   
+ 618   3                              LcdWriteCom(0x0e);  //光标
+ 619   3                              delay10ms(50);  
+ 620   3                              LcdWriteCom(0x0c);  //光标      
+ 621   3                              if(key_2 ==0)
+ 622   3                              {
+ 623   4                                      while(key_2==0);                         //时间加
+ 624   4                                      time_flag_1++;
+ 625   4                              }
+ 626   3                              if(key_3 ==0)                                   
+ 627   3                              {
+ 628   4                                      while(key_3==0);                  //时间减
+ 629   4                                      time_flag_1--;
+ 630   4                              }
+ 631   3                              if(time_flag_1>=9)                                         //显示范围
+ 632   3                                      time_flag_1 = 9;
+ 633   3                              else if(time_flag_1<=0)
+ 634   3                                      time_flag_1 = 0;
+ 635   3      
+ 636   3                              LcdWriteData(time_flag_1+'0');   //在lcd1602进行显示
+ 637   3                              
+ 638   3                              if(key_4 ==0)                                   //确认
+ 639   3                              {
+ 640   4                                      while(key_4==0);                  //时间减
+ 641   4                                      Time_1[3] += time_flag_1;       //时间写入数组
+ 642   4                                      break;
+ 643   4                              }
+ 644   3                      }
+ 645   2      
+ 646   2                      //设置小时
+ 647   2                      time_flag = Time_1[2]/16;               //取出DS1302 小时的十位
+ 648   2                      time_flag_1 = (Time_1[2]&0x0f);
+ 649   2                      for(;;)
+ 650   2                      {
+ 651   3                              LcdWriteCom(0xc0);  //显示坐标   
+ 652   3                              LcdWriteCom(0x0e);  //光标
+ 653   3                              delay10ms(50);  
+ 654   3                              LcdWriteCom(0x0c);  //光标      
+ 655   3      
+ 656   3                              
+ 657   3                              if(key_2 ==0)
+ 658   3                              {
+ 659   4                                      while(key_2==0);                         //时间加
+ 660   4                                      time_flag++;
+ 661   4                              }
+ 662   3                              if(key_3 ==0)                                   
+ 663   3                              {
+ 664   4                                      while(key_3==0);                  //时间减
+ 665   4                                      time_flag--;
+ 666   4                              }
+ 667   3                              if(time_flag>=9)                                           //显示范围
+ 668   3                                      time_flag = 9;
+ 669   3                              else if(time_flag<=0)
+ 670   3                                      time_flag = 0;
+ 671   3      
+ 672   3                              LcdWriteData(time_flag+'0');   //在lcd1602进行显示
+ 673   3                              
+ 674   3                              if(key_4 ==0)                                   //确认
+ 675   3                              {
+C51 COMPILER V9.00   MAIN                                                                  05/31/2020 12:32:34 PAGE 12  
+
+ 676   4                                      while(key_4==0);                  //时间减
+ 677   4                                      Time_1[2] = time_flag*16;                       //时间写入数组
+ 678   4                                      break;
+ 679   4                              }
+ 680   3                      }
+ 681   2      
+ 682   2                      for(;;)
+ 683   2                      {
+ 684   3                              LcdWriteCom(0xc1);  //显示坐标   
+ 685   3                              LcdWriteCom(0x0e);  //光标
+ 686   3                              delay10ms(50);  
+ 687   3                              LcdWriteCom(0x0c);  //光标      
+ 688   3      
+ 689   3                              
+ 690   3                              if(key_2 ==0)
+ 691   3                              {
+ 692   4                                      while(key_2==0);                         //时间加
+ 693   4                                      time_flag_1++;
+ 694   4                              }
+ 695   3                              if(key_3 ==0)                                   
+ 696   3                              {
+ 697   4                                      while(key_3==0);                  //时间减
+ 698   4                                      time_flag_1--;
+ 699   4                              }
+ 700   3                              if(time_flag_1>=9)                                         //显示范围
+ 701   3                                      time_flag_1 = 9;
+ 702   3                              else if(time_flag_1<=0)
+ 703   3                                      time_flag_1 = 0;
+ 704   3      
+ 705   3                              LcdWriteData(time_flag_1+'0');   //在lcd1602进行显示
+ 706   3                              
+ 707   3                              if(key_4 ==0)                                   //确认
+ 708   3                              {
+ 709   4                                      while(key_4==0);                  //时间减
+ 710   4                                      Time_1[2] += time_flag_1;       //时间写入数组
+ 711   4                                      break;
+ 712   4                              }
+ 713   3                      }
+ 714   2      
+ 715   2                      //设置分
+ 716   2                      time_flag = Time_1[1]/16;               //取出DS1302 分的十位
+ 717   2                              time_flag_1 = (Time_1[1]&0x0f);
+ 718   2                      for(;;)
+ 719   2                      {
+ 720   3                              LcdWriteCom(0xc3);  //显示坐标   
+ 721   3                              LcdWriteCom(0x0e);  //光标
+ 722   3                              delay10ms(50);  
+ 723   3                              LcdWriteCom(0x0c);  //光标      
+ 724   3      
+ 725   3                              
+ 726   3                              if(key_2 ==0)
+ 727   3                              {
+ 728   4                                      while(key_2==0);                         //时间加
+ 729   4                                      time_flag++;
+ 730   4                              }
+ 731   3                              if(key_3 ==0)                                   
+ 732   3                              {
+ 733   4                                      while(key_3==0);                  //时间减
+ 734   4                                      time_flag--;
+ 735   4                              }
+ 736   3                              if(time_flag>=9)                                           //显示范围
+ 737   3                                      time_flag = 9;
+C51 COMPILER V9.00   MAIN                                                                  05/31/2020 12:32:34 PAGE 13  
+
+ 738   3                              else if(time_flag<=0)
+ 739   3                                      time_flag = 0;
+ 740   3      
+ 741   3                              LcdWriteData(time_flag+'0');   //在lcd1602进行显示
+ 742   3                              
+ 743   3                              if(key_4 ==0)                                   //确认
+ 744   3                              {
+ 745   4                                      while(key_4==0);                  //时间减
+ 746   4                                      Time_1[1] = time_flag*16;                       //时间写入数组
+ 747   4                                      break;
+ 748   4                              }
+ 749   3                      }
+ 750   2      
+ 751   2                      for(;;)
+ 752   2                      {
+ 753   3                              LcdWriteCom(0xc4);  //显示坐标   
+ 754   3                              LcdWriteCom(0x0e);  //光标
+ 755   3                              delay10ms(50);  
+ 756   3                              LcdWriteCom(0x0c);  //光标      
+ 757   3      
+ 758   3                              
+ 759   3                              if(key_2 ==0)
+ 760   3                              {
+ 761   4                                      while(key_2==0);                         //时间加
+ 762   4                                      time_flag_1++;
+ 763   4                              }
+ 764   3                              if(key_3 ==0)                                   
+ 765   3                              {
+ 766   4                                      while(key_3==0);                  //时间减
+ 767   4                                      time_flag_1--;
+ 768   4                              }
+ 769   3                              if(time_flag_1>=9)                                         //显示范围
+ 770   3                                      time_flag_1 = 9;
+ 771   3                              else if(time_flag_1<=0)
+ 772   3                                      time_flag_1 = 0;
+ 773   3      
+ 774   3                              LcdWriteData(time_flag_1+'0');   //在lcd1602进行显示
+ 775   3                              
+ 776   3                              if(key_4 ==0)                                   //确认
+ 777   3                              {
+ 778   4                                      while(key_4==0);                  //时间减
+ 779   4                                      Time_1[1] += time_flag_1;       //时间写入数组
+ 780   4                                      break;
+ 781   4                              }
+ 782   3                      }
+ 783   2      
+ 784   2      
+ 785   2                      //设置秒
+ 786   2                      time_flag = Time_1[0]/16;               //取出DS1302 秒的十位
+ 787   2                      time_flag_1 = (Time_1[0]&0x0f);
+ 788   2                      for(;;)
+ 789   2                      {
+ 790   3                              LcdWriteCom(0xc6);  //显示坐标   
+ 791   3                              LcdWriteCom(0x0e);  //光标
+ 792   3                              delay10ms(50);  
+ 793   3                              LcdWriteCom(0x0c);  //光标      
+ 794   3      
+ 795   3                              
+ 796   3                              if(key_2 ==0)
+ 797   3                              {
+ 798   4                                      while(key_2==0);                         //时间加
+ 799   4                                      time_flag++;
+C51 COMPILER V9.00   MAIN                                                                  05/31/2020 12:32:34 PAGE 14  
+
+ 800   4                              }
+ 801   3                              if(key_3 ==0)                                   
+ 802   3                              {
+ 803   4                                      while(key_3==0);                  //时间减
+ 804   4                                      time_flag--;
+ 805   4                              }
+ 806   3                              if(time_flag>=9)                                           //显示范围
+ 807   3                                      time_flag= 9;
+ 808   3                              else if(time_flag<=0)
+ 809   3                                      time_flag = 0;
+ 810   3      
+ 811   3                              LcdWriteData(time_flag+'0');   //在lcd1602进行显示
+ 812   3                              
+ 813   3                              if(key_4 ==0)                                   //确认
+ 814   3                              {
+ 815   4                                      while(key_4==0);                  //时间减
+ 816   4                                      Time_1[0] = time_flag*16;                       //时间写入数组
+ 817   4                                      break;
+ 818   4                              }
+ 819   3                      }
+ 820   2      
+ 821   2                      for(;;)
+ 822   2                      {
+ 823   3                              LcdWriteCom(0xc7);  //显示坐标   
+ 824   3                              LcdWriteCom(0x0e);  //光标
+ 825   3                              delay10ms(50);  
+ 826   3                              LcdWriteCom(0x0c);  //光标      
+ 827   3      
+ 828   3                              
+ 829   3                              if(key_2 ==0)
+ 830   3                              {
+ 831   4                                      while(key_2==0);                         //时间加
+ 832   4                                      time_flag_1++;
+ 833   4                              }
+ 834   3                              if(key_3 ==0)                                   
+ 835   3                              {
+ 836   4                                      while(key_3==0);                  //时间减
+ 837   4                                      time_flag_1--;
+ 838   4                              }
+ 839   3                              if(time_flag_1>=9)                                         //显示范围
+ 840   3                                      time_flag_1 = 9;
+ 841   3                              else if(time_flag_1<=0)
+ 842   3                                      time_flag_1 = 0;
+ 843   3      
+ 844   3                              LcdWriteData(time_flag_1+'0');   //在lcd1602进行显示
+ 845   3                              
+ 846   3                              if(key_4 ==0)                                   //确认
+ 847   3                              {
+ 848   4                                      while(key_4==0);                  //时间减
+ 849   4                                      Time_1[0] += time_flag_1;       //时间写入数组
+ 850   4                                      break;
+ 851   4                              }
+ 852   3                      }
+ 853   2                      Ds1302Init();            //保存时间
+ 854   2                      delay10ms(50);          
+ 855   2              }
+ 856   1      }
+ 857          /*******************************************************************************
+ 858          * 函数名         : uchar AD(bit Channel)
+ 859          * 函数功能               : 采集AD值
+ 860          * 输入           : 无
+ 861          * 输出           : 无
+C51 COMPILER V9.00   MAIN                                                                  05/31/2020 12:32:34 PAGE 15  
+
+ 862          *******************************************************************************/
+ 863          uchar AD(bit Channel)
+ 864          {
+ 865   1              unsigned char i;
+ 866   1              unsigned char ad0,ad1;
+ 867   1              ad0 = 0x00;
+ 868   1              ad1 = 0x00;
+ 869   1      
+ 870   1              AD_cs = 0;
+ 871   1              _nop_();
+ 872   1              AD_clk=0;
+ 873   1              _nop_();
+ 874   1              AD_di=1;
+ 875   1              _nop_();
+ 876   1              AD_clk=1;          ////输入开始信号（构成一个正脉冲）,时钟上升沿，输入开始信号 
+ 877   1                      
+ 878   1              //单通道0~10.  1~11  双通道 0+~00 。0—~01
+ 879   1              AD_clk=0;
+ 880   1              AD_di=1;   //选择单通道
+ 881   1              AD_clk=1;  
+ 882   1              _nop_(); 
+ 883   1              AD_clk=0; 
+ 884   1              AD_di=Channel;    //选择通道
+ 885   1      
+ 886   1              //通道选择完毕
+ 887   1              AD_clk=1;
+ 888   1              _nop_();
+ 889   1              AD_clk=0;
+ 890   1              _nop_();
+ 891   1              AD_di=1;                
+ 892   1      
+ 893   1              for(i=8;i>0;i--)
+ 894   1              {
+ 895   2                      AD_clk=1;
+ 896   2                      ad0<<=1;
+ 897   2                      AD_clk=0;
+ 898   2                      if(AD_do)
+ 899   2                              ad0 |= 0x01;
+ 900   2                      else
+ 901   2                              ad0     |= 0x00;        
+ 902   2              }
+ 903   1              for(i=8;i>0;i--)
+ 904   1              {       
+ 905   2                      ad1>>=1;                   ////从低位向高位读取八位AD值 
+ 906   2                      AD_clk=0;
+ 907   2                      if(AD_do)
+ 908   2                              ad1 |= 0x80;
+ 909   2                      else
+ 910   2                              ad1     |= 0x00;
+ 911   2                      AD_clk=1;       
+ 912   2              }
+ 913   1              AD_cs = 1;
+ 914   1              AD_do = 1;
+ 915   1              AD_clk = 1;
+ 916   1              if(ad0 == ad1)            //判断是否采集正确
+ 917   1              {
+ 918   2                      return ad1;
+ 919   2              }
+ 920   1              return -1;
+ 921   1      }
+
+
+C51 COMPILER V9.00   MAIN                                                                  05/31/2020 12:32:34 PAGE 16  
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2449    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     10       2
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1       1
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

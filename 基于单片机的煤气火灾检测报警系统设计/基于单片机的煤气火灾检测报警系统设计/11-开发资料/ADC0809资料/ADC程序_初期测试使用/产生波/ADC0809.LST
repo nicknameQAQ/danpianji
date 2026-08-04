@@ -1,0 +1,72 @@
+C51 COMPILER V6.12  ADC0809                                                                01/01/2011 20:11:47 PAGE 1   
+
+
+C51 COMPILER V6.12, COMPILATION OF MODULE ADC0809
+OBJECT MODULE PLACED IN .\ADC0809.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE .\ADC0809.c DEBUG OBJECTEXTEND
+
+stmt level    source
+
+   1          #include <reg52.h>
+   2          
+   3          sbit ST=P0^0;
+   4          sbit EOC=P0^1;
+   5          sbit OE=P0^2;
+   6          sbit AD_CLK=P0^3;
+   7          
+   8          sbit Feng=P2^3;
+   9          uchar k=0x00;
+  10          
+  11          extern void Init();
+  12          void main()
+  13          {
+  14   1      	Init();
+  15   1      	while(1)
+  16   1      	{
+  17   2      	}
+  18   1      }
+  19          //晶振为12MHz 所以经过12分频之后的时钟周期为1MHz 那么想要得到500Hz 的波形
+  20          //就是说半个周期为1/500s 而定时器加1的时间是1/5000000s 所以要这个时间乘以
+  21          //100000才能得到1/500s 这也就是TH0=(65536-10000)/256;TL0=(65536-10000)%256;
+  22          //初始化
+  23          void Init()
+  24          {
+  25   1      	AD_CLK=0;//产生ADC所要方波用
+  26   1      	EA = 1;  //总中断打开
+  27   1      	TMOD=0x01;//设置定时器0为工作方式1
+  28   1      	TH0=(65536-10000)/256;
+  29   1      	TL0=(65536-10000)%256;
+  30   1      	ET0=1;//开定时器0中断
+  31   1      	TR0=1;//启动定时器0
+  32   1      }
+  33          
+  34          
+  35          //中断函数
+  36          void exter0() interrupt 1  
+  37          {
+  38   1       TH0=(65536-10000)/256;
+  39   1       TL0=(65536-10000)%256;//定时器重新赋初值
+  40   1       k++;
+  41   1       if(k==1)
+  42   1       {
+  43   2        AD_CLK=~AD_CLK;//波形翻转
+  44   2        k=0;
+  45   2       }
+  46   1      }
+  47          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     50    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1    ----
+C51 COMPILER V6.12  ADC0809                                                                01/01/2011 20:11:47 PAGE 2   
+
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

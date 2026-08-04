@@ -1,0 +1,4 @@
+"STARTUP.obj",
+"万年历.obj" 
+TO "万年历" 
+RAMSIZE(256) 

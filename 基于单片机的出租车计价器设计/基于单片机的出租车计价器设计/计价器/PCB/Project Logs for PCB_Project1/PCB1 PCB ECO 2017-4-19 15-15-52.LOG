@@ -1,0 +1,4 @@
+Removed Pin From Net: NetName=GND Pin=LCD1-1
+Added Pin To Net: NetName=NetLCD1_16 Pin=LCD1-1
+Change Net Name : Old Net Name=NetLCD1_16 New Net Name=NetLCD1_1
+Added Room: Name=最小系统

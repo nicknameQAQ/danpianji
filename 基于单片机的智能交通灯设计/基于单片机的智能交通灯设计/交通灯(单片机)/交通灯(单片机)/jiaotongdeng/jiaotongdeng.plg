@@ -1,0 +1,19 @@
+<html>
+<body>
+<pre>
+<h1>礦ision Build Log</h1>
+<h2>Project:</h2>
+C:\Users\Administrator\Desktop\zhuo\交通灯(单片机)\jiaotongdeng\jiaotongdeng.uvproj
+Project File Date:  01/04/2013
+
+<h2>Output:</h2>
+Build target 'Target 1'
+compiling jiaotongdeng.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?DISPLAY?JIAOTONGDENG
+    CALLER1: ?PR?TIMER0?JIAOTONGDENG
+    CALLER2: ?C_C51STARTUP
+Program Size: data=33.0 xdata=0 code=942
+creating hex file from "jiaotongdeng"...
+"jiaotongdeng" - 0 Error(s), 1 Warning(s).

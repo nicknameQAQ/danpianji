@@ -1,0 +1,184 @@
+C51 COMPILER V8.08   TEXT1                                                                 06/12/2013 13:50:46 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE TEXT1
+OBJECT MODULE PLACED IN Text1.OBJ
+COMPILER INVOKED BY: E:\Keil\C51\BIN\C51.EXE Text1.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include"reg52.h"
+   2          #include<intrins.h>
+   3          #define uint unsigned int
+   4          #define uchar unsigned char
+   5          
+   6          sbit cs = P3^2;
+   7          long int read=0;
+   8          sbit wela = P2^7;
+   9          sbit dula = P2^6;
+  10          sbit lcden=P3^4;
+  11          sbit lcdrs=P3^5;
+  12          
+  13          uchar bai,shi,ge,num;
+  14          
+  15          uchar table[] ="123456789";
+  16          
+  17          void delayms(uint z)
+  18          {
+  19   1              uint x,y;
+  20   1              for(x=z;x>0;x--)
+  21   1                      for(y=110;y>0;y-- );
+  22   1      }
+  23          
+  24          void write_com(uchar com)
+  25          {       
+  26   1              lcdrs=0;
+  27   1              P0=com;
+  28   1              delayms(5);
+  29   1              lcden=1;
+  30   1              delayms(5);
+  31   1              lcden=0;
+  32   1      }
+  33          
+  34          void write_data(uchar date)
+  35          {
+  36   1              lcdrs=1;
+  37   1              P0=date;
+  38   1              delayms(5);
+  39   1              lcden=1;
+  40   1              delayms(5);
+  41   1              lcden=0;
+  42   1      }
+  43          
+  44          void init()
+  45          {
+  46   1              dula=0;
+  47   1              wela=0;
+  48   1              lcden=0;
+  49   1              write_com(0x38);
+  50   1              write_com(0x0c);
+  51   1              write_com(0x06);
+  52   1              write_com(0x01);
+  53   1      }
+  54          void delay(uint a)         //  a ¸ö1usÑÓÊ±
+  55          {
+C51 COMPILER V8.08   TEXT1                                                                 06/12/2013 13:50:46 PAGE 2   
+
+  56   1              for(;a > 0;a --)
+  57   1              _nop_();_nop_();
+  58   1      }
+  59          
+  60          void T0_time() interrupt 1
+  61          {
+  62   1              cs = 0;
+  63   1              RD = 0;
+  64   1              read = P1;
+  65   1              INT0 = 1;
+  66   1      }
+  67          uint adc0804()
+  68          {
+  69   1      TMOD=0X01;
+  70   1      TH0=(65536-45872)/256;
+  71   1      TL0=(65536-45872)/256;
+  72   1      EA=1;
+  73   1      ET0=1;
+  74   1      TR0=1;
+  75   1      
+  76   1              INT0 = 1;
+  77   1              cs = 0;
+  78   1              WR = 0;
+  79   1              delay(255);
+  80   1              cs = 1;
+  81   1              WR = 1;
+  82   1              delay(200);             
+  83   1              read = read * 196 /100;
+  84   1              return read;
+  85   1              
+  86   1      }
+  87          
+  88          void math(uint x) 
+  89          {
+  90   1              bai = x / 100; 
+  91   1              shi = x /10 % 10;
+  92   1              ge = x % 10;
+  93   1      }/* 
+  94          void display()
+  95          {        
+  96                   
+  97                  math(adc0804());
+  98                  
+  99                  dula=1;
+ 100                  P0 = table[bai+10];
+ 101                  dula=0;
+ 102                  P0=0xff;
+ 103          
+ 104                  wela = 1; 
+ 105                  P0 = 0xfe;
+ 106                  wela=0;
+ 107                  delay(7000000);
+ 108          
+ 109                          
+ 110                  dula=1;
+ 111                  P0 = table[shi];
+ 112                  dula=0;
+ 113                  P0=0xff;
+ 114          
+ 115                  wela = 1; 
+ 116                  P0 = 0xfd;
+ 117                  wela=0;
+C51 COMPILER V8.08   TEXT1                                                                 06/12/2013 13:50:46 PAGE 3   
+
+ 118                  delay(7000000);
+ 119          
+ 120                          
+ 121                  dula=1;
+ 122                  P0 = table[ge];
+ 123                  dula=0;
+ 124                  P0=0xff;
+ 125          
+ 126                  wela = 1; 
+ 127                  P0 = 0xfb;
+ 128                  wela=0;
+ 129                  delay(7000000);
+ 130                  
+ 131          }
+ 132          
+ 133             */
+ 134          
+ 135          void main()
+ 136          {
+ 137   1          cs=0;
+ 138   1                      init();         
+ 139   1      
+ 140   1      
+ 141   1                      while(1)
+ 142   1                      {
+ 143   2                      
+ 144   2      
+ 145   2                  math(adc0804());
+ 146   2                      
+ 147   2      
+ 148   2                      write_com(0x80+5);
+ 149   2              
+ 150   2                      write_data(table[bai]);
+ 151   2                      write_data(table[shi]);
+ 152   2                      write_data(table[ge]);
+ 153   2                              delayms(500);
+ 154   2                      
+ 155   2                      }
+ 156   1              
+ 157   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    312    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     18    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

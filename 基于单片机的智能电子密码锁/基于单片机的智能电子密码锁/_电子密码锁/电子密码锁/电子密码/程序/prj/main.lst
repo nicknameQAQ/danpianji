@@ -1,0 +1,441 @@
+C51 COMPILER V9.05   MAIN                                                                  01/12/2019 11:15:27 PAGE 1   
+
+
+C51 COMPILER V9.05, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\main.obj
+COMPILER INVOKED BY: D:\keil4\C51\BIN\C51.EXE ..\src\main.c BROWSE DEBUG OBJECTEXTEND PRINT(.\main.lst) OBJECT(.\main.ob
+                    -j)
+
+line level    source
+
+   1          #include"lcd.h"
+   2          
+   3          //--定义使用的IO口--//
+   4          #define KEY P3
+   5          
+   6          sbit BEEP=P2^6;    //接蜂鸣器   
+   7          unsigned char mima[6]={1,2,3,4,5,6};    
+   8          unsigned char mima3[6]={6,5,4,3,2,1};   
+   9          unsigned char mima4[6]={7,7,7,7,7,7};   
+  10          unsigned char mima2[6];
+  11          
+  12          unsigned char state=0;
+  13          unsigned char cuowu=0;
+  14          unsigned char KeyValue;          
+  15          unsigned char KeyState; //记录按键的状态，0没有，1有
+  16          
+  17          void TimerConfiguration();
+  18          unsigned char Time=0;
+  19          unsigned char sec=60;
+  20          
+  21          void KeyDown();          //检测按键函数
+  22          
+  23          void Delay10ms(unsigned int c)   //误差 0us
+  24          {
+  25   1          unsigned char a,b;
+  26   1          for(;c>0;c--)
+  27   1              for(b=38;b>0;b--)
+  28   1                  for(a=130;a>0;a--);
+  29   1      }
+  30          
+  31          void BZ()
+  32          {
+  33   1              BEEP= 0;
+  34   1              Delay10ms(100);
+  35   1              BEEP= 1;
+  36   1      }
+  37          
+  38          void BZ2()
+  39          {
+  40   1              BEEP= 0;
+  41   1              Delay10ms(30);
+  42   1              BEEP= 1;
+  43   1              Delay10ms(30);
+  44   1      
+  45   1              BEEP= 0;
+  46   1              Delay10ms(30);
+  47   1              BEEP= 1;
+  48   1              Delay10ms(30);
+  49   1      
+  50   1              BEEP= 0;
+  51   1              Delay10ms(30);
+  52   1              BEEP= 1;
+  53   1      }
+  54          
+C51 COMPILER V9.05   MAIN                                                                  01/12/2019 11:15:27 PAGE 2   
+
+  55          
+  56          
+  57          
+  58          void main(void)
+  59          {
+  60   1              unsigned char i=0;
+  61   1              unsigned char j=0;
+  62   1      
+  63   1              KeyState=0;
+  64   1              TimerConfiguration();
+  65   1              
+  66   1              LcdInit();
+  67   1              while(1)
+  68   1              {
+  69   2                      if(state==0)
+  70   2                      {
+  71   3                      LcdWriteCom(0x01);
+  72   3                      LCDWrite_String(0, 0, 16, "Shu ru mi ma:");
+  73   3                      LCDWrite_String(4, 1, 6, "      ");
+  74   3                      while(state==0)
+  75   3                      {
+  76   4                      KeyDown();
+  77   4                      if((KeyState==1))
+  78   4                      {
+  79   5                              if((KeyValue<10)&&(i<6))
+  80   5                              {
+  81   6                                      LcdWriteCom(0xc4+i);
+  82   6                                      LcdWriteData('*');
+  83   6                                      mima2[i]=KeyValue;
+  84   6                                      i++;
+  85   6                              }
+  86   5      
+  87   5                              if((i==6)&&(KeyValue==15))
+  88   5                              {
+  89   6                                      if(
+  90   6                                               ((mima2[0]==mima[0])
+  91   6                                              &&(mima2[1]==mima[1])
+  92   6                                              &&(mima2[2]==mima[2])
+  93   6                                              &&(mima2[3]==mima[3])
+  94   6                                              &&(mima2[4]==mima[4])
+  95   6                                              &&(mima2[5]==mima[5]))
+  96   6                                              ||((mima2[0]==mima3[0])
+  97   6                                              &&(mima2[1]==mima3[1])
+  98   6                                              &&(mima2[2]==mima3[2])
+  99   6                                              &&(mima2[3]==mima3[3])
+ 100   6                                              &&(mima2[4]==mima3[4])
+ 101   6                                              &&(mima2[5]==mima3[5]))
+ 102   6                                              ||((mima2[0]==mima4[0])
+ 103   6                                              &&(mima2[1]==mima4[1])
+ 104   6                                              &&(mima2[2]==mima4[2])
+ 105   6                                              &&(mima2[3]==mima4[3])
+ 106   6                                              &&(mima2[4]==mima4[4])
+ 107   6                                              &&(mima2[5]==mima4[5]))
+ 108   6                                              )
+ 109   6                                              {
+ 110   7                                                      LCDWrite_String(4, 1, 6, " Kai!");
+ 111   7                                                      BZ();
+ 112   7                                                      LCDWrite_String(4, 1, 6, "      ");
+ 113   7                                              }
+ 114   6                                      else
+ 115   6                                      {
+ 116   7                                              
+C51 COMPILER V9.05   MAIN                                                                  01/12/2019 11:15:27 PAGE 3   
+
+ 117   7                                              LCDWrite_String(4, 1, 6, "Cuowu!");
+ 118   7                                              BZ2();
+ 119   7                                              cuowu++;
+ 120   7                                              if(cuowu>=3)
+ 121   7                                              {
+ 122   8                                                      state=1;
+ 123   8                                                      cuowu=0;
+ 124   8                                                      ET0 = 1;TR0 = 1;                 //打开定时器0中断//启动定时器0  
+ 125   8                                              }
+ 126   7                                              LCDWrite_String(4, 1, 6, "      ");
+ 127   7                                      }
+ 128   6      
+ 129   6                                      for(i=0;i<6;i++)
+ 130   6                                      {
+ 131   7                                              mima2[i]=0;     
+ 132   7                                      }
+ 133   6                                      i=0;    
+ 134   6                              }
+ 135   5                              
+ 136   5                                      if(KeyValue==14)
+ 137   5                              {
+ 138   6                                      LCDWrite_String(4, 1, 6, "      ");
+ 139   6                                      for(i=0;i<6;i++)
+ 140   6                                      {
+ 141   7                                              mima2[i]=0;     
+ 142   7                                      }
+ 143   6                                      i=0;
+ 144   6                              }       
+ 145   5      
+ 146   5                              if(KeyValue==13)                //qingling
+ 147   5                              {
+ 148   6                                      LCDWrite_String(4, 1, 6, "      ");
+ 149   6                                      for(i=0;i<6;i++)
+ 150   6                                      {
+ 151   7                                              mima2[i]=0;     
+ 152   7                                      }
+ 153   6                                      i=0;
+ 154   6                              }
+ 155   5      
+ 156   5                              if(KeyValue==12)                //shemoima
+ 157   5                              {
+ 158   6                                      state=2;
+ 159   6                              }
+ 160   5      
+ 161   5                              KeyState=0;
+ 162   5                      }
+ 163   4                      }
+ 164   3                      }
+ 165   2      
+ 166   2                      if(state==1)
+ 167   2                      {
+ 168   3                      LcdWriteCom(0x01);
+ 169   3                      LCDWrite_String(0, 0, 16, "Please wait!... ");
+ 170   3                      while(state==1)
+ 171   3                      {
+ 172   4                              BZ2();
+ 173   4                              LcdWriteCom(0xc4);
+ 174   4                              LcdWriteData('0'+sec/10%10);
+ 175   4                              LcdWriteData('0'+sec%10);
+ 176   4                      }
+ 177   3                      }
+ 178   2      
+C51 COMPILER V9.05   MAIN                                                                  01/12/2019 11:15:27 PAGE 4   
+
+ 179   2                      if(state==3)
+ 180   2                      {
+ 181   3                              LcdWriteCom(0x01);
+ 182   3                              LCDWrite_String(3, 0, 16, "WARRING... ");
+ 183   3              
+ 184   3                              while(state==3);
+ 185   3                      }
+ 186   2      
+ 187   2      
+ 188   2      
+ 189   2                      if(state==2)
+ 190   2                      {
+ 191   3                      LcdWriteCom(0x01);
+ 192   3                      LCDWrite_String(0, 0, 16, "Jiu mima :");
+ 193   3                      while(state==2)
+ 194   3                      {
+ 195   4                      KeyDown();
+ 196   4                      if((KeyState==1))
+ 197   4                      {
+ 198   5                              if((KeyValue<10)&&(i<6))
+ 199   5                              {
+ 200   6                                      LcdWriteCom(0xc4+i);
+ 201   6                                      LcdWriteData('*');
+ 202   6                                      mima2[i]=KeyValue;
+ 203   6                                      i++;
+ 204   6                              }
+ 205   5                      
+ 206   5      
+ 207   5                              if(KeyValue==14)        
+ 208   5                              {
+ 209   6                                      if(i>0)
+ 210   6                                      {
+ 211   7                                              i--;
+ 212   7                                              LcdWriteCom(0xc4+i);
+ 213   7                                              LcdWriteData(' ');
+ 214   7                                      }                               
+ 215   6                              }       
+ 216   5      
+ 217   5                              if(KeyValue==13)//qingling      
+ 218   5                              {
+ 219   6                                      LCDWrite_String(4, 1, 6, "      ");
+ 220   6                                      for(i=0;i<6;i++)
+ 221   6                                      {
+ 222   7                                              mima2[i]=0;     
+ 223   7                                      }
+ 224   6                                      i=0;
+ 225   6                              }
+ 226   5      
+ 227   5                              if((i==6)&&(KeyValue==15)) //queding 
+ 228   5                              {
+ 229   6                                       if(
+ 230   6                                               ((mima2[0]==mima[0])
+ 231   6                                              &&(mima2[1]==mima[1])
+ 232   6                                              &&(mima2[2]==mima[2])
+ 233   6                                              &&(mima2[3]==mima[3])
+ 234   6                                              &&(mima2[4]==mima[4])
+ 235   6                                              &&(mima2[5]==mima[5]))
+ 236   6                                              ||((mima2[0]==mima3[0])
+ 237   6                                              &&(mima2[1]==mima3[1])
+ 238   6                                              &&(mima2[2]==mima3[2])
+ 239   6                                              &&(mima2[3]==mima3[3])
+ 240   6                                              &&(mima2[4]==mima3[4])
+C51 COMPILER V9.05   MAIN                                                                  01/12/2019 11:15:27 PAGE 5   
+
+ 241   6                                              &&(mima2[5]==mima3[5]))
+ 242   6                                              ||((mima2[0]==mima4[0])
+ 243   6                                              &&(mima2[1]==mima4[1])
+ 244   6                                              &&(mima2[2]==mima4[2])
+ 245   6                                              &&(mima2[3]==mima4[3])
+ 246   6                                              &&(mima2[4]==mima4[4])
+ 247   6                                              &&(mima2[5]==mima4[5]))
+ 248   6                                              )
+ 249   6                                              {
+ 250   7                                                      state=3;
+ 251   7                                              }
+ 252   6                                      else
+ 253   6                                      {
+ 254   7                                              
+ 255   7                                              LCDWrite_String(4, 1, 6, "Cuowu!");
+ 256   7                                              BZ2();
+ 257   7                                              state=0;
+ 258   7                                              LCDWrite_String(4, 1, 6, "      ");
+ 259   7                                      }
+ 260   6      
+ 261   6                                      for(i=0;i<6;i++)
+ 262   6                                      {
+ 263   7                                              mima2[i]=0;     
+ 264   7                                      }
+ 265   6                                      i=0;    
+ 266   6                              }
+ 267   5      
+ 268   5                              KeyState=0;
+ 269   5                      }
+ 270   4                      }
+ 271   3                      }
+ 272   2      
+ 273   2      
+ 274   2      
+ 275   2                      if(state==3)
+ 276   2                      {
+ 277   3                      LcdWriteCom(0x01);
+ 278   3                      LCDWrite_String(0, 0, 16, "Xin mi ma:");
+ 279   3                      while(state==3)
+ 280   3                      {
+ 281   4                      KeyDown();
+ 282   4                      if((KeyState==1))
+ 283   4                      {
+ 284   5                              if((KeyValue<10)&&(i<6))
+ 285   5                              {
+ 286   6                                      LcdWriteCom(0xc4+i);
+ 287   6                      
+ 288   6                                      LcdWriteData('*');
+ 289   6                                      mima2[i]=KeyValue;
+ 290   6                                      i++;
+ 291   6                              }
+ 292   5      
+ 293   5                                      if(KeyValue==14)        
+ 294   5                              {
+ 295   6                                      if(i>0)
+ 296   6                                      {
+ 297   7                                              i--;
+ 298   7                                              LcdWriteCom(0xc4+i);
+ 299   7                                              LcdWriteData(' ');
+ 300   7                                      }                               
+ 301   6                              }       
+ 302   5      
+C51 COMPILER V9.05   MAIN                                                                  01/12/2019 11:15:27 PAGE 6   
+
+ 303   5                              if(KeyValue==13)                //清零
+ 304   5                              {
+ 305   6                                      LCDWrite_String(4, 1, 6, "      ");
+ 306   6                                      for(i=0;i<6;i++)
+ 307   6                                      {
+ 308   7                                              mima2[i]=0;     
+ 309   7                                      }
+ 310   6                                      i=0;
+ 311   6                              }
+ 312   5      
+ 313   5                              if((i==6)&&(KeyValue==15))
+ 314   5                              {
+ 315   6                                      for(i=0;i<6;i++)
+ 316   6                                      {
+ 317   7                                              mima[i]=mima2[i];       
+ 318   7                                      }
+ 319   6                                      i=0;
+ 320   6                                      state=0;
+ 321   6      
+ 322   6                                      for(i=0;i<6;i++)
+ 323   6                                      {
+ 324   7                                              mima2[i]=0;     
+ 325   7                                      }
+ 326   6                                      i=0;    
+ 327   6                              }
+ 328   5      
+ 329   5                              KeyState=0;
+ 330   5                      }
+ 331   4                      }
+ 332   3                      }
+ 333   2      
+ 334   2      
+ 335   2              }                               
+ 336   1      }
+ 337          
+ 338          
+ 339          void KeyDown(void)
+ 340          {
+ 341   1              unsigned int a=0;
+ 342   1              KEY=0x0f;
+ 343   1              if(KEY!=0x0f)
+ 344   1        {
+ 345   2                      Delay10ms(1);
+ 346   2                      a++;    
+ 347   2                      a=0;
+ 348   2                      if(KEY!=0x0f)
+ 349   2                      {
+ 350   3                              KeyState=1;//有按键按下
+ 351   3                              //测试列
+ 352   3                              KEY=0X0F;
+ 353   3                              switch(KEY)
+ 354   3                              {
+ 355   4                                      case(0X07):     KeyValue=0;break;
+ 356   4                                      case(0X0b):     KeyValue=1;break;
+ 357   4                                      case(0X0d): KeyValue=2;break;
+ 358   4                                      case(0X0e):     KeyValue=3;break;
+ 359   4      
+ 360   4                              }
+ 361   3                              //测试行
+ 362   3                              KEY=0XF0;
+ 363   3                              Delay10ms(1);
+ 364   3                              switch(KEY)
+C51 COMPILER V9.05   MAIN                                                                  01/12/2019 11:15:27 PAGE 7   
+
+ 365   3                              {
+ 366   4                                      case(0X70):     KeyValue=KeyValue;break;
+ 367   4                                      case(0Xb0):     KeyValue=KeyValue+4;break;
+ 368   4                                      case(0Xd0): KeyValue=KeyValue+8;break;
+ 369   4                                      case(0Xe0):     KeyValue=KeyValue+12;break;
+ 370   4      
+ 371   4                              }
+ 372   3                              while((a<500)&&(KEY!=0xf0))      //按键松手检测
+ 373   3                              {
+ 374   4                                      Delay10ms(1);
+ 375   4                                      a++;
+ 376   4                              }
+ 377   3                              a=0;
+ 378   3                      }
+ 379   2              }
+ 380   1      }
+ 381          void TimerConfiguration()
+ 382          {
+ 383   1          TMOD = 0x01; //选择工作方式1
+ 384   1          TH0 = 0x3C;  //设置初始值,定时50MS
+ 385   1          TL0 = 0xB0; 
+ 386   1          EA = 1;                      //打开总中断            
+ 387   1      }
+ 388          
+ 389          void Timer0() interrupt 1
+ 390          {
+ 391   1              TH0 = 0x3C;      //设置初始值
+ 392   1          TL0 = 0xB0;
+ 393   1              Time++;
+ 394   1              if(Time>=20)
+ 395   1              {
+ 396   2                      Time=0;
+ 397   2                      sec--;
+ 398   2                      if(sec==0)
+ 399   2                      {
+ 400   3                              ET0 = 0;TR0 = 0;
+ 401   3                              sec=0;
+ 402   3                              state=0;
+ 403   3                      }
+ 404   2              }
+ 405   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1368    ----
+   CONSTANT SIZE    =     85    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     30       2
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,4 @@
+".\Output\STARTUP.obj",
+".\Output\qiangdaqi.obj" 
+TO ".\Output\qiangdaqi3" 
+PRINT(".\qiangdaqi3.m51")

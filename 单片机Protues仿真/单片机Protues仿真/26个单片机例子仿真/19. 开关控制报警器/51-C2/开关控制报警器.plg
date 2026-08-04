@@ -1,0 +1,18 @@
+<html>
+<body>
+<pre>
+<h1>礦ision3 Build Log</h1>
+<h2>Project:</h2>
+D:\MY 51\程序\19. 开关控制报警器\51-C2\开关控制报警器.uv2
+Project File Date:  08/02/2011
+
+<h2>Output:</h2>
+Build target 'Target 1'
+compiling 开关控制报警器.C...
+linking...
+Program Size: data=9.0 xdata=0 code=49
+creating hex file from "开关控制报警器"...
+"开关控制报警器" - 0 Error(s), 0 Warning(s).
+</pre>
+</body>
+</html>

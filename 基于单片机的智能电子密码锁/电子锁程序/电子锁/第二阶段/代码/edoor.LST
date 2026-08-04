@@ -1,0 +1,345 @@
+C51 COMPILER V9.00   EDOOR                                                                 10/26/2014 22:46:49 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE EDOOR
+OBJECT MODULE PLACED IN edoor.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE edoor.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          //********************************************************************************************************
+             -****************************
+   2          //库调用.宏类型定义.位定义//
+   3          #include <reg52.h>                        
+   4          #include <intrins.h>
+   5          #define uchar unsigned char
+   6          #define uint unsigned int
+   7          #define GPIO_KEY P1
+   8          sbit RS = P2^2;                           //液晶显示器控制端口
+   9          sbit RW = P2^3; 
+  10          sbit E = P3^7;
+  11          sbit shuchu=P2^0;                         //继电器控制端口
+  12          sbit beep=P2^1;                           //报警器端口
+  13          sbit DoorBell=P3^6;                       //门铃端口
+  14          uchar upxs[16]={"Password:"}; //上排存放数组
+  15          uchar dwxs[16]={""};          //下排存放数组
+  16          int tempword[8]={0};              //临时密码数组
+  17          int password[8]={1,1,2,2,3,3,4,4};//初始密码
+  18          uint now=0;                                       //数组等效指针
+  19          uint key=0;                   //密钥
+  20          uint KeyValue=16;             //用来存放读取到的键值
+  21          uint warn=0;                              //错误累计
+  22          uint time=0;                              //用于定时
+  23          uint time1=0;                 //用于定时
+  24          uint time2=0;                 //用于定时
+  25          uint moshi=0;                             //定时器内部模式
+  26          //********************************************************************************************************
+             -*************************
+  27          //液晶驱动显示模块//
+  28          void delay(uint dell)//毫秒延时//
+  29          {
+  30   1           uchar x;
+  31   1           for(dell;dell>0;dell--)
+  32   1           for(x=110;x>0;x--);
+  33   1      }
+  34          void wr_com(uchar temp)//写指令//
+  35          {
+  36   1           RS=0;
+  37   1           RW=0;
+  38   1           P0=temp;
+  39   1           E=1;
+  40   1           E=0;
+  41   1      }
+  42          void wr_data(uchar num)//写数据//
+  43          {
+  44   1           RS=1;
+  45   1           RW=0;
+  46   1           P0=num;
+  47   1           E=1;
+  48   1           E=0;
+  49   1      }
+  50          void disp_lcd(uchar addr,char *templ)//显示函数//
+  51          {
+  52   1           uchar i;
+  53   1           wr_com(addr);
+C51 COMPILER V9.00   EDOOR                                                                 10/26/2014 22:46:49 PAGE 2   
+
+  54   1               delay(50);
+  55   1           for(i=0;i<16;i++)
+  56   1          {
+  57   2           wr_data(templ[i]);
+  58   2               delay(50);
+  59   2          }    
+  60   1      }
+  61          void lcd_init()//初始化液晶//
+  62          {
+  63   1           wr_com(0x30);
+  64   1           delay(50);
+  65   1           wr_com(0x38);
+  66   1           delay(50);
+  67   1           wr_com(0x01);
+  68   1           delay(50);
+  69   1           wr_com(0x06);
+  70   1           delay(50);
+  71   1           wr_com(0x0c);
+  72   1           delay(50);
+  73   1      }
+  74          void lcdxianshi(void)//液晶总显示//
+  75          {
+  76   1           disp_lcd(0x80,upxs);
+  77   1           disp_lcd(0xc0,dwxs);
+  78   1      }
+  79          //********************************************************************************************************
+             -*************************
+  80          //按键扫描模块//
+  81          void Delay10ms(void)//延时函数//
+  82          {
+  83   1          unsigned char a,b,c;
+  84   1          for(c=1;c>0;c--)
+  85   1              for(b=38;b>0;b--)
+  86   1                  for(a=130;a>0;a--);
+  87   1      }
+  88          void KeyDown(void)//键盘检测函数//
+  89          {
+  90   1              char a=0;
+  91   1              GPIO_KEY=0x0f;
+  92   1              if(GPIO_KEY!=0x0f)     //读取按键是否按下
+  93   1              {
+  94   2                      Delay10ms();       //延时10ms进行消抖
+  95   2                      if(GPIO_KEY!=0x0f) //再次检测键盘是否按下
+  96   2                      {
+  97   3                              
+  98   3                              //检测列
+  99   3                              GPIO_KEY=0X0F;
+ 100   3                              switch(GPIO_KEY)
+ 101   3                              {
+ 102   4                                      case(0X07):     KeyValue=0;break;
+ 103   4                                      case(0X0b):     KeyValue=1;break;
+ 104   4                                      case(0X0d): KeyValue=2;break;
+ 105   4                                      case(0X0e):     KeyValue=3;break;
+ 106   4                              }
+ 107   3                              //检测行
+ 108   3                              GPIO_KEY=0XF0;
+ 109   3                              switch(GPIO_KEY)
+ 110   3                              {
+ 111   4                                      case(0X70):     KeyValue=KeyValue;break;
+ 112   4                                      case(0Xb0):     KeyValue=KeyValue+4;break;
+ 113   4                                      case(0Xd0): KeyValue=KeyValue+8;break;
+ 114   4                                      case(0Xe0):     KeyValue=KeyValue+12;break;
+C51 COMPILER V9.00   EDOOR                                                                 10/26/2014 22:46:49 PAGE 3   
+
+ 115   4                              }
+ 116   3                              while((a<10)&&(GPIO_KEY!=0xf0))//按键松手检测
+ 117   3                              {
+ 118   4                                      Delay10ms();
+ 119   4                                      a++;
+ 120   4                              }
+ 121   3                      }
+ 122   2              }
+ 123   1      }
+ 124          //********************************************************************************************************
+             -***********************
+ 125          //数据处理模块//
+ 126          void keysend(void)//键值传递//
+ 127          {
+ 128   1                        switch(KeyValue)
+ 129   1                    {
+ 130   2                     case 0:{dwxs[now]='0';tempword[now]=0;now++;break;}
+ 131   2                         case 1:{dwxs[now]='1';tempword[now]=1;now++;break;}
+ 132   2                         case 2:{dwxs[now]='2';tempword[now]=2;now++;break;}
+ 133   2                         case 3:{dwxs[now]='3';tempword[now]=3;now++;break;}
+ 134   2                         case 4:{dwxs[now]='4';tempword[now]=4;now++;break;}
+ 135   2                         case 5:{dwxs[now]='5';tempword[now]=5;now++;break;}
+ 136   2                         case 6:{dwxs[now]='6';tempword[now]=6;now++;break;}
+ 137   2                         case 7:{dwxs[now]='7';tempword[now]=7;now++;break;}
+ 138   2                         case 8:{dwxs[now]='8';tempword[now]=8;now++;break;}
+ 139   2                         case 9:{dwxs[now]='9';tempword[now]=9;now++;break;}
+ 140   2                         case 11:{
+ 141   3                                        upxs[12]='S';
+ 142   3                                        upxs[13]='U';
+ 143   3                                        upxs[14]='R';
+ 144   3                                        upxs[15]='E'; break;
+ 145   3                         }
+ 146   2                         case 15:{
+ 147   3                                TR0=1;                     //定时器0打开
+ 148   3                                        moshi=1;                       //模式1为门铃模式
+ 149   3                                        KeyValue=16; break;//键值缓存清零
+ 150   3                         }
+ 151   2                        }
+ 152   1                        if(now==8) now=0;          //只显示八位
+ 153   1      }
+ 154          void sure(void)//密码认证函数//
+ 155          {
+ 156   1           uchar i;
+ 157   1           if(KeyValue==11)
+ 158   1               {
+ 159   2                   for(i=0;i<8;i++)
+ 160   2                       {
+ 161   3                              if(password[i]!=tempword[i])//对比密码
+ 162   3                              {
+ 163   4                                  key++;
+ 164   4                              }
+ 165   3                       }                
+ 166   2                       if(key==0)                //密码正确，输出OK 
+ 167   2                                 {
+ 168   3                                      dwxs[13]='O';
+ 169   3                                      dwxs[14]='K';
+ 170   3                                  shuchu=1;             //开门
+ 171   3                                      TR1=1;            //定时器1打开，启动倒计时
+ 172   3                                      moshi=0;          //输入正确密码可关闭报警模式
+ 173   3                                      beep=0;           //蜂鸣器复位
+ 174   3                                      TR0=0;                    //并且关闭定时器0
+ 175   3                                 }
+C51 COMPILER V9.00   EDOOR                                                                 10/26/2014 22:46:49 PAGE 4   
+
+ 176   2                       if(key!=0)               //密码错误，次数累加
+ 177   2                              {
+ 178   3                                      dwxs[12]='E';
+ 179   3                                      dwxs[13]='R';
+ 180   3                                      dwxs[14]='O';
+ 181   3                                      dwxs[15]='R';
+ 182   3                                      warn++;
+ 183   3                                      if(warn==3)               //输入错误3次，报警
+ 184   3                                      {
+ 185   4                                         TR0=1;                 //定时器0启动
+ 186   4                                     moshi=2;           //模式2启动报警
+ 187   4                                         warn=0;                //累计清零
+ 188   4                                      }
+ 189   3                              }
+ 190   2               }
+ 191   1      }
+ 192          void delete(void)//清除函数//
+ 193          {
+ 194   1           uchar i;
+ 195   1                   for(i=0;i<16;i++)
+ 196   1                       {
+ 197   2                          dwxs[i]=0x20;        //密码字符清零
+ 198   2                       }
+ 199   1                       for(i=0;i<8;i++)
+ 200   1                       {
+ 201   2                          tempword[i]=0;       //密码缓存数组清零
+ 202   2                       }
+ 203   1                          upxs[12]=0x20;   //SURE显示清零
+ 204   1                              upxs[13]=0x20;
+ 205   1                              upxs[14]=0x20;
+ 206   1                              upxs[15]=0x20;
+ 207   1                       now=0;                          //类指针复位
+ 208   1                       key=0;                          //密钥清零
+ 209   1                       KeyValue=16;            //键值缓存清零
+ 210   1      }
+ 211          void condition_delete(void)  //条件清除
+ 212          {
+ 213   1           if(KeyValue==10)
+ 214   1               {
+ 215   2                      delete();            //按下DELE键清除数据
+ 216   2               }
+ 217   1               KeyValue=16;                    //键值缓存清零
+ 218   1      }
+ 219          //********************************************************************************************************
+             -************************8
+ 220          //定时模块//
+ 221          void timer0() interrupt 1    //定时器0用于门铃
+ 222          {
+ 223   1          switch(moshi)
+ 224   1         {
+ 225   2            case 1:{
+ 226   3                      DoorBell=~DoorBell;
+ 227   3                  time++;
+ 228   3                   if(time<400)             //若需要拖长声音，可以调整 400 和 800
+ 229   3                  {
+ 230   4                     TH0=(8192-700)/32;     //700us 定时
+ 231   4                     TL0=(8192-700)%32;
+ 232   4                  }
+ 233   3                   else if(time<800)
+ 234   3                  {
+ 235   4                     TH0=(8192-1000)/32;    //1ms 定时
+ 236   4                     TL0=(8192-1000)%32;
+C51 COMPILER V9.00   EDOOR                                                                 10/26/2014 22:46:49 PAGE 5   
+
+ 237   4                  }
+ 238   3                   else
+ 239   3                  {
+ 240   4                     time=0;                            //计数清零
+ 241   4                     TR0=0;                             //关闭定时器
+ 242   4                                 moshi=0;                               //跳出模式1
+ 243   4                  }
+ 244   3                              break;
+ 245   3                }
+ 246   2                case 2:{
+ 247   3                               beep=~beep;
+ 248   3                               time++;
+ 249   3                               if(time<400)             //若需要拖长声音，可以调整 400
+ 250   3                  {
+ 251   4                     TH0=(8192-700)/32;     //700us 定时
+ 252   4                     TL0=(8192-700)%32;
+ 253   4                  }
+ 254   3                              else
+ 255   3                              {
+ 256   4                                 time=0;                                //计数清零
+ 257   4                              }
+ 258   3                              break;
+ 259   3                }
+ 260   2         }
+ 261   1      }
+ 262          void timer1() interrupt 3        //定时器1用于自动关门
+ 263          {  
+ 264   1          TH0=(65536-50000)/256;  
+ 265   1          TL0=(65536-50000)%256;  
+ 266   1          time1++;   
+ 267   1          if(time1==20)//一秒  
+ 268   1          {      
+ 269   2            time2++;
+ 270   2                time1=0;  
+ 271   2          } 
+ 272   1      }
+ 273          //********************************************************************************************************
+             -**************************
+ 274          //主函数//
+ 275          void main(void)//主函数
+ 276          {
+ 277   1          TMOD=0x10;                           //0001 0000//定时器1方式1，定时器0方式0
+ 278   1              TH0=(8192-700)/32;               //定时器0 700us 定时
+ 279   1          TL0=(8192-700)%32;
+ 280   1          TH1=(65536-50000)/256;   //定时器1 50ms
+ 281   1          TL1=(65536-50000)%256;  
+ 282   1          EA=1;  
+ 283   1          ET0=1;
+ 284   1              ET1=1;
+ 285   1          shuchu=0;                       //门锁初始化
+ 286   1              beep=0;                             //警报初始化
+ 287   1              DoorBell=0;                             //门铃初始化
+ 288   1          lcd_init();                     //液晶初始化
+ 289   1              while(1)
+ 290   1              {
+ 291   2                      KeyDown();                  //按键检测
+ 292   2                      keysend();                  //数据传递
+ 293   2                      lcdxianshi();       //输入显示
+ 294   2                      sure();                     //密码认证
+ 295   2                      condition_delete(); //按键清除
+ 296   2                      if(time2==4)        //门锁打开后4秒关闭
+ 297   2                      {
+C51 COMPILER V9.00   EDOOR                                                                 10/26/2014 22:46:49 PAGE 6   
+
+ 298   3                         shuchu=0;
+ 299   3                         time2=0;
+ 300   3                         delete();            //自动清除
+ 301   3                         TR1=0;               //关闭定时器1
+ 302   3                      }               
+ 303   2              }                               
+ 304   1      }
+ 305          //********************************************************************************************************
+             -****************************8
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1105    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     80       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

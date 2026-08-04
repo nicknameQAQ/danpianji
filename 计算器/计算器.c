@@ -1,0 +1,380 @@
+	   #include<reg52.h>
+#define uint unsigned int
+#define uchar unsigned char
+sbit rs = P2 ^ 4;
+sbit rw = P2 ^ 5;
+sbit en = P2 ^ 6;
+sbit L = P2 ^ 0;				  //按键扫描标志灯
+sbit L2 = P2 ^ 1;				  //消抖展示灯
+uchar m[] = { "ABCDEF0123456789+-*/HDOB*. " };
+uchar b, d, q, h, v, jg;
+void shuju(uchar dat);
+void weizhi(uchar X, uchar Y);
+uchar zifu[32];				  //存储字符，存储器
+uchar xiezhu[8];			  //协助存储字符，中继器
+uchar O, flag, shu, jishu, qw;   // O 按键按下标志  
+							  // flag 光标发生移动标志 
+							  // shu  记录字符数数
+							  // jishu 记录光标移动次数  
+							  // qw 中间变量;	        
+//++++++++++++++++++++++++++++++++++++++++++++                          
+void delayms(uint xms)		  //延时
+{
+	uint i, j;
+	for (i = xms; i > 0; i--)
+		for (j = 110; j > 0; j--);
+}
+void panduan()
+{
+	if (zifu[b] == '+') {
+		jg = q + h;
+	}
+	if (zifu[b] == '-') {
+		jg = q - h;
+	}
+	if (zifu[b] == '*') {
+		jg = q * h;
+	}
+	if (zifu[b] == '/') {
+		jg = q / h;
+	}
+}
+//++++++++++++++++++++++++++++++++++++++++++++
+
+//++++++++++++++++++++++++++++++++++++++++++++ 
+void zhiling(uchar com)	      //指令控制
+{
+	rs = 0; rw = 0; en = 0; P0 = com;
+	delayms(5);
+	en = 1;
+	delayms(5);
+	en = 0;
+}
+//++++++++++++++++++++++++++++++++++++++++++++ 
+void shuju(uchar dat)	      //输出
+{
+	rs = 1; rw = 0; en = 0; P0 = dat;
+	delayms(5);
+	en = 1;
+	delayms(5);
+	en = 0;
+}
+void xsjg()	//显示结果函数
+{
+	
+		while(jg!=0)
+		{ shuju(jg%10);		  //显值
+		 zhiling(0x10);	}  //左移
+	  
+	  	
+	  
+
+
+}
+//++++++++++++++++++++++++++++++++++++++++++++ 
+void weizhi(uchar X, uchar Y)  //选起始位置
+{
+	uchar wz;
+	if (X == 0)
+	{
+		X = 0x80;
+	}
+	else if (X == 1)
+	{
+		X = 0x80 + 0x40;
+	}
+	wz = X + Y;
+	zhiling(wz);	 //把位置送给指令
+}
+
+
+//++++++++++++++++++++++++++++++++++++++++++++ 
+void init()				      //初始化
+{
+	zhiling(0x38);
+	delayms(5);
+	zhiling(0x0f);
+	delayms(5);
+	zhiling(0x01);
+	delayms(5);
+}
+//++++++++++++++++++++++++++++++++++++++++++++ 
+							//分别识别出前面的结果，和后面的结果
+void swich()
+{	
+	if (b == 2) {
+		q = zifu[0];
+	}
+	if (b == 3) {
+		q = 10 * zifu[0] +  zifu[1];
+	}
+	if (b == 4) {
+		q = 100*zifu[0] + 10 * zifu[1] +  zifu[2];
+	}
+	if (b == 5) {
+		q = 1000* zifu[0] + 100 * zifu[1] + 10 * zifu[2] +  zifu[3];
+	}
+	v = d - b;
+	if (v == 1) {
+		h =zifu[b+1];
+	}
+	if (v == 2) {
+		h = 10 * zifu[b+1] +  zifu[b + 2];
+	}
+	if (v == 3) {
+		h = 100 * zifu[b+1] + 10 * zifu[b + 2] +  zifu[b + 3];
+	}
+	if (v == 4) {
+		h = 1000 * zifu[b +1] + 100 * zifu[b +2] + 10 * zifu[b +3] + zifu[b +4];
+	}
+}
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+void display(uchar num)		  //对按键进行处理
+{
+
+	if (O == 1)
+	{
+		//--------------------------------------------------------------------- 
+		if (num < 16)			    //26个字母
+		{
+			shuju(m[num]);		  //写字
+			zifu[shu] = m[num];	  //存字
+			shu++; O = 0;			  //字符数+1
+		}
+		//---------------------------------------------------------------------
+		else if (num < 20)			    //26个字母
+		{
+			shuju(m[num]);		  //写字
+			zifu[shu] = m[num];	  //存字
+			shu++; O = 0; b = shu;
+			//字符数+1   
+		}
+		else if (num == 26)		  //空格
+		{
+			if (flag == 0)
+			{
+				shuju(m[26]);
+				zifu[shu] = m[num];
+				shu++; O = 0;
+			}
+			else 				         //flag不等于0
+			{
+				shuju(m[26]);
+				for (qw = shu - jishu; qw < shu; qw++)
+				{
+					shuju(zifu[qw]);
+					xiezhu[qw] = zifu[qw];		       	//将显示内容存入中继器
+				}
+				for (qw = shu - jishu; qw < shu; qw++)	    //-处理存储器
+				{								   	//-
+					zifu[qw + 1] = xiezhu[qw];		   	//-
+				}								   	//-
+				zifu[shu - jishu] = m[26];		    //-
+				shu++; flag = 0; jishu = 0; O = 0;
+
+			}
+		}
+		//--------------------------------------------------------------------- 		 
+		else if (num == 27)		         //回车
+		{
+			d = shu;
+			swich();
+			panduan();
+			  weizhi(1,10);
+			xsjg();
+			O = 0;
+
+		}
+		//--------------------------------------------------------------------- 
+		else if (num == 28)			     //删除
+		{
+			if (flag == 0)
+			{
+				zhiling(0x10);
+				shuju(m[26]);
+				zhiling(0x10);
+				O = 0; shu--;
+			}
+			else 					     //flag不等于0
+			{
+				for (qw = shu - jishu + 1; qw < shu; qw++)
+				{
+					shuju(zifu[qw]);			 //处理显示器
+					zifu[qw - 1] = zifu[qw];		 //处理存储器
+				}
+				shuju(m[26]);
+				zhiling(0x10);
+				O = 0; shu--; flag = 0; jishu = 0;
+			}
+		}
+		//--------------------------------------------------------------------- 
+		else if (num == 29)				//清空
+		{
+			zhiling(0x01);
+			O = 0;
+		}
+		//--------------------------------------------------------------------- 	
+		else if (num == 30)				//左移
+		{
+			zhiling(0x10);
+			O = 0;
+			flag = 1;
+			jishu++;
+		}
+		//--------------------------------------------------------------------- 
+		else							//右移
+		{
+			zhiling(0x14);
+			O = 0;
+		}
+		//--------------------------------------------------------------------- 
+	}
+}
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+void juzhenanjian()			  //扫描按键状态
+{
+	uchar temp, key;
+	//========================================================================= 
+	//                            | P1 |
+	//========================================================================= 
+	P1 = 0xfe;						     //第一行  fe    1111 1110
+	temp = P1;							 //读取按键状态
+	switch (temp)
+	{
+	case 0xee: key = 0; O = 1; break;		 // 1110 1110     A
+	case 0xde: key = 1; O = 1; break;		 // 1101 1110	  B
+	case 0xbe: key = 2; O = 1; break;		 // 1011 1110	  C
+	case 0x7e: key = 3; O = 1; break;		 // 0111 1110	  D
+	}
+	while (temp != 0xf0)				     //等待按键恢复
+	{
+		temp = P1;
+		temp = temp & 0xf0;
+	}
+	display(key);
+	//------------------------------------------------------------------- 
+	P1 = 0xfd;						     //第二行   fd    1111 1101
+	temp = P1;							 //读取按键状态
+	switch (temp)
+	{
+	case 0xed: key = 4; O = 1; break;		 // 1110 1101	  E
+	case 0xdd: key = 5; O = 1; break;		 // 1101 1101	  F
+	case 0xbd: key = 6; O = 1; break;		 // 1011 1101	  G
+	case 0x7d: key = 7; O = 1; break;		 // 0111 1101	  H
+	}
+	while (temp != 0xf0)				     //等待按键恢复
+	{
+		temp = P1;
+		temp = temp & 0xf0;
+	}
+	display(key);
+	//-------------------------------------------------------------------
+	P1 = 0xfb;					    	//第三行   fb   11111 1011
+	temp = P1;							//读取按键状态
+	switch (temp)
+	{
+	case 0xeb: key = 8; O = 1; break;		// 1110 1011	   I
+	case 0xdb: key = 9; O = 1; break;		// 1101 1011	   J
+	case 0xbb: key = 10; O = 1; break;	// 1011 1011       K
+	case 0x7b: key = 11; O = 1; break;	// 0111 1011       L
+	}
+	while (temp != 0xf0)				    //等待按键恢复
+	{
+		temp = P1;
+		temp = temp & 0xf0;
+	}
+	display(key);
+	//---------------------------------------------------------------------  
+	P1 = 0xf7;					   		//第四行	f7   1111 0111
+	temp = P1;							//读取按键状态
+	switch (temp)
+	{
+	case 0xe7: key = 12; O = 1; break;	// 1110 0111		M
+	case 0xd7: key = 13; O = 1; break;	// 1101 0111		N
+	case 0xb7: key = 14; O = 1; break;	// 1011 0111		O
+	case 0x77: key = 15; O = 1; break;	// 0111 0111		P
+	}
+	while (temp != 0xf0)			        //等待按键恢复
+	{
+		temp = P1;
+		temp = temp & 0xf0;
+	}
+	display(key);
+	//========================================================================= 
+	//                            | P3 |
+	//=========================================================================
+	P3 = 0xfe;						     //第一行  fe    1111 1110
+	temp = P3;							 //读取按键状态
+	switch (temp)
+	{
+	case 0xee: key = 16; O = 1; break;	 // 1110 1110	Q
+	case 0xde: key = 17; O = 1; break; 	 // 1101 1110	R
+	case 0xbe: key = 18; O = 1; break;	 // 1011 1110	S
+	case 0x7e: key = 19; O = 1; break;	 // 0111 1110	T
+	}
+	while (temp != 0xf0)				     //等待按键恢复
+	{
+		temp = P3;
+		temp = temp & 0xf0;
+	}
+	display(key);
+	//---------------------------------------------------------------------   
+	P3 = 0xfd;						     //第二行   fd    1111 1101
+	temp = P3;							 //读取按键状态
+	switch (temp)
+	{
+	case 0xed: key = 20; O = 1; break;	 // 1110 1101	 U
+	case 0xdd: key = 21; O = 1; break;	 // 1101 1101	 V
+	case 0xbd: key = 22; O = 1; break;	 // 1011 1101	 W
+	case 0x7d: key = 23; O = 1; break;	 // 0111 1101	 X
+	}
+	while (temp != 0xf0)				     //等待按键恢复
+	{
+		temp = P3;
+		temp = temp & 0xf0;
+	}
+	display(key);
+	//--------------------------------------------------------------------- 
+	P3 = 0xfb;						    //第三行   fb   11111 1011
+	temp = P3;							//读取按键状态
+	switch (temp)
+	{
+	case 0xeb: key = 24; O = 1; break;	// 1110 1011	 Y
+	case 0xdb: key = 25; O = 1; break;	// 1101 1011	 Z
+	case 0xbb: key = 26; O = 1; break;	// 1011 1011	 空格
+	case 0x7b: key = 27; O = 1; break;	// 0111 1011	 回车
+	}
+	while (temp != 0xf0)				    //等待按键恢复
+	{
+		temp = P3;
+		temp = temp & 0xf0;
+	}
+	display(key);
+	//--------------------------------------------------------------------- 
+	P3 = 0xf7;					   		//第四行	f7   1111 0111
+	temp = P3;							//读取按键状态
+	switch (temp)
+	{
+	case 0xe7: key = 28; O = 1; break;	// 1110 0111		删除
+	case 0xd7: key = 29; O = 1; break;	// 1101 0111		清屏
+	case 0xb7: key = 30; O = 1; break;	// 1011 0111		左移
+	case 0x77: key = 31; O = 1; break;	// 0111 0111		右移
+	}
+	while (temp != 0xf0)			        //等待按键恢复
+	{
+		temp = P3;
+		temp = temp & 0xf0;
+	}
+	display(key);
+	//--------------------------------------------------------------------- 
+}
+//++++++++++++++++++++++++++++++++++++++++++++ 				
+void main()
+{
+	init();  				  //初始化
+	weizhi(0, 0);			  //位置
+	while (1)
+	{
+		juzhenanjian();
+	}
+}

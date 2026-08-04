@@ -1,0 +1,164 @@
+C51 COMPILER V9.01   SERIAL                                                                07/12/2019 09:37:34 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE SERIAL
+OBJECT MODULE PLACED IN serial.OBJ
+COMPILER INVOKED BY: D:\keil\C51\BIN\C51.EXE serial.c COMPACT BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include"serial.h"
+   2          #include"data.h"
+   3          #include "beep.h"
+   4          #include "judge.h"
+   5          #include "dalay.h"
+   6          
+   7          typedef unsigned int u16;         //对数据类型进行声明定义
+   8          typedef unsigned char u8;
+   9          
+  10          unsigned char UART_buff;  
+  11          
+  12          bit New_rec = 0, Send_ed = 1; 
+  13          
+  14          
+  15          void UsartInit()                                                                                                      
+  16          {
+  17   1              SCON=0X50;          // 串行口工作方式寄存器 设置为工作方式1   0101 0000
+  18   1              TMOD=0X20;                      //设置计数器工作方式2 ，8位自动重装载
+  19   1              PCON=0X80;                      //波特率加倍  1000 0000
+  20   1              TH1=0XF3;                       //计数器初始值设置，注意波特率是4800的
+  21   1              TL1=0XF3;
+  22   1              
+  23   1              ES=1;                                           //打开接收中断
+  24   1              EA=1;                                           //打开总中断
+  25   1              TR1=1;                                          //打开计数器
+  26   1      }
+  27          
+  28          void Usart() interrupt 4
+  29          {
+  30   1              u8 receiveData;
+  31   1              if(RI == 1)
+  32   1              {
+  33   2              receiveData=SBUF;//出去接收到的数据
+  34   2              RI = 0;          //清除接收中断标志位
+  35   2              SBUF=receiveData;//将接收到的数据放入到发送寄存器
+  36   2              while(!TI);                      //等待发送数据完成//等待一帧数据(一个字符)发完，TI置1，
+  37   2              TI=0;                           //让TI为0就继续接收，            //清除发送完成标志位
+  38   2      
+  39   2      
+  40   2              if(receiveData == '0')  year++,p=p+number;  
+  41   2          if(receiveData == '1')  month++,p=p+maxday;  
+  42   2          if(receiveData == '2')  day++,p++; 
+  43   2              if(receiveData == '3')  h++;  
+  44   2          if(receiveData == '4')  min++;  
+  45   2          if(receiveData == '5')  h1++; 
+  46   2              if(receiveData == '6')  min1++;  
+  47   2          if(receiveData == '7')  h2++;  
+  48   2          if(receiveData == '8')  min2++; 
+  49   2              if(receiveData == '9')  y++; 
+  50   2              if(receiveData == 'a')  year--,p=p-number;
+  51   2          if(receiveData == 'b')  month--,p=p-maxday;  
+  52   2          if(receiveData == 'c')  day--,p--; 
+  53   2              if(receiveData == 'd')  h--;  
+  54   2          if(receiveData == 'e')  min--;  
+  55   2          if(receiveData == 'f')  h1--; 
+C51 COMPILER V9.01   SERIAL                                                                07/12/2019 09:37:34 PAGE 2   
+
+  56   2              if(receiveData == 'g')  min1--;  
+  57   2          if(receiveData == 'h')  h2--;  
+  58   2          if(receiveData == 'i')  min2--; 
+  59   2              if(receiveData == 'j')  y--;
+  60   2              if(receiveData == 'k')  year0=year0+1;
+  61   2              if(receiveData == 'o')  year0=year0-1;
+  62   2              if(receiveData == 'p')  month0=month0+1;
+  63   2              if(receiveData == 'q')  month0=month0-1;
+  64   2              if(receiveData == 'z')  day0=day0+1;
+  65   2              if(receiveData == 'x')  day0=day0-1;
+  66   2      
+  67   2          }  
+  68   1          else                                  //如果送毕. 
+  69   1              {         
+  70   2            TI = 0;      //清除标志.  
+  71   2            Send_ed = 1;  
+  72   2          }  
+  73   1      }
+  74          
+  75          void send()
+  76          {
+  77   1              
+  78   1              if(sec%3==0) 
+  79   1              sends();
+  80   1      
+  81   1      }
+  82          
+  83          extern char w[7];
+  84          extern int t[14],c[16];
+  85          char m1[]="时间";
+  86          char m2[]="年"  ;
+  87          char m3[]="月"  ;
+  88          char m4[]="日"  ;
+  89          
+  90          void wei(char term)                     //单个位输入
+  91          {
+  92   1              ES=0;
+  93   1              SBUF=term;
+  94   1              while(!TI);
+  95   1              TI=0;
+  96   1              ES=1;
+  97   1      }
+  98          
+  99          void duowei(char m[])              //多位输入
+ 100          {
+ 101   1              u8 i=0;
+ 102   1              while(m[i]!='\0')
+ 103   1              {
+ 104   2                      wei(m[i]);
+ 105   2                      i++;
+ 106   2              }
+ 107   1      }
+ 108          void sends()
+ 109          {
+ 110   1              duowei(m1);
+ 111   1              wei(t[0]+'0');
+ 112   1              wei(t[1]+'0');
+ 113   1              wei(':');
+ 114   1              wei(t[2]+'0');
+ 115   1              wei(t[3]+'0');
+ 116   1              wei(':');
+ 117   1              wei(t[4]+'0');
+C51 COMPILER V9.01   SERIAL                                                                07/12/2019 09:37:34 PAGE 3   
+
+ 118   1              wei(t[5]+'0');
+ 119   1              wei(' ');
+ 120   1              duowei(w);
+ 121   1              wei(' ');
+ 122   1              wei(c[0]+'0');
+ 123   1              wei(c[1]+'0');
+ 124   1              wei(c[2]+'0');
+ 125   1              wei(c[3]+'0');
+ 126   1              duowei(m2);
+ 127   1              wei(c[4]+'0');
+ 128   1              wei(c[5]+'0');
+ 129   1              duowei(m3);
+ 130   1              wei(c[6]+'0');
+ 131   1              wei(c[7]+'0');
+ 132   1              duowei(m4);
+ 133   1              wei('\n');      
+ 134   1      }
+ 135          
+ 136          
+ 137          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    739    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =     15       3
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      2    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

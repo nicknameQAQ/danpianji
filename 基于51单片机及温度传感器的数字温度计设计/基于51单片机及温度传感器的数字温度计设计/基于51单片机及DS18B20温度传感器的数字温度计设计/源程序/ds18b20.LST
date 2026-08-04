@@ -1,0 +1,61 @@
+C51 COMPILER V9.01   DS18B20                                                               06/10/2020 09:48:05 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE DS18B20
+OBJECT MODULE PLACED IN ds18b20.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE ds18b20.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          
+   2          #include<AT89X52.h>                                //½«AT89X52.hÍ·ÎÄ¼þ°üº¬µ½Ö÷³ÌÐò
+   3          #include<intrins.h>                                //½«intrins.hÍ·ÎÄ¼þ°üº¬µ½Ö÷³ÌÐò£¨µ÷ÓÃÆäÖÐµÄ_nop_()¿Õ²Ù×÷º¯ÊýÑÓÊ±£©
+   4          #define uint unsigned int                  //±äÁ¿ÀàÐÍºê¶¨Òå£¬ÓÃuint±íÊ¾ÎÞ·ûºÅÕûÐÎ£¨16Î»£©
+   5          #define uchar unsigned char                //±äÁ¿ÀàÐÍºê¶¨Òå£¬ÓÃuchar±íÊ¾ÎÞ·ûºÅ×Ö·ûÐÍ£¨8Î»£©
+   6          
+   7          uchar max=0x00,min=0x00;                   //maxÊÇÉÏÏÞ±¨¾¯ÎÂ¶È£¬minÊÇÏÂÏÞ±¨¾¯ÎÂ¶È
+   8          
+   9          bit   s=0;                                                 //sÊÇµ÷ÕûÉÏÏÂÏÞÎÂ¶ÈÊ±ÎÂ¶ÈÉÁË¸µÄ±êÖ¾Î»£¬s=0²»ÏÔÊ¾200ms£¬s=1ÏÔÊ¾1s×óÓÒ
+  10          bit   s1=0;                                                //s1±êÖ¾Î»ÓÃÓÚÉÏÏÂÏÞ²é¿´Ê±µÄÏÔÊ¾
+  11          void display1(uint z);                     //ÉùÃ÷display1£¨£©º¯Êý£¨display.hÍ·ÎÄ¼þÖÐµÄº¯Êý£¬ds18b20.hÒªÓÃÓ¦ÏÈÉùÃ÷£©
+  12          #include"ds18b20.h"                                //½«ds18b20.hÍ·ÎÄ¼þ°üº¬µ½Ö÷³ÌÐò
+  13          #include"keyscan.h"                                //½«keyscan.hÍ·ÎÄ¼þ°üº¬µ½Ö÷³ÌÐò
+  14          #include"display.h"                                //½«display.hÍ·ÎÄ¼þ°üº¬µ½Ö÷³ÌÐò
+  15          
+  16          /***********************Ö÷º¯Êý************************/
+  17          void main()
+  18          {
+  19   1               beer=1;                                           //¹Ø±Õ·äÃùÆ÷
+  20   1               led=1;                                            //¹Ø±ÕLEDµÆ
+  21   1               timer1_init(0);                           //³õÊ¼»¯¶¨Ê±Æ÷1£¨Î´Æô¶¯¶¨Ê±Æ÷1£©
+  22   1               get_temperature(1);               //Ê×´ÎÆô¶¯DS18B20»ñÈ¡ÎÂ¶È£¨DS18B20ÉÏµãºó×Ô¶¯½«EEPROMÖÐµÄÉÏÏÂÏÞÎÂ¶È¸´ÖÆµ½THºÍTL¼
+             -Ä´æÆ÷£©
+  23   1               while(1)                                          //Ö÷Ñ­»·
+  24   1               {       
+  25   2                       keyscan();                                //°´¼üÉ¨Ãæº¯Êý
+  26   2                       get_temperature(0);       //»ñÈ¡ÎÂ¶Èº¯Êý
+  27   2                       keyscan();                                //°´¼üÉ¨Ãæº¯Êý
+  28   2                       display(temp,temp_d*0.625);//ÏÔÊ¾º¯Êý
+  29   2                       alarm();                                       //±¨¾¯º¯Êý
+  30   2                       keyscan();                                //°´¼üÉ¨Ãæº¯Êý
+  31   2               }
+  32   1      }   
+  33          
+  34          
+  35          
+  36          
+  37          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2669    ----
+   CONSTANT SIZE    =     25    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      7       7
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =     10       5
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

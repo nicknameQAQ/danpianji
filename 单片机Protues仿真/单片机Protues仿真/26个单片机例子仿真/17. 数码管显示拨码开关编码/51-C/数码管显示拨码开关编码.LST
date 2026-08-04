@@ -1,0 +1,23 @@
+C51 COMPILER V8.02   数码管显蔩拨码开筥盻码                                                08/01/2011 23:51:51 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE 数码管显蔩拨码开筥盻码
+OBJECT MODULE PLACED IN 数码管显示拨码开关编码.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 数码管显示拨码开关编码.C BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     98    ----
+   CONSTANT SIZE    =     10    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      3    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

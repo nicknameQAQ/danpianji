@@ -1,0 +1,12 @@
+Removed Member From Class: ClassName=Sheet1 Member=BT1
+Change Component Designator: OldDesignator=R4 NewDesignator=光敏电阻
+Added Component: Designator=P1(PCBComponent_1)
+Added Pin To Net: NetName=NetP1_1 Pin=P1-1
+Added Pin To Net: NetName=NetP1_1 Pin=R1-2
+Added Pin To Net: NetName=NetP1_1 Pin=光敏电阻-2
+Added Net: Name=NetP1_1
+Added Pin To Net: NetName=NetP1_3 Pin=P1-3
+Added Pin To Net: NetName=NetP1_3 Pin=Q1-1
+Added Pin To Net: NetName=NetP1_3 Pin=R3-1
+Added Net: Name=NetP1_3
+Added Member To Class: ClassName=Sheet1 Member=Component P1 Header 3

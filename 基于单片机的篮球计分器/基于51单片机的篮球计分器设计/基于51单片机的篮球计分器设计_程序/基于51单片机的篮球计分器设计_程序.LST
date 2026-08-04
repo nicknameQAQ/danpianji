@@ -1,0 +1,474 @@
+C51 COMPILER V9.00   籣于51单片籣的篮球计穇器设计_程序                                     12/25/2018 09:57:11 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE 籣于51单片籣的篮球计穇器设计_程序
+OBJECT MODULE PLACED IN 基于51单片机的篮球计分器设计_程序.OBJ
+COMPILER INVOKED BY: D:\KEIL4\C51\BIN\C51.EXE 基于51单片机的篮球计分器设计_程序.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include<reg51.h>
+   2          
+   3          #define LEDData P0
+   4          
+   5          unsigned char code LEDCode[]={0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f};
+   6          
+   7          unsigned char minit,second,count,count1;                //分，秒，计数器
+   8          
+   9          sbit add1=P1^0;                                         //甲对加分，每按一次加1分   /在未开始比赛时为加时间分
+  10          sbit dec1=P1^1;                                         //甲对减分，每按一次减1分       /在未开始比赛时为减时间分
+  11          sbit exchange=P1^2;                                     //交换场地
+  12          sbit add2=P1^3;                                         //乙对加分，每按一次加1分       /在未开始比赛时为加时间秒
+  13          sbit dec2=P1^4;                                         //乙对减分，每按一次减1分       /在未开始比赛时为减时间秒
+  14          sbit secondpoint=P0^7;                          //秒闪动点
+  15          //----依次点亮数码管的位------
+  16          sbit led1=P2^7;
+  17          sbit led2=P2^6;
+  18          sbit led3=P2^5;
+  19          sbit led4=P2^4;
+  20          sbit led5=P2^3;
+  21          sbit led6=P2^2;
+  22          sbit led7=P2^1;
+  23          sbit led8=P2^0;
+  24          sbit led9=P3^7;
+  25          sbit led10=P3^6;
+  26          sbit led11=P3^5;
+  27          
+  28          sbit alam=P1^7;                                         //报警
+  29          sbit onoff=P3^2;
+  30          bit  playon=0;                                          //比赛进行标志位，为1时表示比赛开始，计时开启
+  31          bit  timeover=0;                                        //比赛结束标志位，为1时表示时间已经完
+  32          bit  AorB=0;                                            //甲乙对交换位置标志位
+  33          bit  halfsecond=0;                                      //半秒标志位
+  34          
+  35          unsigned int scoreA;                            //甲队得分
+  36          unsigned int scoreB;                            //乙队得分
+  37                          
+  38          
+  39          void Delay5ms(void)
+  40          {
+  41   1              unsigned int i;
+  42   1              for(i=100;i>0;i--);
+  43   1      }
+  44          void display(void)
+  45          {
+  46   1      //-----------显示时间分--------------
+  47   1              LEDData=LEDCode[minit/10];
+  48   1              led1=0;
+  49   1              Delay5ms();
+  50   1              led1=1;
+  51   1              LEDData=LEDCode[minit%10];
+  52   1              led2=0;
+  53   1              Delay5ms();
+  54   1              led2=1;
+  55   1      //-------------秒点闪动------------
+C51 COMPILER V9.00   籣于51单片籣的篮球计穇器设计_程序                                     12/25/2018 09:57:11 PAGE 2   
+
+  56   1              if(halfsecond==1)
+  57   1                      LEDData=0x80;
+  58   1              else
+  59   1                      LEDData=0x00;
+  60   1              led2=0;
+  61   1              Delay5ms();
+  62   1              led2=1;
+  63   1              secondpoint=0;
+  64   1      //-----------显示时间秒------------
+  65   1              LEDData=LEDCode[second/10];
+  66   1              led3=0;
+  67   1              Delay5ms();
+  68   1              led3=1;
+  69   1              LEDData=LEDCode[second%10];
+  70   1              led4=0;
+  71   1              Delay5ms();
+  72   1              led4=1;
+  73   1      //-----------显示1组的分数百位-------
+  74   1              if(AorB==0)
+  75   1                      LEDData=LEDCode[scoreA/100];
+  76   1              else
+  77   1                      LEDData=LEDCode[scoreB/100];
+  78   1              led5=0;
+  79   1              Delay5ms();
+  80   1              led5=1;
+  81   1      //---------------显示1组分数的十位-----------
+  82   1              if(AorB==0)
+  83   1                      LEDData=LEDCode[(scoreA%100)/10];
+  84   1              else
+  85   1                      LEDData=LEDCode[(scoreB%100)/10];
+  86   1              led6=0;
+  87   1              Delay5ms();
+  88   1              led6=1;
+  89   1      
+  90   1      //---------------显示1组分数的个位-----------
+  91   1              if(AorB==0)
+  92   1                      LEDData=LEDCode[scoreA%10];
+  93   1              else
+  94   1                      LEDData=LEDCode[scoreB%10];
+  95   1              led7=0;
+  96   1              Delay5ms();
+  97   1              led7=1;
+  98   1      
+  99   1      //-----------显示2组分数的百位-------
+ 100   1              if(AorB==1)
+ 101   1                      LEDData=LEDCode[scoreA/100];
+ 102   1              else
+ 103   1                      LEDData=LEDCode[scoreB/100];
+ 104   1              led8=0;
+ 105   1              Delay5ms();
+ 106   1              led8=1;
+ 107   1      //-----------显示2组分数的十位-----------
+ 108   1              if(AorB==1)
+ 109   1                      LEDData=LEDCode[(scoreA%100)/10];
+ 110   1              else
+ 111   1                      LEDData=LEDCode[(scoreB%100)/10];
+ 112   1              led9=0;
+ 113   1              Delay5ms();
+ 114   1              led9=1;
+ 115   1      
+ 116   1      //-----------显示2组分数的个位-----------
+ 117   1              if(AorB==1)
+C51 COMPILER V9.00   籣于51单片籣的篮球计穇器设计_程序                                     12/25/2018 09:57:11 PAGE 3   
+
+ 118   1                      LEDData=LEDCode[scoreA%10];
+ 119   1              else
+ 120   1                      LEDData=LEDCode[scoreB%10];
+ 121   1              led10=0;
+ 122   1              Delay5ms();
+ 123   1              led10=1;
+ 124   1      }
+ 125          
+ 126          
+ 127          //=========================按键检测程序================================================
+ 128          void keyscan(void)
+ 129          {
+ 130   1              if(onoff==0)
+ 131   1              {
+ 132   2                      display();
+ 133   2                      if(onoff==0)
+ 134   2                      {
+ 135   3                              alam=0;
+ 136   3                              Delay5ms();Delay5ms();
+ 137   3                              alam=1;
+ 138   3                              TR1=0;
+ 139   3                              timeover=0;
+ 140   3                              playon=!playon;                         //开始标志位
+ 141   3                              TR0=playon;                                     //开启计时
+ 142   3                              do
+ 143   3                                      display();
+ 144   3                              while(onoff==0);
+ 145   3                      }
+ 146   2              }
+ 147   1              if(playon==0)
+ 148   1              {
+ 149   2                      if(add1==0)
+ 150   2                      {
+ 151   3                              display();
+ 152   3                              if(add1==0);
+ 153   3                              {
+ 154   4                                      alam=0;
+ 155   4                                      Delay5ms();Delay5ms();
+ 156   4                                      alam=1;
+ 157   4                                      if(minit<99)
+ 158   4                                              minit++;
+ 159   4                                      else
+ 160   4                                              minit=99;
+ 161   4                              }
+ 162   3                              do
+ 163   3                                      display();
+ 164   3                              while(add1==0);
+ 165   3                      }
+ 166   2      
+ 167   2                      if(dec1==0)
+ 168   2                      {
+ 169   3                              display();
+ 170   3                              if(dec1==0);
+ 171   3                              {
+ 172   4                                      alam=0;
+ 173   4                                      Delay5ms();Delay5ms();
+ 174   4                                      alam=1;
+ 175   4                                      if(minit>0)
+ 176   4                                              minit--;
+ 177   4                                      else
+ 178   4                                              minit=0;
+ 179   4                              }
+C51 COMPILER V9.00   籣于51单片籣的篮球计穇器设计_程序                                     12/25/2018 09:57:11 PAGE 4   
+
+ 180   3                              do
+ 181   3                                      display();
+ 182   3                              while(dec1==0);
+ 183   3                      }
+ 184   2      
+ 185   2                      if(add2==0)
+ 186   2                      {
+ 187   3                              display();
+ 188   3                              if(add2==0);
+ 189   3                              {
+ 190   4                                      alam=0;
+ 191   4                                      Delay5ms();Delay5ms();
+ 192   4                                      alam=1;
+ 193   4                                      if(second<59)
+ 194   4                                              second++;
+ 195   4                                      else
+ 196   4                                              second=59;
+ 197   4                              }
+ 198   3                              do
+ 199   3                                      display();
+ 200   3                              while(add2==0);
+ 201   3                      }
+ 202   2      
+ 203   2                      if(dec2==0)
+ 204   2                      {
+ 205   3                              display();
+ 206   3                              if(dec2==0);
+ 207   3                              {
+ 208   4                                      alam=0;
+ 209   4                                      Delay5ms();Delay5ms();
+ 210   4                                      alam=1;
+ 211   4                                      if(second>0)
+ 212   4                                              second--;
+ 213   4                                      else
+ 214   4                                              second=0;
+ 215   4                              }
+ 216   3                              do
+ 217   3                                      display();
+ 218   3                              while(dec2==0);
+ 219   3                      }
+ 220   2      
+ 221   2                      if(exchange==0)
+ 222   2                      {
+ 223   3                              display();
+ 224   3                              if(exchange==0);
+ 225   3                              {
+ 226   4                                      alam=0;
+ 227   4                                      Delay5ms();Delay5ms();
+ 228   4                                      alam=1;
+ 229   4                                      TR1=0;                                  //关闭T1计数器
+ 230   4                                      alam=1;                                 //关报警
+ 231   4                                      AorB=~AorB;                             //开启交换      
+ 232   4                                      minit=15;                               //并将时间预设为15：00
+ 233   4                                      second=0;
+ 234   4                              }
+ 235   3                              do
+ 236   3                                      display();
+ 237   3                              while(exchange==0);
+ 238   3                      }       
+ 239   2              }
+ 240   1              else
+ 241   1              {
+C51 COMPILER V9.00   籣于51单片籣的篮球计穇器设计_程序                                     12/25/2018 09:57:11 PAGE 5   
+
+ 242   2                      if(add1==0)
+ 243   2                      {
+ 244   3                              display();
+ 245   3                              if(add1==0);
+ 246   3                              {
+ 247   4                                      alam=0;
+ 248   4                                      Delay5ms();Delay5ms();
+ 249   4                                      alam=1;
+ 250   4                                      if(AorB==0)
+ 251   4                                      {
+ 252   5                                              if(scoreA<999)
+ 253   5                                                      scoreA++;
+ 254   5                                              else
+ 255   5                                                      scoreA=999;
+ 256   5                                      }
+ 257   4                                      else
+ 258   4                                      {
+ 259   5                                              if(scoreB<999)
+ 260   5                                                      scoreB++;
+ 261   5                                              else
+ 262   5                                                      scoreB=999;
+ 263   5                                      }
+ 264   4                              }
+ 265   3                              do
+ 266   3                                      display();
+ 267   3                              while(add1==0);
+ 268   3                      }
+ 269   2      
+ 270   2                      if(dec1==0)
+ 271   2                      {
+ 272   3                              display();
+ 273   3                              if(dec1==0);
+ 274   3                              {
+ 275   4                                      alam=0;
+ 276   4                                      Delay5ms();Delay5ms();
+ 277   4                                      alam=1;
+ 278   4                                      if(AorB==0)
+ 279   4                                      {
+ 280   5                                              if(scoreA>0)
+ 281   5                                                      scoreA--;
+ 282   5                                              else
+ 283   5                                                      scoreA=0;
+ 284   5                                      }
+ 285   4                                      else
+ 286   4                                      {
+ 287   5                                              if(scoreB>0)
+ 288   5                                                      scoreB--;
+ 289   5                                              else
+ 290   5                                                      scoreB=0;
+ 291   5                                      }
+ 292   4                              }
+ 293   3                              do
+ 294   3                                      display();
+ 295   3                              while(dec1==0);
+ 296   3                      }
+ 297   2      
+ 298   2                      if(add2==0)
+ 299   2                      {
+ 300   3                              display();
+ 301   3                              if(add2==0);
+ 302   3                              {
+ 303   4                                      alam=0;
+C51 COMPILER V9.00   籣于51单片籣的篮球计穇器设计_程序                                     12/25/2018 09:57:11 PAGE 6   
+
+ 304   4                                      Delay5ms();Delay5ms();
+ 305   4                                      alam=1;
+ 306   4                                      if(AorB==1)
+ 307   4                                      {
+ 308   5                                              if(scoreA<999)
+ 309   5                                                      scoreA++;
+ 310   5                                              else
+ 311   5                                                      scoreA=999;
+ 312   5                                      }
+ 313   4                                      else
+ 314   4                                      {
+ 315   5                                              if(scoreB<999)
+ 316   5                                                      scoreB++;
+ 317   5                                              else
+ 318   5                                                      scoreB=999;
+ 319   5                                      }
+ 320   4                              }
+ 321   3                              do
+ 322   3                                      display();
+ 323   3                              while(add2==0);
+ 324   3                      }
+ 325   2      
+ 326   2                      if(dec2==0)
+ 327   2                      {
+ 328   3                              display();
+ 329   3                              if(dec2==0);
+ 330   3                              {
+ 331   4                                      alam=0;
+ 332   4                                      Delay5ms();Delay5ms();
+ 333   4                                      alam=1;
+ 334   4                                      if(AorB==1)
+ 335   4                                      {
+ 336   5                                              if(scoreA>0)
+ 337   5                                                      scoreA--;
+ 338   5                                              else
+ 339   5                                                      scoreA=0;
+ 340   5                                      }
+ 341   4                                      else
+ 342   4                                      {
+ 343   5                                              if(scoreB>0)
+ 344   5                                                      scoreB--;
+ 345   5                                              else
+ 346   5                                                      scoreB=0;
+ 347   5                                      }
+ 348   4                              }
+ 349   3                              do
+ 350   3                                      display();
+ 351   3                              while(dec2==0);
+ 352   3                      }
+ 353   2              }
+ 354   1      }
+ 355                  
+ 356          
+ 357          
+ 358          //******************************主函数*************************************************
+ 359          void main(void)
+ 360          {
+ 361   1              TMOD=0x11;
+ 362   1              TL0=0xb0;
+ 363   1              TH0=0x3c;
+ 364   1              TL1=0xb0;
+ 365   1              TH1=0x3c;
+C51 COMPILER V9.00   籣于51单片籣的篮球计穇器设计_程序                                     12/25/2018 09:57:11 PAGE 7   
+
+ 366   1              minit=12;                               //初始值为12：00
+ 367   1              second=0;
+ 368   1              EA=1;
+ 369   1              ET0=1;
+ 370   1              ET1=1;
+ 371   1              TR0=0;
+ 372   1              TR1=0;
+ 373   1              P1=0xFF;
+ 374   1              P3=0xFF;
+ 375   1              while(1)
+ 376   1              {
+ 377   2                      keyscan();
+ 378   2                      display();                      
+ 379   2          }
+ 380   1      }
+ 381          
+ 382          //*********************************中断服务函数**************************************
+ 383          void  time0_int(void) interrupt 1 
+ 384          {
+ 385   1              TL0=0xb0;
+ 386   1              TH0=0x3c;
+ 387   1              TR0=1;
+ 388   1              count++;
+ 389   1              if(count==10)
+ 390   1              {
+ 391   2                      halfsecond=0;
+ 392   2              }
+ 393   1      
+ 394   1              if(count==20)
+ 395   1              {
+ 396   2                      count=0;
+ 397   2                      halfsecond=1;
+ 398   2              
+ 399   2              if(second==0)
+ 400   2                      {
+ 401   3                              if(minit>0)
+ 402   3                              {
+ 403   4                                      second=59;
+ 404   4                                      minit--;
+ 405   4                              }
+ 406   3                              else
+ 407   3                              {
+ 408   4                                      timeover=1;
+ 409   4                                      playon=0;
+ 410   4                                      TR0=0;
+ 411   4                                      TR1=1;
+ 412   4                              }
+ 413   3                      }
+ 414   2                      else
+ 415   2                              second--;
+ 416   2              }
+ 417   1      }
+ 418          
+ 419          
+ 420          //*********************************中断服务函数**************************************
+ 421          void  time1_int(void) interrupt 3
+ 422          {
+ 423   1              TL1=0xb0;
+ 424   1              TH1=0x3c;
+ 425   1              TR1=1;
+ 426   1              count1++;
+ 427   1              if(count1==10)
+C51 COMPILER V9.00   籣于51单片籣的篮球计穇器设计_程序                                     12/25/2018 09:57:11 PAGE 8   
+
+ 428   1              {
+ 429   2                      alam=0;
+ 430   2              }
+ 431   1      
+ 432   1              if(count1==20)
+ 433   1              {
+ 434   2                      count1=0;
+ 435   2                      alam=1;
+ 436   2              }
+ 437   1      } 
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1027    ----
+   CONSTANT SIZE    =     10    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      8    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      4    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

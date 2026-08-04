@@ -1,0 +1,5 @@
+Added Room: Name=基于51单片机超声波测距系统
+Removed Pin From Net: NetName=P20 Pin=R3-1
+Added Pin To Net: NetName=P21 Pin=R3-1
+Removed Pin From Net: NetName=P21 Pin=R4-1
+Added Pin To Net: NetName=P20 Pin=R4-1

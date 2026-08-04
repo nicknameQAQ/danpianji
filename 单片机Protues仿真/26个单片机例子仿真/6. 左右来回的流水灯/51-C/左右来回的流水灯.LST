@@ -1,0 +1,55 @@
+C51 COMPILER V8.02   左觃来籣的羅水灯                                                      07/30/2011 16:35:32 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE 左觃来籣的羅水灯
+OBJECT MODULE PLACED IN 左右来回的流水灯.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 左右来回的流水灯.C BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2          *左右来回的流水灯*
+   3          */
+   4          #include<reg51.h>
+   5          typedef unsigned char uint8;
+   6          typedef unsigned int uint16;
+   7          
+   8          void delay(uint16 x)
+   9          {
+  10   1              uint8 i,j;
+  11   1              for(i = x; i > 0; i --)
+  12   1                      for(j = 114; j > 0; j --);              
+  13   1      }
+  14          
+  15          void main()
+  16          {
+  17   1              uint8 b = 0, way = 0;                     //移动位数变量及移动方向变量 
+  18   1              while(1)
+  19   1              {
+  20   2                       if(way == 0)                             //根据way选择左移还是右移
+  21   2                              P0 = ~(0x01 << b);                //最低位的0被左移b位
+  22   2                       else
+  23   2                              P0 = ~(0x80 >> b);                //最高位的0被右移b位
+  24   2      
+  25   2                       if( ++b == 8)                            //如果移动到左端或右端
+  26   2                       {
+  27   3                              b = 0;                                    //b归0
+  28   3                              way = !way;                               //改变方向
+  29   3                       }
+  30   2                       delay(200);
+  31   2              }
+  32   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     73    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

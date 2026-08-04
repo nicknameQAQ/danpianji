@@ -1,0 +1,139 @@
+BL51 BANKED LINKER/LOCATER V6.22                                                        01/11/2018  10:34:56  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE 1616.obj TO 1616
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  1616.obj (1616)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+
+
+LINK MAP OF MODULE:  1616 (1616)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0005H     UNIT         _DATA_GROUP_
+            IDATA   000DH     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     0170H     UNIT         ?CO?1616
+            CODE    0173H     004EH     UNIT         ?PR?MAIN?1616
+            CODE    01C1H     0032H     UNIT         ?PR?_SENDDATA?1616
+            CODE    01F3H     000CH     UNIT         ?C_C51STARTUP
+            CODE    01FFH     000AH     UNIT         ?PR?_DELAY?1616
+
+
+
+OVERLAY MAP OF MODULE:   1616 (1616)
+
+
+SEGMENT                          DATA_GROUP 
+  +--> CALLED SEGMENT          START    LENGTH
+----------------------------------------------
+?C_C51STARTUP                  -----    -----
+  +--> ?PR?MAIN?1616
+
+?PR?MAIN?1616                  0008H    0005H
+  +--> ?CO?1616
+  +--> ?PR?_SENDDATA?1616
+  +--> ?PR?_DELAY?1616
+
+
+
+SYMBOL TABLE OF MODULE:  1616 (1616)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        1616
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0090H         PUBLIC        P1
+  D:00A0H         PUBLIC        P2
+BL51 BANKED LINKER/LOCATER V6.22                                                      01/11/2018  10:34:56  PAGE 2
+
+
+  C:01FFH         PUBLIC        _delay
+  B:00A0H.0       PUBLIC        DS
+  B:00A0H.1       PUBLIC        SH
+  C:0173H         PUBLIC        main
+  B:00A0H.2       PUBLIC        ST
+  C:0003H         PUBLIC        table1
+  C:00BBH         PUBLIC        table2
+  C:01C1H         PUBLIC        _senddata
+  -------         PROC          MAIN
+  -------         DO            
+  D:0008H         SYMBOL        i
+  D:0009H         SYMBOL        j
+  D:000AH         SYMBOL        k
+  D:000BH         SYMBOL        m
+  D:000CH         SYMBOL        n
+  -------         ENDDO         
+  C:0173H         LINE#         222
+  C:0173H         LINE#         223
+  C:0173H         LINE#         224
+  C:0176H         LINE#         225
+  C:0176H         LINE#         226
+  C:0176H         LINE#         227
+  C:0179H         LINE#         228
+  C:0179H         LINE#         229
+  C:017CH         LINE#         230
+  C:017CH         LINE#         231
+  C:017FH         LINE#         232
+  C:017FH         LINE#         233
+  C:0185H         LINE#         234
+  C:0188H         LINE#         235
+  C:0199H         LINE#         236
+  C:019EH         LINE#         237
+  C:01A4H         LINE#         238
+  C:01ADH         LINE#         239
+  C:01B6H         LINE#         240
+  -------         ENDPROC       MAIN
+  -------         PROC          _SENDDATA
+  D:0007H         SYMBOL        m
+  D:0005H         SYMBOL        n
+  -------         DO            
+  D:0006H         SYMBOL        i
+  -------         ENDDO         
+  C:01C1H         LINE#         248
+  C:01C1H         LINE#         249
+  C:01C1H         LINE#         251
+  C:01C3H         LINE#         252
+  C:01C5H         LINE#         253
+  C:01C5H         LINE#         254
+  C:01C7H         LINE#         255
+  C:01CDH         LINE#         256
+  C:01CDH         LINE#         257
+  C:01D7H         LINE#         258
+  C:01D9H         LINE#         260
+  C:01EAH         LINE#         261
+  C:01ECH         LINE#         262
+  C:01F0H         LINE#         263
+  C:01F2H         LINE#         264
+BL51 BANKED LINKER/LOCATER V6.22                                                      01/11/2018  10:34:56  PAGE 3
+
+
+  -------         ENDPROC       _SENDDATA
+  -------         PROC          _DELAY
+  D:0007H         SYMBOL        m
+  -------         DO            
+  D:0007H         SYMBOL        j
+  -------         ENDDO         
+  C:01FFH         LINE#         266
+  C:01FFH         LINE#         267
+  C:01FFH         LINE#         269
+  C:0208H         LINE#         270
+  -------         ENDPROC       _DELAY
+  -------         ENDMOD        1616
+
+Program Size: data=14.0 xdata=0 code=521
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

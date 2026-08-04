@@ -1,0 +1,382 @@
+C51 COMPILER V9.01   交通灯                                                                10/02/2015 12:38:08 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE 交通灯
+OBJECT MODULE PLACED IN 交通灯.OBJ
+COMPILER INVOKED BY: D:\Program Files (x86)\KEIL4\C51\BIN\C51.EXE 交通灯.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include <reg52.h>               //调用单片机头文件
+   2          #define uchar unsigned char   //宏定义"uchar"代替"unsigned char"。
+   3          #define uint  unsigned int        //宏定义"uint"用来定义无符号整型数。
+   4          
+   5          
+   6          //数码管段选定义 0     1    2    3        4        5    6        7        8        9    
+   7          uchar code smg_du[]={0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90,
+   8          //                                         A    B        C        D        E   F        不显示
+   9                                                   0x88,0x83,0xc6,0xa1,0x86,0x8e,0xff};    //断码 
+  10          
+  11          uchar dis_smg[8] = {0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8};   
+  12          uchar smg_i = 4;    //显示数码管的个位数
+  13          
+  14          //数码管位选定义
+  15          sbit smg_we1 = P2^0;        //数码管位选定义
+  16          sbit smg_we2 = P2^1;
+  17          sbit smg_we3 = P3^6;
+  18          sbit smg_we4 = P3^7;
+  19          
+  20          
+  21          char dx_s = 0;  //东西  南北 倒计时变量
+  22          sbit dx_red    = P2^4;      //东西红灯
+  23          sbit dx_green  = P2^3;          //东西绿灯
+  24          sbit dx_yellow = P2^2;          //东西黄灯
+  25          
+  26          sbit nb_red    = P2^7;          //南北红灯
+  27          sbit nb_green  = P2^6;          //南北绿灯
+  28          sbit nb_yellow = P2^5;          //南北黄灯      
+  29          
+  30          uchar flag_jtd_mode;  //交通灯的模式 根据时间 
+  31          bit flag_1s = 0;
+  32          bit flag_500ms;
+  33          bit flag_dx_nb;          //东西南北模式
+  34          uchar flag_5m_value;
+  35          uchar i;
+  36          uchar flag_alarm;       //模式
+  37          uchar dx_time = 30,nb_time = 20;   //东西、南北的时间
+  38          uchar flag_jdgz ;     //交通管制
+  39          
+  40          
+  41          /***********************数码位选函数*****************************/
+  42          void smg_we_switch(uchar i)
+  43          {
+  44   1              switch(i)
+  45   1              {
+  46   2                      case 0: smg_we1 = 0;  smg_we2 = 1; smg_we3 = 1;  smg_we4 = 1; break;
+  47   2                      case 1: smg_we1 = 1;  smg_we2 = 0; smg_we3 = 1;  smg_we4 = 1; break;
+  48   2                      case 2: smg_we1 = 1;  smg_we2 = 1; smg_we3 = 0;  smg_we4 = 1; break;
+  49   2                      case 3: smg_we1 = 1;  smg_we2 = 1; smg_we3 = 1;  smg_we4 = 0; break;
+  50   2              }       
+  51   1      }
+  52          
+  53          
+  54          /********************************************************************
+  55          * 名称 : delay_1ms()
+C51 COMPILER V9.01   交通灯                                                                10/02/2015 12:38:08 PAGE 2   
+
+  56          * 功能 : 延时1ms函数
+  57          * 输入 : q
+  58          * 输出 : 无
+  59          ***********************************************************************/
+  60          void delay_1ms(uint q)
+  61          {
+  62   1              uint i,j;
+  63   1              for(i=0;i<q;i++)
+  64   1                      for(j=0;j<110;j++);
+  65   1      }
+  66          
+  67          
+  68          /********************************************************************
+  69          * 名称 : display()
+  70          * 功能 : 数码管显示
+  71          * 输入 : 无
+  72          * 输出 : 无
+  73          ***********************************************************************/
+  74          void display()
+  75          {
+  76   1              uchar i;
+  77   1              for(i=0;i<smg_i;i++)
+  78   1              {               
+  79   2                      P0 = 0xff;                //消隐 
+  80   2                      smg_we_switch(i);         //位选
+  81   2                      P0 = dis_smg[i];          //段选          
+  82   2                      delay_1ms(3);
+  83   2              }
+  84   1      }
+  85          
+  86          /*********************定时器0、定时器1初始化******************/
+  87          void time0_init()         
+  88          {
+  89   1              EA  = 1;                  //开总中断
+  90   1              TMOD = 0X11;      //定时器0、定时器1工作方式1
+  91   1              ET0 = 1;                  //开定时器0中断 
+  92   1              TR0 = 1;                  //允许定时器0定时
+  93   1      //      ET1 = 1;                  //开定时器1中断 
+  94   1      //      TR1 = 1;                  //允许定时器1定时     
+  95   1      }
+  96          
+  97          /*********************交通灯处理函数*********************************/
+  98          void jiaotongdeng_dis()
+  99          {
+ 100   1              if(flag_1s == 1)
+ 101   1              {
+ 102   2                      flag_1s = 0;
+ 103   2                      if(dx_s == 0)
+ 104   2                      {
+ 105   3                              if(flag_dx_nb == 1)
+ 106   3                                      dx_s = nb_time;   //南北时间
+ 107   3                              else 
+ 108   3                                      dx_s = dx_time;   //东西时间
+ 109   3                              flag_dx_nb = ~flag_dx_nb;
+ 110   3                      }
+ 111   2                      dx_s --;
+ 112   2              }
+ 113   1              dis_smg[0] = smg_du[dx_s % 10] ;
+ 114   1              dis_smg[1] = smg_du[dx_s / 10] ;
+ 115   1              dis_smg[2] = smg_du[dx_s % 10] ;
+ 116   1              dis_smg[3] = smg_du[dx_s / 10] ;
+ 117   1      
+C51 COMPILER V9.01   交通灯                                                                10/02/2015 12:38:08 PAGE 3   
+
+ 118   1      /***********************南北时间*********************************/
+ 119   1                      if(flag_dx_nb == 0)  
+ 120   1                      {
+ 121   2                              if(dx_s > 5)
+ 122   2                              {
+ 123   3                                      dx_red    = 1;  //灭 
+ 124   3                                      dx_green  =     0;      //亮
+ 125   3                                      dx_yellow = 1;  //灭
+ 126   3                                      nb_red    = 0;  //亮 
+ 127   3                                      nb_green  =     1;      //灭
+ 128   3                                      nb_yellow = 1;  //灭
+ 129   3                                      flag_5m_value = 0;      
+ 130   3                              }else if(dx_s <= 5)              //当小于5秒时  黄灯要闪了
+ 131   2                              {
+ 132   3                                      dx_red    = 1;    //灭
+ 133   3                                      dx_green  =     1;        //灭
+ 134   3                                      nb_red    = 0;    //亮
+ 135   3                                      nb_green  =     1;        //灭
+ 136   3                                      nb_yellow = 1;    //灭
+ 137   3                                      if(flag_500ms == 0)
+ 138   3                                      {
+ 139   4                                              dx_yellow = 0;//亮      
+ 140   4                                      }
+ 141   3                                      else 
+ 142   3                                      {
+ 143   4                                              dx_yellow = 1;//灭      
+ 144   4                                      }
+ 145   3                              }
+ 146   2                      }
+ 147   1      /***********************东西时间*********************************/
+ 148   1                      if(flag_dx_nb == 1)  
+ 149   1                      {
+ 150   2                              if(dx_s > 5)
+ 151   2                              {
+ 152   3                                      dx_red    = 0;     //亮
+ 153   3                                      dx_green  =     1;         //灭
+ 154   3                                      dx_yellow = 1;     //灭
+ 155   3                                      nb_red    = 1;     //灭
+ 156   3                                      nb_green  =     0;         //亮
+ 157   3                                      nb_yellow = 1;     //灭
+ 158   3                                      flag_5m_value = 0;      
+ 159   3                              }else if(dx_s <= 5)              //当小于5秒时  黄灯要闪了
+ 160   2                              {
+ 161   3                                      dx_red    = 0;     //灭
+ 162   3                                      dx_green  =     1;         //灭
+ 163   3                                      dx_yellow = 1;     //灭
+ 164   3                                      nb_red    = 1;     //灭
+ 165   3                                      nb_green  =     1;         //灭
+ 166   3                                      if(flag_500ms == 0)        //黄灯闪烁
+ 167   3                                      {
+ 168   4                                              nb_yellow = 0;  //亮    
+ 169   4                                      }
+ 170   3                                      else 
+ 171   3                                      {
+ 172   4                                              nb_yellow = 1;  //灭    
+ 173   4                                      }
+ 174   3                              }
+ 175   2              }                       
+ 176   1      }
+ 177          
+ 178          /********************独立按键程序*****************/
+ 179          uchar key_can;   //按键值
+C51 COMPILER V9.01   交通灯                                                                10/02/2015 12:38:08 PAGE 4   
+
+ 180          
+ 181          void key()       //独立按键程序
+ 182          {
+ 183   1              static uchar key_new;
+ 184   1              key_can = 20;                   //按键值还原
+ 185   1              P1 |= 0x1f;
+ 186   1              if((P1 & 0x1f) != 0x1f)         //按键按下
+ 187   1              {
+ 188   2                      delay_1ms(1);           //按键消抖动
+ 189   2                      if(((P1 & 0x1f) != 0x1f) && (key_new == 1))
+ 190   2                      {                                               //确认是按键按下
+ 191   3                              key_new = 0;
+ 192   3                              switch(P1 & 0x1f)
+ 193   3                              {
+ 194   4                                      case 0x1e:  key_can = 1;  break;         //得到按键值
+ 195   4                                      case 0x1d:  key_can = 2;  break;         //得到按键值
+ 196   4                                      case 0x1b:  key_can = 3;  break;         //得到按键值
+ 197   4                                      case 0x17:  key_can = 4;  break;         //得到按键值
+ 198   4                              }
+ 199   3                      }                       
+ 200   2              }
+ 201   1              else 
+ 202   1                      key_new = 1;    
+ 203   1      }
+ 204          
+ 205          uchar menu_1,flag_s;
+ 206          
+ 207          
+ 208          /********************设置函数*****************/
+ 209          void key_with()
+ 210          {
+ 211   1              if(key_can == 4)   //交通管制按键
+ 212   1              {
+ 213   2                      flag_jdgz ++;
+ 214   2                      if(flag_jdgz > 5)
+ 215   2                              flag_jdgz = 0;  
+ 216   2                      if(flag_jdgz == 1)       //  全部亮红灯 
+ 217   2                      {
+ 218   3                              dx_red    = 0;  //亮 
+ 219   3                              dx_green  =     1;      //灭
+ 220   3                              dx_yellow = 1;  //灭
+ 221   3                              nb_red    = 0;  //亮 
+ 222   3                              nb_green  =     1;      //灭
+ 223   3                              nb_yellow = 1;  //灭                    
+ 224   3                      }
+ 225   2                      if(flag_jdgz == 2)       //  东西红灯  南北绿灯
+ 226   2                      {
+ 227   3                              dx_red    = 0;  //亮 
+ 228   3                              dx_green  =     1;      //灭
+ 229   3                              dx_yellow = 1;  //灭
+ 230   3                              nb_red    = 1;  //灭 
+ 231   3                              nb_green  =     0;      //亮
+ 232   3                              nb_yellow = 1;  //灭                    
+ 233   3                      }
+ 234   2                      if(flag_jdgz == 3)       //  南北红灯  东西绿灯
+ 235   2                      {
+ 236   3                              dx_red    = 1;  //灭 
+ 237   3                              dx_green  =     0;      //亮
+ 238   3                              dx_yellow = 1;  //灭
+ 239   3                              nb_red    = 0;  //亮 
+ 240   3                              nb_green  =     1;      //灭
+ 241   3                              nb_yellow = 1;  //灭                    
+C51 COMPILER V9.01   交通灯                                                                10/02/2015 12:38:08 PAGE 5   
+
+ 242   3                      }
+ 243   2                      if(flag_jdgz == 4)       //  南北绿灯  东西绿灯
+ 244   2                      {
+ 245   3                              dx_red    = 1;  //灭 
+ 246   3                              dx_green  =     0;      //亮
+ 247   3                              dx_yellow = 1;  //灭
+ 248   3                              nb_red    = 1;  //灭 
+ 249   3                              nb_green  =     0;      //亮
+ 250   3                              nb_yellow = 1;  //灭                    
+ 251   3                      }
+ 252   2                      if(flag_jdgz == 5)       //  南北黄灯  东西黄灯
+ 253   2                      {
+ 254   3                              dx_red    = 1;  //灭 
+ 255   3                              dx_green  =     1;      //灭
+ 256   3                              dx_yellow = 0;  //亮
+ 257   3                              nb_red    = 1;  //灭 
+ 258   3                              nb_green  =     1;      //灭
+ 259   3                              nb_yellow = 0;  //亮                    
+ 260   3                      }
+ 261   2              }
+ 262   1              if(key_can == 1)          //设置键
+ 263   1              {
+ 264   2                      menu_1 ++;
+ 265   2                      if(menu_1 >= 3)
+ 266   2                      {
+ 267   3                              menu_1  = 0;
+ 268   3                      }
+ 269   2              }
+ 270   1      
+ 271   1              if(menu_1 == 1)    //设置东西的时间
+ 272   1              {
+ 273   2                      if(key_can == 2)
+ 274   2                      {
+ 275   3                              dx_time ++ ;            //加1
+ 276   3                              if(dx_time > 99)
+ 277   3                                      dx_time = 99;
+ 278   3                      }
+ 279   2                      if(key_can == 3)
+ 280   2                      {
+ 281   3                              dx_time -- ;            //减1
+ 282   3                              if(dx_time <= 10)
+ 283   3                                      dx_time = 10;
+ 284   3                      }
+ 285   2                      dis_smg[0] = smg_du[10] ;       //显示为A
+ 286   2                      dis_smg[1] = smg_du[10] ;       //显示为A
+ 287   2                      dis_smg[2] = smg_du[dx_time % 10] ;             //显示东西设置的时候
+ 288   2                      dis_smg[3] = smg_du[dx_time / 10] ;     
+ 289   2              }       
+ 290   1              if(menu_1 == 2)    //设置南北的时间
+ 291   1              {
+ 292   2                      if(key_can == 2)
+ 293   2                      {
+ 294   3                              nb_time ++ ;            //加1
+ 295   3                              if(nb_time > 99)
+ 296   3                                      nb_time = 99;
+ 297   3                      }
+ 298   2                      if(key_can == 3)
+ 299   2                      {
+ 300   3                              nb_time -- ;            //减1
+ 301   3                              if(nb_time <= 10)
+ 302   3                                      nb_time = 10;
+ 303   3                      }
+C51 COMPILER V9.01   交通灯                                                                10/02/2015 12:38:08 PAGE 6   
+
+ 304   2                      dis_smg[0] = smg_du[11] ;       //显示为B
+ 305   2                      dis_smg[1] = smg_du[11] ;       //显示为B
+ 306   2                      dis_smg[2] = smg_du[nb_time % 10] ;             //显示东西设置的时候
+ 307   2                      dis_smg[3] = smg_du[nb_time / 10] ;     
+ 308   2              }
+ 309   1      }
+ 310          
+ 311          
+ 312          /********************************************************************
+ 313          * 名称 : main()
+ 314          * 功能 : 实现灯的闪烁
+ 315          * 输入 : 无
+ 316          * 输出 : 无
+ 317          ***********************************************************************/
+ 318          void main()
+ 319          {
+ 320   1              time0_init();
+ 321   1              dx_s = nb_time;   //东西时间
+ 322   1              while(1)
+ 323   1              {
+ 324   2                      key();
+ 325   2                      if(key_can < 20)
+ 326   2                              key_with();
+ 327   2      //              menu_dis();
+ 328   2                      if((menu_1 == 0) && (flag_jdgz == 0))
+ 329   2                              jiaotongdeng_dis();
+ 330   2                      display();      
+ 331   2              }
+ 332   1      }  
+ 333          
+ 334          /*********************定时器0中断服务程序************************/
+ 335          void time0_int() interrupt 1  
+ 336          {                                                  
+ 337   1              static uchar value;                      //定时10ms中断一次
+ 338   1              TH0 = 0x3c;
+ 339   1              TL0 = 0xb0;     //50ms
+ 340   1              value ++;
+ 341   1              flag_5m_value++;
+ 342   1              if(flag_5m_value % 10 == 0)
+ 343   1                      flag_500ms = ~flag_500ms;
+ 344   1              if(value >= 20)
+ 345   1              {
+ 346   2                      value = 0;
+ 347   2                      flag_1s = 1;
+ 348   2              }
+ 349   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    744    ----
+   CONSTANT SIZE    =     17    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     22    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      3    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

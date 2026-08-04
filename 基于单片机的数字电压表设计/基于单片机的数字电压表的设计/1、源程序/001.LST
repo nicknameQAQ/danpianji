@@ -1,0 +1,95 @@
+C51 COMPILER V9.60.0.0   001                                                               06/16/2020 15:25:55 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE 001
+OBJECT MODULE PLACED IN 001.OBJ
+COMPILER INVOKED BY: D:\keil5\C51\BIN\C51.EXE 001.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          //<程序名>:数字电压表                                    **
+   2          //<功能>:使用LCD显示被检测电压，精度为0.05V，范围是0～5V。                   **
+   3          #include"includes.h"
+   4          #define TIME0H 0x3C
+   5          #define TIME0L 0xB0
+   6          uchar uc_Clock=0;   //定时器0中断计数
+   7          bit b_DATransform=0;
+   8          //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   9          //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<把电压显示在LCD上>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  10          //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  11          void vShowVoltage(uint uiNumber)
+  12          {
+  13   1        uchar ucaNumber[3],ucCount;
+  14   1        if(uiNumber>999)          
+  15   1          uiNumber=999;
+  16   1        ucaNumber[0]=uiNumber/100;                //把计算数字的每个位存入数组。
+  17   1        ucaNumber[1]=(uiNumber-100*(int)ucaNumber[0])/10;             
+  18   1        ucaNumber[2]=uiNumber-100*(int)ucaNumber[0]-10*ucaNumber[1];
+  19   1        for(ucCount=0;ucCount<3;ucCount++)
+  20   1        {
+  21   2          vShowOneChar(ucaNumber[ucCount]+48);        //从首位到末位逐一输出。
+  22   2          if(ucCount==1)
+  23   2            vShowOneChar('.');
+  24   2        }
+  25   1      }
+  26          //*************************************************************************************************
+  27          //*                                                 *
+  28          //*       ********************************主函数******************************          *
+  29          //*                                                 *
+  30          //*************************************************************************************************
+  31          void main()
+  32          {
+  33   1        TMOD=0x01;      //定时器0，模式1。
+  34   1        TH0=TIME0H;
+  35   1        TL0=TIME0L;
+  36   1        TR0=1;        //启动定时器。
+  37   1        ET0=1;        //开定时器中断。
+  38   1        EA=1;       //开总中断
+  39   1        vdInitialize();
+  40   1        vWriteCMD(0x84);     //写入显示起始地址（第一行第4个位置）
+  41   1        vShowChar("voltage");
+  42   1        vWriteCMD(0xC9);     
+  43   1        vShowChar("(V)");
+  44   1        while(1)
+  45   1        {
+  46   2          if(b_DATransform==1)
+  47   2          {
+  48   3            b_DATransform=0;
+  49   3            vWriteCMD(0xC4);
+  50   3            vShowVoltage(uiADTransform());
+  51   3          }
+  52   2        }
+  53   1      }
+  54          //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  55          //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<定时器0中断函数>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+C51 COMPILER V9.60.0.0   001                                                               06/16/2020 15:25:55 PAGE 2   
+
+  56          //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  57          void t0() interrupt 1
+  58          {
+  59   1        if(uc_Clock==0)
+  60   1        {
+  61   2          uc_Clock=5;
+  62   2          b_DATransform=1;
+  63   2        }
+  64   1        else
+  65   1          uc_Clock--;
+  66   1        TH0=TIME0H;      //恢复定时器0。
+  67   1        TL0=TIME0L;
+  68   1      }
+  69          
+  70          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    218    ----
+   CONSTANT SIZE    =     12    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

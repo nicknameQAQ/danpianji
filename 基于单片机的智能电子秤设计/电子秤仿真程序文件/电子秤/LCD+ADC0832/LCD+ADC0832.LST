@@ -1,0 +1,372 @@
+C51 COMPILER V8.02   LCD_ADC0832                                                           03/05/2009 12:35:17 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE LCD_ADC0832
+OBJECT MODULE PLACED IN LCD+ADC0832.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE LCD+ADC0832.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /********************************************************
+   2                             压力测试仪
+   3          系统描述;输入  15--115kPA压力信号
+   4                   输出  00h--ffh数字信号（adc0832）
+   5                   在LCD上显示实际的压力值，如果超限则报警
+   6          
+   7          线性区间标度变换公式：    y=(115-15)/(243-13)*X+15kpa   
+   8          
+   9          作者：
+  10          单位：
+  11          日期：2008.3.7
+  12          
+  13          ********************************************************/
+  14          
+  15          #include<reg51.h>
+  16          #include<intrins.h>
+  17          #include <absacc.h>
+  18          #include <math.h>
+  19          
+  20          #define uchar unsigned char
+  21          #define uint   unsigned int
+  22          #define BUSY  0x80                               //常量定义
+  23          #define DATAPORT P0
+  24          
+  25          
+  26          //ADC0832的引脚
+  27          sbit ADCS =P3^5;  //ADC0832 chip seclect
+  28          sbit ADDI =P3^7;  //ADC0832 k in
+  29          sbit ADDO =P3^7;  //ADC0832 k out
+  30          sbit ADCLK =P3^6;  //ADC0832 clock signal
+  31          
+  32          sbit LCM_RS=P2^0;
+  33          sbit LCM_RW=P2^1;
+  34          sbit LCM_EN=P2^2;
+  35          
+  36          uchar ad_data;                                    //采样值存储
+  37          sbit Alarm_led_red =P3^1;                         //超过压力表量程最大值红色led报警定义
+  38          sbit Alarm_led_green=P3^2;                        //低于压力表量程最小值绿色led报警定义
+  39                                    //adc采样值存储单元
+  40          char press_data;                                  //标度变换存储单元
+  41          unsigned char ad_alarm;                           //报警值存储单元
+  42          unsigned char press_bai=0;                        //显示值百位
+  43          unsigned char press_shi=0;                        //显示值十位
+  44          unsigned char press_ge=0;                         //显示值个位
+  45          unsigned char press_dot=0;                        //显示值十分位
+  46          
+  47          uchar code str0[]={"Press:    .  kpa "};
+  48          uchar code str1[]={" Check GUO TAO "};
+  49          
+  50          void delay(uint);
+  51          void lcd_wait(void);
+  52          void delay_LCM(uint);                                                                                                   //LCD延时子程序
+  53          void initLCM( void);                                                                                                    //LCD初始化子程序
+  54          void lcd_wait(void);                                                                                                    //LCD检测忙子程序
+  55          void WriteCommandLCM(uchar WCLCM,uchar BusyC);                              //写指令到ICM子函数
+C51 COMPILER V8.02   LCD_ADC0832                                                           03/05/2009 12:35:17 PAGE 2   
+
+  56          void WriteDataLCM(uchar WDLCM);                                             //写数据到LCM子函数
+  57          void DisplayOneChar(uchar X,uchar Y,uchar DData);                           //显示指定坐标的一个字符子函数
+  58          void DisplayListChar(uchar X,uchar Y,uchar code *DData);                    //显示指定坐标的一串字符子函数
+  59          void display(void);                                                         //系统显示子函数
+  60          uchar Adc0832(unsigned char channel);                                                                                                                   
+  61          void alarm(void);
+  62          void data_pro(void);
+  63          
+  64          
+  65          /**********main funcation************/
+  66          
+  67          void main(void)
+  68          { 
+  69   1          delay(500);                      //系统延时500ms启动
+  70   1      //      ad_data=0;                       //采样值存储单元初始化为0
+  71   1              initLCM( );
+  72   1              
+  73   1              WriteCommandLCM(0x01,1);                    //清显示屏
+  74   1          DisplayListChar(0,0,str0);
+  75   1              DisplayListChar(0,1,str1);
+  76   1       
+  77   1              while(1)
+  78   1          {
+  79   2                 ad_data =Adc0832(0);    //采样值存储单元初始化为0
+  80   2                 
+  81   2                  alarm();
+  82   2              
+  83   2                      data_pro();
+  84   2                      
+  85   2                      display();
+  86   2                                       
+  87   2              }
+  88   1      }
+  89          
+  90          
+  91          /*********延时K*1ms,12.000mhz**********/
+  92          
+  93          void delay(uint k)
+  94          {
+  95   1          uint i,j;
+  96   1          for(i=0;i<k;i++)
+  97   1          {
+  98   2              for(j=0;j<60;j++)
+  99   2                      {;}
+ 100   2          }
+ 101   1      }   
+ 102          /**********写指令到ICM子函数************/
+ 103          
+ 104          void WriteCommandLCM(uchar WCLCM,uchar BusyC)
+ 105          {
+ 106   1          if(BusyC)lcd_wait();
+ 107   1              DATAPORT=WCLCM;
+ 108   1          LCM_RS=0;                   // 选中指令寄存器
+ 109   1          LCM_RW=0;                   // 写模式       
+ 110   1          LCM_EN=1;    
+ 111   1              _nop_();   
+ 112   1              _nop_();
+ 113   1              _nop_(); 
+ 114   1          LCM_EN=0;
+ 115   1         
+ 116   1      }
+ 117          
+C51 COMPILER V8.02   LCD_ADC0832                                                           03/05/2009 12:35:17 PAGE 3   
+
+ 118          /**********写数据到LCM子函数************/
+ 119          
+ 120          void WriteDataLCM(uchar WDLCM)
+ 121          { 
+ 122   1          lcd_wait( );             //检测忙信号    
+ 123   1              DATAPORT=WDLCM;
+ 124   1          LCM_RS=1;                // 选中数据寄存器
+ 125   1          LCM_RW=0;                    // 写模式
+ 126   1          LCM_EN=1;
+ 127   1          _nop_();
+ 128   1              _nop_();
+ 129   1              _nop_();
+ 130   1          LCM_EN=0;
+ 131   1      }
+ 132          
+ 133          /***********lcm内部等待函数*************/
+ 134          
+ 135          void lcd_wait(void)
+ 136          {
+ 137   1          DATAPORT=0xff;           //读LCD前若单片机输出低电平,而读出LCD为高电平,则冲突,Proteus仿真会有显示逻辑黄色
+ 138   1              LCM_EN=1;
+ 139   1          LCM_RS=0;   
+ 140   1          LCM_RW=1;   
+ 141   1          _nop_();
+ 142   1          _nop_();
+ 143   1              _nop_();
+ 144   1          while(DATAPORT&BUSY)  
+ 145   1              {  LCM_EN=0;
+ 146   2                 _nop_();
+ 147   2                 _nop_();
+ 148   2                 LCM_EN=1;
+ 149   2                 _nop_();
+ 150   2                 _nop_();
+ 151   2                 }     
+ 152   1              LCM_EN=0;       
+ 153   1              
+ 154   1      }
+ 155          
+ 156          /**********LCM初始化子函数***********/
+ 157          
+ 158          void initLCM( )
+ 159          {   
+ 160   1              DATAPORT=0;     
+ 161   1              delay(15);
+ 162   1              WriteCommandLCM(0x38,0);    //三次显示模式设置，不检测忙信号
+ 163   1          delay(5); 
+ 164   1          WriteCommandLCM(0x38,0);
+ 165   1          delay(5); 
+ 166   1          WriteCommandLCM(0x38,0);
+ 167   1          delay(5); 
+ 168   1      
+ 169   1          WriteCommandLCM(0x38,1);    //8bit数据传送，2行显示，5*7字型，检测忙信号
+ 170   1          WriteCommandLCM(0x08,1);    //关闭显示，检测忙信号
+ 171   1          WriteCommandLCM(0x01,1);    //清屏，检测忙信号
+ 172   1          WriteCommandLCM(0x06,1);    //显示光标右移设置，检测忙信号
+ 173   1          WriteCommandLCM(0x0c,1);    //显示屏打开，光标不显示，不闪烁，检测忙信号
+ 174   1      }
+ 175          
+ 176          /****显示指定坐标的一个字符子函数****/
+ 177          
+ 178          void DisplayOneChar(uchar X,uchar Y,uchar DData)
+ 179          
+C51 COMPILER V8.02   LCD_ADC0832                                                           03/05/2009 12:35:17 PAGE 4   
+
+ 180          {
+ 181   1          Y&=1;
+ 182   1          X&=15;
+ 183   1          if(Y)X|=0x40;               //若y为1（显示第二行），地址码+0X40
+ 184   1          X|=0x80;                    //指令码为地址码+0X80
+ 185   1          WriteCommandLCM(X,0);
+ 186   1          WriteDataLCM(DData);
+ 187   1      }
+ 188          
+ 189          /*******显示指定坐标的一串字符子函数*****/
+ 190           
+ 191          void DisplayListChar(uchar X,uchar Y,uchar code *DData)
+ 192          {
+ 193   1          uchar ListLength=0;
+ 194   1          Y&=0x01;
+ 195   1          X&=0x0f;
+ 196   1          while(X<16)
+ 197   1          {
+ 198   2              DisplayOneChar(X,Y,DData[ListLength]);
+ 199   2              ListLength++;
+ 200   2              X++;
+ 201   2          }
+ 202   1      }
+ 203          
+ 204           /*****************系统显示子函数*****************/
+ 205          
+ 206          void display(void)
+ 207          {
+ 208   1              WriteCommandLCM(0x0c,1);                                //显示屏打开，光标不显示，不闪烁，检测忙信号    
+ 209   1              DisplayListChar(0,0,str0);      
+ 210   1              DisplayListChar(0,1,str1);      
+ 211   1      
+ 212   1      
+ 213   1              DisplayOneChar(7,0,press_bai+0x30);
+ 214   1              DisplayOneChar(8,0,press_shi+0x30);
+ 215   1              DisplayOneChar(9,0,press_ge +0x30);
+ 216   1          DisplayOneChar(11,0,press_dot+0x30);
+ 217   1              delay(1000);                               //稳定显示
+ 218   1      }
+ 219          /************
+ 220          读ADC0832函数
+ 221          ************/
+ 222          
+ 223          //采集并返回
+ 224          uchar Adc0832(unsigned char channel)     //AD转换，返回结果
+ 225          {
+ 226   1          uchar i=0;
+ 227   1          uchar j;
+ 228   1          uint dat=0;
+ 229   1          uchar ndat=0;
+ 230   1      
+ 231   1          if(channel==0)channel=2;
+ 232   1          if(channel==1)channel=3;
+ 233   1          ADDI=1;
+ 234   1          _nop_();
+ 235   1          _nop_();
+ 236   1          ADCS=0;//拉低CS端
+ 237   1          _nop_();
+ 238   1          _nop_();
+ 239   1          ADCLK=1;//拉高CLK端
+ 240   1          _nop_();
+ 241   1          _nop_();
+C51 COMPILER V8.02   LCD_ADC0832                                                           03/05/2009 12:35:17 PAGE 5   
+
+ 242   1          ADCLK=0;//拉低CLK端,形成下降沿1
+ 243   1          _nop_();
+ 244   1          _nop_();
+ 245   1          ADCLK=1;//拉高CLK端
+ 246   1          ADDI=channel&0x1;
+ 247   1          _nop_();
+ 248   1          _nop_();
+ 249   1          ADCLK=0;//拉低CLK端,形成下降沿2
+ 250   1          _nop_();
+ 251   1          _nop_();
+ 252   1          ADCLK=1;//拉高CLK端
+ 253   1          ADDI=(channel>>1)&0x1;
+ 254   1          _nop_();
+ 255   1          _nop_();
+ 256   1          ADCLK=0;//拉低CLK端,形成下降沿3
+ 257   1          ADDI=1;//控制命令结束 
+ 258   1          _nop_();
+ 259   1          _nop_();
+ 260   1          dat=0;
+ 261   1          for(i=0;i<8;i++)
+ 262   1          {
+ 263   2              dat|=ADDO;//收数据
+ 264   2              ADCLK=1;
+ 265   2              _nop_();
+ 266   2              _nop_();
+ 267   2              ADCLK=0;//形成一次时钟脉冲
+ 268   2              _nop_();
+ 269   2              _nop_();
+ 270   2              dat<<=1;
+ 271   2              if(i==7)dat|=ADDO;
+ 272   2          }  
+ 273   1          for(i=0;i<8;i++)
+ 274   1          {
+ 275   2              j=0;
+ 276   2              j=j|ADDO;//收数据
+ 277   2              ADCLK=1;
+ 278   2              _nop_();
+ 279   2              _nop_();
+ 280   2              ADCLK=0;//形成一次时钟脉冲
+ 281   2              _nop_();
+ 282   2              _nop_();
+ 283   2              j=j<<7;
+ 284   2              ndat=ndat|j;
+ 285   2              if(i<7)ndat>>=1;
+ 286   2          }
+ 287   1          ADCS=1;//拉低CS端
+ 288   1          ADCLK=0;//拉低CLK端
+ 289   1          ADDO=1;//拉高数据端,回到初始状态
+ 290   1          dat<<=8;
+ 291   1          dat|=ndat;
+ 292   1          return(dat);            //return ad k
+ 293   1      }
+ 294          
+ 295          
+ 296          void data_pro(void)
+ 297          {
+ 298   1            unsigned int temp;
+ 299   1            float  press;                       
+ 300   1      
+ 301   1                if(14<ad_data<243)                                   //当压力值介于15kpa到115kpa之间时，遵循线性变换
+ 302   1                      {                           
+ 303   2                          int vary=ad_data;                                           //y=(115-15)/(243-13)*X+15kpa                   
+C51 COMPILER V8.02   LCD_ADC0832                                                           03/05/2009 12:35:17 PAGE 6   
+
+ 304   2                              press=((10.0/23.0)*vary)+9.3;                   //测试时补偿值为9.3
+ 305   2                                                                                                                        
+ 306   2                              temp=(int)(press*10);                   //放大10倍，便于后面的计算
+ 307   2                                                                                              
+ 308   2                                                                                                              
+ 309   2                              press_bai=temp/1000;                            //取压力值百位
+ 310   2                              press_shi=(temp%1000)/100;                      //取压力值十位
+ 311   2                              press_ge=((temp%1000)%100)/10;          //取压力值个位
+ 312   2                              press_dot=((temp%1000)%100)%10;                 //取压力值十分位
+ 313   2      
+ 314   2                         }        
+ 315   1                               
+ 316   1      }
+ 317          /*****************报警子函数*******************/
+ 318          
+ 319          void alarm(void)
+ 320          {
+ 321   1               if(ad_data>=243)                           //如果当前压力值大于115kpa，
+ 322   1      
+ 323   1                {  Alarm_led_red=0; }                 //则启动red led报警
+ 324   1              
+ 325   1                else
+ 326   1                   {    Alarm_led_red=1; }                    //关闭red led 报警
+ 327   1                         
+ 328   1              
+ 329   1                if(ad_data<=14)                                                       //如果当前压力值小于16kpa
+ 330   1      
+ 331   1                   {  Alarm_led_green=0;  }               //则启动green led报警
+ 332   1      
+ 333   1            else
+ 334   1                   {   Alarm_led_green=1; }                           //关闭green  led 报警
+ 335   1               
+ 336   1      }
+ 337          
+ 338          
+ 339          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    757    ----
+   CONSTANT SIZE    =     34    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      7      14
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

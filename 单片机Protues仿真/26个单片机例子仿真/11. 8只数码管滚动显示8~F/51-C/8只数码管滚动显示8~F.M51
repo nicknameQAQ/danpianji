@@ -1,0 +1,96 @@
+BL51 BANKED LINKER/LOCATER V6.00                                                        07/31/2011  23:08:01  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.00, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE 8只数码管滚动显示8~F.obj TO 8只数码管滚动显示8~F RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  8只数码管滚动显示8~F.obj (8只数码管筥动显蔩8_F)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+
+
+LINK MAP OF MODULE:  8只数码管滚动显示8~F (8只数码管筥动显蔩8_F)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            IDATA   0008H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     0026H     UNIT         ?PR?MAIN?8只数码管筥动显蔩8_F
+            CODE    0029H     001EH     UNIT         ?PR?_DELAY?8只数码管筥动显蔩8_F
+            CODE    0047H     000CH     UNIT         ?C_C51STARTUP
+            CODE    0053H     0008H     UNIT         ?CO?8只数码管筥动显蔩8_F
+
+
+
+OVERLAY MAP OF MODULE:   8只数码管滚动显示8~F (8只数码管筥动显蔩8_F)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?8只数码管筥动显蔩8_F
+
+?PR?MAIN?8只数码管筥动显蔩8_F
+  +--> ?CO?8只数码管筥动显蔩8_F
+  +--> ?PR?_DELAY?8只数码管筥动显蔩8_F
+
+
+
+SYMBOL TABLE OF MODULE:  8只数码管滚动显示8~F (8只数码管筥动显蔩8_F)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        8只数码管筥动显蔩8_F
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  D:00B0H         PUBLIC        P3
+  C:0003H         PUBLIC        main
+  C:0053H         PUBLIC        LED_CODE
+  C:0029H         PUBLIC        _delay
+BL51 BANKED LINKER/LOCATER V6.00                                                      07/31/2011  23:08:01  PAGE 2
+
+
+  -------         PROC          _DELAY
+  D:0006H         SYMBOL        x
+  -------         DO            
+  D:0006H         SYMBOL        i
+  D:0004H         SYMBOL        j
+  -------         ENDDO         
+  C:0029H         LINE#         10
+  C:0029H         LINE#         11
+  C:0029H         LINE#         13
+  C:0032H         LINE#         14
+  C:0046H         LINE#         15
+  -------         ENDPROC       _DELAY
+  -------         PROC          MAIN
+  -------         DO            
+  D:0003H         SYMBOL        i
+  -------         ENDDO         
+  C:0003H         LINE#         17
+  C:0003H         LINE#         18
+  C:0003H         LINE#         20
+  C:0003H         LINE#         21
+  C:0003H         LINE#         22
+  C:0005H         LINE#         23
+  C:0005H         LINE#         24
+  C:0008H         LINE#         25
+  C:0015H         LINE#         26
+  C:001CH         LINE#         27
+  C:0023H         LINE#         28
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        8只数码管筥动显蔩8_F
+
+Program Size: data=9.0 xdata=0 code=91
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

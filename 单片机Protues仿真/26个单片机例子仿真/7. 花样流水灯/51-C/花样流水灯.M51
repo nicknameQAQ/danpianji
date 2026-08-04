@@ -1,0 +1,93 @@
+BL51 BANKED LINKER/LOCATER V6.00                                                        07/30/2011  18:13:52  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.00, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE 花样流水灯.obj TO 花样流水灯 RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  花样流水灯.obj (花裚羅水灯)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+
+
+LINK MAP OF MODULE:  花样流水灯 (花裚羅水灯)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            IDATA   0008H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     001EH     UNIT         ?PR?_DELAY?花裚羅水灯
+            CODE    0021H     0018H     UNIT         ?CO?花裚羅水灯
+            CODE    0039H     0016H     UNIT         ?PR?MAIN?花裚羅水灯
+            CODE    004FH     000CH     UNIT         ?C_C51STARTUP
+
+
+
+OVERLAY MAP OF MODULE:   花样流水灯 (花裚羅水灯)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?花裚羅水灯
+
+?PR?MAIN?花裚羅水灯
+  +--> ?CO?花裚羅水灯
+  +--> ?PR?_DELAY?花裚羅水灯
+
+
+
+SYMBOL TABLE OF MODULE:  花样流水灯 (花裚羅水灯)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        花裚羅水灯
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  C:0039H         PUBLIC        main
+  C:0021H         PUBLIC        LED
+  C:0003H         PUBLIC        _delay
+  -------         PROC          _DELAY
+BL51 BANKED LINKER/LOCATER V6.00                                                      07/30/2011  18:13:52  PAGE 2
+
+
+  D:0006H         SYMBOL        x
+  -------         DO            
+  D:0006H         SYMBOL        i
+  D:0004H         SYMBOL        j
+  -------         ENDDO         
+  C:0003H         LINE#         15
+  C:0003H         LINE#         16
+  C:0003H         LINE#         18
+  C:000CH         LINE#         19
+  C:0020H         LINE#         20
+  -------         ENDPROC       _DELAY
+  -------         PROC          MAIN
+  -------         DO            
+  D:0003H         SYMBOL        i
+  -------         ENDDO         
+  C:0039H         LINE#         22
+  C:0039H         LINE#         23
+  C:0039H         LINE#         25
+  C:0039H         LINE#         26
+  C:0039H         LINE#         27
+  C:003BH         LINE#         28
+  C:003BH         LINE#         29
+  C:0042H         LINE#         30
+  C:0049H         LINE#         31
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        花裚羅水灯
+
+Program Size: data=9.0 xdata=0 code=91
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

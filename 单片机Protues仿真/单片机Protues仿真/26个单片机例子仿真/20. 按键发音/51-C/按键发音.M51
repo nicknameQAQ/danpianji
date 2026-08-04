@@ -1,0 +1,112 @@
+BL51 BANKED LINKER/LOCATER V6.00                                                        08/02/2011  10:29:23  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.00, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE 按键发音.obj TO 按键发音 RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  按键发音.obj (按键发__)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+
+
+LINK MAP OF MODULE:  按键发音 (按键发__)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            IDATA   0008H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     0025H     UNIT         ?PR?MAIN?按键发__
+            CODE    0028H     001EH     UNIT         ?PR?_DELAY?按键发__
+            CODE    0046H     0012H     UNIT         ?PR?_PLAY?按键发__
+            CODE    0058H     000CH     UNIT         ?C_C51STARTUP
+
+
+
+OVERLAY MAP OF MODULE:   按键发音 (按键发__)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?按键发__
+
+?PR?MAIN?按键发__
+  +--> ?PR?_PLAY?按键发__
+
+?PR?_PLAY?按键发__
+  +--> ?PR?_DELAY?按键发__
+
+
+
+SYMBOL TABLE OF MODULE:  按键发音 (按键发__)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        按键发__
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  B:0090H.3       PUBLIC        K4
+  D:0090H         PUBLIC        P1
+  D:00B0H         PUBLIC        P3
+BL51 BANKED LINKER/LOCATER V6.00                                                      08/02/2011  10:29:23  PAGE 2
+
+
+  C:0003H         PUBLIC        main
+  B:00B0H.0       PUBLIC        BUZZER
+  C:0028H         PUBLIC        _delay
+  C:0046H         PUBLIC        _Play
+  B:0090H.0       PUBLIC        K1
+  B:0090H.1       PUBLIC        K2
+  B:0090H.2       PUBLIC        K3
+  -------         PROC          _DELAY
+  D:0006H         SYMBOL        x
+  -------         DO            
+  D:0006H         SYMBOL        i
+  D:0004H         SYMBOL        j
+  -------         ENDDO         
+  C:0028H         LINE#         14
+  C:0028H         LINE#         15
+  C:0028H         LINE#         17
+  C:0031H         LINE#         18
+  C:0045H         LINE#         19
+  -------         ENDPROC       _DELAY
+  -------         PROC          _PLAY
+  D:0003H         SYMBOL        t
+  -------         DO            
+  D:0002H         SYMBOL        i
+  -------         ENDDO         
+  C:0046H         LINE#         21
+  C:0048H         LINE#         22
+  C:0048H         LINE#         24
+  C:004AH         LINE#         25
+  C:004AH         LINE#         26
+  C:0053H         LINE#         27
+  C:0057H         LINE#         28
+  -------         ENDPROC       _PLAY
+  -------         PROC          MAIN
+  C:0003H         LINE#         30
+  C:0003H         LINE#         31
+  C:0003H         LINE#         32
+  C:0006H         LINE#         33
+  C:0006H         LINE#         34
+  C:0006H         LINE#         35
+  C:000EH         LINE#         36
+  C:0016H         LINE#         37
+  C:001EH         LINE#         38
+  C:0026H         LINE#         39
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        按键发__
+
+Program Size: data=9.0 xdata=0 code=100
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

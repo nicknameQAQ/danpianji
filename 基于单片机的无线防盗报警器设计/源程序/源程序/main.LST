@@ -1,0 +1,476 @@
+C51 COMPILER V9.01   MAIN                                                                  06/11/2020 09:29:18 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include<reg52.h>
+   2          #include<intrins.h>
+   3          #include "sim800.h"     
+   4          #define uchar unsigned char
+   5          #define uint  unsigned int
+   6          #define K_MG_MV    120/66 
+   7          typedef unsigned char  U8;       /* defined for unsigned 8-bits integer variable          无符号8位整型变量  */
+   8          typedef unsigned int   U16;      /* defined for unsigned 16-bits integer variable         无符号16位整型变量 */
+   9          
+  10          /********测试GSM是否启动**********/
+  11          int test_boot;
+  12          /********测试GSM是否注册网络**********/
+  13          int test_net_register;
+  14          /********GSM串口接收数据缓存**********/
+  15          unsigned char idata GSM_receive[60];
+  16          /********GSM串口接收计数器**********/
+  17          unsigned char  GSMDATA_count;
+  18          unsigned char *content_temp =  "Warning: over temperature\r\n";
+  19          unsigned char *content_smoke = "Warning: excessive smoke concentration\r\n";
+  20          unsigned char *content_body =  "Warning: body entry\r\n";
+  21          
+  22          unsigned char str_yw[12];//烟雾值
+  23          unsigned char T_baojing = 30;  //温度报警值
+  24          unsigned int  C_baojing = 500; //烟雾浓度报警值
+  25          
+  26          unsigned char T_buff[3];  //报警缓存
+  27          unsigned char H_buff[3];
+  28          unsigned char C_buff[4];
+  29          bit sf_flag_buff=0; //
+  30          bit  sf_flag=0; //设防标志
+  31          unsigned char moshi=0;
+  32          unsigned char data1;
+  33          long Value;
+  34          
+  35          sbit bADcs=P3^4;
+  36          sbit bADcl=P3^6;
+  37          sbit bADda=P3^5;
+  38          
+  39          sbit  sf_led = P1^3;//   设防指示灯
+  40          sbit  shefang= P1^4;//   设防按键
+  41          sbit  shezhi = P1^5; //  设置
+  42          sbit  jia    = P1^6; //  加
+  43          sbit  jian   = P1^7; //  减     
+  44          sbit  BUZZER = P2^0; //  LED蜂鸣器
+  45          sbit  Infra      = P3^2; //  人体红外模块
+  46          
+  47          
+  48          unsigned char IntToString(unsigned char *str, int dat);
+  49          extern bit Start18B20();
+  50          extern bit Get18B20Temp(int *temp);                             //        ；；；；；、‘       
+  51          extern void InitLcd1602();
+  52          extern void LcdShowStr(unsigned char x, unsigned char y, unsigned char *str);
+  53          float intT, decT;  //温度值的整数和小数部分
+  54          
+  55           /*------------------------------------------------
+C51 COMPILER V9.01   MAIN                                                                  06/11/2020 09:29:18 PAGE 2   
+
+  56                              定时器初始化子程序
+  57          ------------------------------------------------*/
+  58          void Init_Timer0(void)
+  59          {
+  60   1       TMOD |= 0x01;    //使用模式1，16位定时器，使用"|"符号可以在使用多个定时器时不受影响                 
+  61   1       TH0=(65536-1000)/256;            //重新赋值 1ms
+  62   1       TL0=(65536-1000)%256;
+  63   1       EA=1;            //总中断打开
+  64   1       ET0=1;           //定时器中断打开
+  65   1       TR0=1;           //定时器开关打开
+  66   1       PT0=1;           //优先级打开
+  67   1      }
+  68          long kssj()   //开始收集
+  69           {
+  70   1         unsigned char i;
+  71   1      
+  72   1           bADcs = 0;//当ADC0832未工作时其CS输入端应为高电平，此时芯片禁用.
+  73   1               bADcl=0;
+  74   1               bADda=1;
+  75   1               bADcl=1;
+  76   1               bADcl=0;//i down
+  77   1               bADda=1;
+  78   1               bADcl=1;
+  79   1               bADcl=0;       //   2 down
+  80   1               bADda=0;
+  81   1               bADcl=1;
+  82   1               bADcl=0;       //   3 down
+  83   1               bADda=1;
+  84   1               bADcl=1;
+  85   1               bADcl=0;       //   4 down
+  86   1      
+  87   1               for(i=8;i>0;i--)
+  88   1                      {
+  89   2                      
+  90   2                      data1<<=1;
+  91   2                      bADcl=0;
+  92   2                      bADcl=1;
+  93   2                      if(bADda==1) data1|=0x01;
+  94   2                              bADda=1;
+  95   2                      }
+  96   1                       bADcs=1;
+  97   1                      
+  98   1             Value=data1*1.0/256*500;
+  99   1                 
+ 100   1                 Value=Value*K_MG_MV;
+ 101   1                 Value=Value-5;
+ 102   1                 if(Value<0)Value=0;
+ 103   1                 return Value;
+ 104   1       }
+ 105          
+ 106          
+ 107          void Key_set_scan()
+ 108          {
+ 109   1              
+ 110   1              if(shezhi==0)
+ 111   1              {
+ 112   2                 Delay_Ms(10);
+ 113   2                      if(shezhi==0)
+ 114   2                      {  
+ 115   3                         while(!shezhi);
+ 116   3                         InitLcd1602();     //初始化液晶
+ 117   3                         moshi++;
+C51 COMPILER V9.01   MAIN                                                                  06/11/2020 09:29:18 PAGE 3   
+
+ 118   3                         if(moshi >= 3)moshi = 0;
+ 119   3                         if(moshi == 0)
+ 120   3                         {
+ 121   4                           LcdShowStr(0, 0,"T:   C");
+ 122   4                   LcdShowStr(7, 0,"C:    PPM");
+ 123   4                         }
+ 124   3                         else if(moshi == 1)
+ 125   3                         {
+ 126   4                            LcdShowStr(0, 1,"Set_T:   C");
+ 127   4                         }
+ 128   3                         else if(moshi == 2)
+ 129   3                         {
+ 130   4                                 LcdShowStr(0, 1,"Set_C:    PPM");
+ 131   4                         }                    
+ 132   3                      }
+ 133   2              }
+ 134   1              
+ 135   1              if(jia==0)
+ 136   1              {
+ 137   2                 Delay_Ms(10);
+ 138   2                      if(jia==0)
+ 139   2                      {        
+ 140   3                          while(!jia);
+ 141   3                              if(moshi==1)
+ 142   3                              {
+ 143   4                               T_baojing++ ;
+ 144   4                               if( T_baojing>=99 )T_baojing =99;
+ 145   4                              }
+ 146   3                              if(moshi==2)
+ 147   3                              {
+ 148   4                               C_baojing++ ;
+ 149   4                               if( C_baojing>=999 )C_baojing =999;
+ 150   4                              }               
+ 151   3                       }
+ 152   2               }
+ 153   1               if(jian == 0)
+ 154   1               {
+ 155   2                  Delay_Ms(10);
+ 156   2                  if(jian == 0)
+ 157   2                  {
+ 158   3                          while(!jian);
+ 159   3                      if(moshi==1)
+ 160   3                              {
+ 161   4                               T_baojing-- ;
+ 162   4                               if( T_baojing<=0 )T_baojing =0;
+ 163   4                              }
+ 164   3                              if(moshi==2)
+ 165   3                              {
+ 166   4                               C_baojing-- ;
+ 167   4                               if( C_baojing<=0 )C_baojing =0;
+ 168   4                              }
+ 169   3                 }
+ 170   2               }
+ 171   1               if(shefang == 0)
+ 172   1               {
+ 173   2                 Delay_Ms(10);
+ 174   2                 if(shefang == 0)
+ 175   2                 { 
+ 176   3                   while(!shefang);
+ 177   3                      
+ 178   3                       if(sf_flag == 0) //设防
+ 179   3                       {
+C51 COMPILER V9.01   MAIN                                                                  06/11/2020 09:29:18 PAGE 4   
+
+ 180   4                          sf_flag_buff = 1;
+ 181   4                              sf_led = 0;
+ 182   4                       }                  
+ 183   3                                
+ 184   3                       else                    //关闭设防
+ 185   3                       { 
+ 186   4                          sf_flag = 0;
+ 187   4                              sf_flag_buff = 0;
+ 188   4                              sf_led = 1;
+ 189   4                          BUZZER = 1;
+ 190   4                       }
+ 191   3      
+ 192   3                 }
+ 193   2               }
+ 194   1                       
+ 195   1      }
+ 196          void wendu()
+ 197          { 
+ 198   1        bit res;
+ 199   1        int temp;  //读取到的当前温度值
+ 200   1        
+ 201   1        unsigned char len;
+ 202   1        unsigned char str_wd[5];   //温度缓冲区
+ 203   1                  Get18B20Temp(&temp);  //读取当前温度
+ 204   1                  res = Get18B20Temp(&temp);  //读取当前温度
+ 205   1                  if (res)                    //读取成功时，刷新当前温度显示
+ 206   1                  {           
+ 207   2                                  intT = temp >> 4;          //分离出温度值整数部分
+ 208   2                      decT = temp & 0xF;         //分离出温度值小数部分
+ 209   2                      len = IntToString(str_wd, intT); //整数部分转换为字符串
+ 210   2                      str_wd[len++] = '.';             //添加小数点
+ 211   2                      decT = (decT*10) / 16;        //二进制的小数部分转换为1位十进制位
+ 212   2                      str_wd[len++] = decT + '0';   //十进制小数位再转换为ASCII字符
+ 213   2                      str_wd[len] = '\0';              //添加字符串结束符
+ 214   2                      LcdShowStr(2, 0, str_wd);        //显示到液晶屏上
+ 215   2                               }
+ 216   1                      Start18B20();
+ 217   1      }
+ 218          /************主函数****************/
+ 219          void main()
+ 220          { 
+ 221   1        unsigned char i,a,b,c;
+ 222   1        sf_flag = 0;
+ 223   1        Uart_Init();
+ 224   1        Init_Timer0();        //定时器初始化
+ 225   1        InitLcd1602();     //初始化液晶
+ 226   1        Start18B20();
+ 227   1        
+ 228   1        LcdShowStr(0,0,"  System init   ");
+ 229   1        LcdShowStr(0,1,"  please wait   ");
+ 230   1        for(i = 0;i < 15;i++)//等待网络稳定
+ 231   1              {
+ 232   2                      Delay_Ms(1000);
+ 233   2              }
+ 234   1         InitLcd1602();  
+ 235   1        LcdShowStr(0, 0,"T:   C");
+ 236   1        LcdShowStr(7, 0,"C:    PPM");
+ 237   1      //              //测试是否已经开机，同时自适应波特率
+ 238   1      //      while(test_boot==No)
+ 239   1      //      {
+ 240   1      //              Send_String("AT\r\n");  
+ 241   1      //              Delay_Ms(100);
+C51 COMPILER V9.01   MAIN                                                                  06/11/2020 09:29:18 PAGE 5   
+
+ 242   1      //      }
+ 243   1      //              test_boot=No;
+ 244   1      //
+ 245   1      //      //测试是否注册到网络
+ 246   1      //      while(test_net_register==No)
+ 247   1      //      {
+ 248   1      //              Send_String("AT+CREG?\r\n");     
+ 249   1      //              Delay_Ms(100);  
+ 250   1      //      }
+ 251   1      //      test_net_register=No;
+ 252   1              Receive_message();      //配置成接受短信模式
+ 253   1       
+ 254   1       
+ 255   1        while(1)
+ 256   1       {
+ 257   2        Key_set_scan();//按键扫描
+ 258   2       if(moshi == 0)   //设置模式切换
+ 259   2       {
+ 260   3         kssj();   //开始收集 ,电压采集检测烟雾浓度
+ 261   3         Value =  Value-100;//烟雾浓度校准
+ 262   3         if(Value<0)  Value = 0;
+ 263   3         IntToString(str_yw,Value); //转换成字符串
+ 264   3         LcdShowStr(9, 0, str_yw); //烟雾浓度显示到液晶屏上
+ 265   3         wendu();      //温度检测并显示
+ 266   3         if(sf_flag == 1) //当开启设防时
+ 267   3         {
+ 268   4            if(Value>=C_baojing||intT>=T_baojing||Infra==1)   //有触发报警
+ 269   4           { 
+ 270   5                 BUZZER = 0;
+ 271   5                 Delay_Ms(1000);
+ 272   5                 LcdShowStr(0, 1,"                ");                                                                                              
+ 273   5             if(intT >= T_baojing)
+ 274   5             {                          /*1234567890123456*/
+ 275   6              LcdShowStr(0,1,"temp");
+ 276   6                      if(a==0)
+ 277   6                      {  
+ 278   7                         a=1;
+ 279   7                         Send_message(content_temp);    //发温度超标短信
+ 280   7                      }
+ 281   6                  
+ 282   6             }  else  LcdShowStr(0, 1,"    ");        
+ 283   5             if(Value >= C_baojing)     
+ 284   5             {                                /*1234567890123456*/
+ 285   6               LcdShowStr(5,1,"smoke"); 
+ 286   6                       if(b == 0)
+ 287   6                       {
+ 288   7                         b=1;
+ 289   7                         Send_message(content_smoke);   //发烟雾浓度超标短信
+ 290   7                       } 
+ 291   6                   
+ 292   6             }  else  LcdShowStr(5, 1,"     ");
+ 293   5             if(Infra == 1)        
+ 294   5             {                            /*1234567890123456*/
+ 295   6               LcdShowStr(11, 1,"body"); 
+ 296   6                       if(c == 0) 
+ 297   6                       {
+ 298   7                         c=1;
+ 299   7                         Send_message(content_body);    //发人体进入短信
+ 300   7                       }
+ 301   6                  
+ 302   6             }  else  LcdShowStr(11,1,"    ");
+ 303   5      
+C51 COMPILER V9.01   MAIN                                                                  06/11/2020 09:29:18 PAGE 6   
+
+ 304   5            }
+ 305   4           else       //没有触发报警
+ 306   4             {
+ 307   5                    BUZZER = 1;        /*1234567890123456*/
+ 308   5                    LcdShowStr(0, 1," System normal  ");
+ 309   5             }
+ 310   4               }
+ 311   3         }
+ 312   2         else if(moshi == 1)  //设置温度上限模式
+ 313   2         {    
+ 314   3         T_buff[0] = T_baojing/10+0x30;
+ 315   3         T_buff[1] = T_baojing%10+0x30;
+ 316   3         T_buff[2] = '\0';
+ 317   3         LcdShowStr(6, 1,T_buff);
+ 318   3         }
+ 319   2         else if(moshi == 2)   //设置烟雾浓度上限模式
+ 320   2         {
+ 321   3         C_buff[0] = C_baojing/100+0x30;
+ 322   3         C_buff[1] = C_baojing%100/10+0x30;
+ 323   3         C_buff[2] = C_baojing%10+0x30;
+ 324   3         C_buff[4] = '\0';
+ 325   3         LcdShowStr(6, 1,C_buff);
+ 326   3         }
+ 327   2                                                                                                                 
+ 328   2       }
+ 329   1      }
+ 330          /* 整型数转换为字符串，str-字符串指针，dat-待转换数，返回值-字符串长度 */
+ 331          unsigned char IntToString(unsigned char *str, int dat)
+ 332          {
+ 333   1          signed char i = 0;
+ 334   1          unsigned char len = 0;
+ 335   1          unsigned char buf[6];
+ 336   1          
+ 337   1          if (dat < 0)  //如果为负数，首先
+ 338   1              
+ 339   1          {
+ 340   2              dat = -dat;
+ 341   2              *str++ = '-';
+ 342   2              len++;
+ 343   2          }
+ 344   1          do {          //先转换为低位在前的十进制数组
+ 345   2              buf[i++] = dat % 10;
+ 346   2              dat /= 10;
+ 347   2          } while (dat > 0);
+ 348   1          len += i;     //i最后的值就是有效字符的个数
+ 349   1          while (i-- > 0)   //将数组值转换为ASCII码反向拷贝到接收指针上
+ 350   1          {
+ 351   2              *str++ = buf[i] + '0';
+ 352   2          }
+ 353   1      
+ 354   1          *str = '\0';  //添加字符串结束符
+ 355   1          
+ 356   1          return len;   //返回字符串长度
+ 357   1      }
+ 358          /*****************************************************************************
+ 359          串口中断
+ 360          /****************************************************************************/
+ 361          void uart(void) interrupt 4
+ 362          {
+ 363   1      unsigned char UART_data;
+ 364   1              if(RI)
+ 365   1              {
+C51 COMPILER V9.01   MAIN                                                                  06/11/2020 09:29:18 PAGE 7   
+
+ 366   2                      UART_data=SBUF;
+ 367   2                      if(UART_data=='\n')
+ 368   2                      {
+ 369   3                              if(GSM_receive[0]=='O'&&GSM_receive[1]=='K')
+ 370   3                              {
+ 371   4                                      test_boot=Yes;
+ 372   4                              }
+ 373   3                          //else
+ 374   3                              //      test_boot=No;
+ 375   3                          if(GSM_receive[0]=='+'&&GSM_receive[1]=='C'&&GSM_receive[2]=='R'&&GSM_receive[3]=='E'&&GSM_receive[4
+             -]=='G')
+ 376   3                          {
+ 377   4                                 if(GSM_receive[7]=='1'||GSM_receive[9]=='1'||GSM_receive[9]=='5')
+ 378   4                                 {
+ 379   5                                      test_net_register=Yes;
+ 380   5                                 }
+ 381   4                          }              
+ 382   3                          //  else
+ 383   3                          //  test_net_register=No;
+ 384   3      
+ 385   3                              if((GSM_receive[0]=='o')&&(GSM_receive[1]=='n'))          //
+ 386   3                            { 
+ 387   4                                  sf_flag_buff=1;                      
+ 388   4                                      sf_led = 0;       
+ 389   4                                }
+ 390   3                              if((GSM_receive[0]=='o')&&(GSM_receive[1]=='f')&&(GSM_receive[2]=='f'))
+ 391   3                            { 
+ 392   4                                  sf_flag = 0;
+ 393   4                                      sf_flag_buff =0;
+ 394   4                                  sf_led = 1;
+ 395   4                              BUZZER = 1;
+ 396   4                                }                                             
+ 397   3                                GSMDATA_count=0;
+ 398   3                        }
+ 399   2                      else
+ 400   2                      {
+ 401   3                              GSM_receive[GSMDATA_count]=UART_data;
+ 402   3                              GSMDATA_count++;
+ 403   3                      }
+ 404   2              }
+ 405   1              RI=0;
+ 406   1      }
+ 407          /*------------------------------------------------
+ 408              定时器中断子程序（定时1ms）
+ 409          ------------------------------------------------*/
+ 410          void Timer0_isr(void) interrupt 1 
+ 411          { 
+ 412   1        static unsigned int i,j;
+ 413   1       TH0=(65536-1000)/256;   //重新赋值 1ms
+ 414   1       TL0=(65536-1000)%256;
+ 415   1       TR0=0;
+ 416   1       if(sf_flag_buff == 1)
+ 417   1       {
+ 418   2          i++;
+ 419   2          if(i>=1000)
+ 420   2        {
+ 421   3           i=0;
+ 422   3               sf_led =~ sf_led;
+ 423   3               j++;
+ 424   3               if(j>=10)
+ 425   3               {
+ 426   4                 j=0;
+C51 COMPILER V9.01   MAIN                                                                  06/11/2020 09:29:18 PAGE 8   
+
+ 427   4                 sf_flag = 1;
+ 428   4                 sf_flag_buff = 0;
+ 429   4                 sf_led = 0;
+ 430   4               }
+ 431   3               
+ 432   3        }
+ 433   2       }
+ 434   1       
+ 435   1        TR0=1;
+ 436   1        
+ 437   1      }
+ 438          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1598    ----
+   CONSTANT SIZE    =    228    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     57      25
+   IDATA SIZE       =     60    ----
+   BIT SIZE         =      2       1
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

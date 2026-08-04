@@ -1,0 +1,509 @@
+BL51 BANKED LINKER/LOCATER V4.13                                                        01/13/2015  22:56:47  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V4.13, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE .\Output\qiangda.obj TO .\Output\qiangdaqi PRINT (.\qiangdaqi.m51)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  .\Output\qiangda.obj (QIANGDA)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+  C:\KEIL\C51\LIB\C51S.LIB (?C?SIDIV)
+  C:\KEIL\C51\LIB\C51S.LIB (RAND)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_INIT)
+  C:\KEIL\C51\LIB\C51S.LIB (?C?UIDIV)
+
+
+LINK MAP OF MODULE:  .\Output\qiangdaqi (QIANGDA)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     000EH     UNIT         ?DT?QIANGDA
+            DATA    0016H     0004H     UNIT         ?DT?RAND?RAND
+            DATA    001AH     0001H     UNIT         _DATA_GROUP_
+            IDATA   001BH     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     0005H     UNIT         ?PR?END_TIMER0?QIANGDA
+                    0008H     0003H                  *** GAP ***
+            CODE    000BH     0003H     ABSOLUTE     
+            CODE    000EH     0096H     UNIT         ?PR?WAIT_QD_STATUS?QIANGDA
+            CODE    00A4H     008CH     UNIT         ?C_C51STARTUP
+            CODE    0130H     008BH     UNIT         ?C?LIB_CODE
+            CODE    01BBH     0044H     UNIT         ?PR?START_QD_STATUS?QIANGDA
+            CODE    01FFH     0041H     UNIT         ?PR?RAND?RAND
+            CODE    0240H     003DH     UNIT         ?PR?_DISPLAY?QIANGDA
+            CODE    027DH     002DH     UNIT         ?PR?MAIN?QIANGDA
+            CODE    02AAH     0025H     UNIT         ?PR?ACK_QD_STATUS?QIANGDA
+            CODE    02CFH     0025H     UNIT         ?PR?ACK_SRAND_STATUS?QIANGDA
+            CODE    02F4H     0020H     UNIT         ?PR?_DELAY50MS?QIANGDA
+            CODE    0314H     001BH     UNIT         ?PR?TIMER0INTERRUPT?QIANGDA
+            CODE    032FH     0019H     UNIT         ?C_INITSEG
+            CODE    0348H     0016H     UNIT         ?PR?INITTIMER0?QIANGDA
+            CODE    035EH     000AH     UNIT         ?PR?DELAY2MS?QIANGDA
+            CODE    0368H     0009H     UNIT         ?PR?INIT?QIANGDA
+
+
+
+OVERLAY MAP OF MODULE:   .\Output\qiangdaqi (QIANGDA)
+
+
+SEGMENT                                DATA_GROUP 
+  +--> CALLED SEGMENT                START    LENGTH
+----------------------------------------------------
+BL51 BANKED LINKER/LOCATER V4.13                                                      01/13/2015  22:56:47  PAGE 2
+
+
+?C_C51STARTUP                        -----    -----
+  +--> ?PR?MAIN?QIANGDA
+  +--> ?C_INITSEG
+
+?PR?MAIN?QIANGDA                     -----    -----
+  +--> ?PR?INIT?QIANGDA
+  +--> ?PR?START_QD_STATUS?QIANGDA
+  +--> ?PR?WAIT_QD_STATUS?QIANGDA
+  +--> ?PR?ACK_QD_STATUS?QIANGDA
+  +--> ?PR?ACK_SRAND_STATUS?QIANGDA
+  +--> ?PR?_DISPLAY?QIANGDA
+
+?PR?START_QD_STATUS?QIANGDA          -----    -----
+  +--> ?PR?INITTIMER0?QIANGDA
+  +--> ?PR?RAND?RAND
+
+?PR?WAIT_QD_STATUS?QIANGDA           001AH    0001H
+  +--> ?PR?END_TIMER0?QIANGDA
+  +--> ?PR?_DELAY50MS?QIANGDA
+  +--> ?PR?INITTIMER0?QIANGDA
+
+?PR?ACK_QD_STATUS?QIANGDA            -----    -----
+  +--> ?PR?END_TIMER0?QIANGDA
+  +--> ?PR?_DELAY50MS?QIANGDA
+
+?PR?ACK_SRAND_STATUS?QIANGDA         -----    -----
+  +--> ?PR?END_TIMER0?QIANGDA
+  +--> ?PR?_DELAY50MS?QIANGDA
+
+?PR?_DISPLAY?QIANGDA                 -----    -----
+  +--> ?PR?DELAY2MS?QIANGDA
+
+
+
+SYMBOL TABLE OF MODULE:  .\Output\qiangdaqi (QIANGDA)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        QIANGDA
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  D:0090H         PUBLIC        P1
+  D:00A0H         PUBLIC        P2
+  D:00B0H         PUBLIC        P3
+  B:00B0H.4       PUBLIC        T0
+  B:00D0H.6       PUBLIC        AC
+  B:00B0H.5       PUBLIC        T1
+  D:0008H         PUBLIC        weixuan
+  B:00A8H.7       PUBLIC        EA
+  D:0012H         PUBLIC        qd_num
+  C:0314H         PUBLIC        Timer0Interrupt
+  B:00B0H.4       PUBLIC        start_srand_qd_pin
+  B:00B0H.7       PUBLIC        start_qd_pin
+  B:00B0H.6       PUBLIC        end_srand_qd_pin
+  B:00B0H.7       PUBLIC        RD
+  B:00B0H.5       PUBLIC        end_qd_pin
+BL51 BANKED LINKER/LOCATER V4.13                                                      01/13/2015  22:56:47  PAGE 3
+
+
+  B:00A8H.4       PUBLIC        ES
+  B:0098H.0       PUBLIC        RI
+  B:00B0H.2       PUBLIC        INT0
+  B:00D0H.7       PUBLIC        CY
+  B:0098H.1       PUBLIC        TI
+  B:00B0H.3       PUBLIC        INT1
+  B:00B0H.3       PUBLIC        beep
+  B:00B8H.4       PUBLIC        PS
+  B:00D0H.2       PUBLIC        OV
+  C:035EH         PUBLIC        delay2ms
+  C:027DH         PUBLIC        main
+  B:00B0H.6       PUBLIC        WR
+  C:02CFH         PUBLIC        ack_srand_status
+  D:0089H         PUBLIC        TMOD
+  C:0368H         PUBLIC        init
+  C:02FFH         PUBLIC        _delay50ms
+  B:0080H.0       PUBLIC        DG1
+  B:0080H.1       PUBLIC        DG2
+  D:0013H         PUBLIC        timeout_num
+  B:0080H.3       PUBLIC        DG3
+  B:0088H.1       PUBLIC        IE0
+  B:0088H.3       PUBLIC        IE1
+  B:00A8H.1       PUBLIC        ET0
+  B:00A8H.3       PUBLIC        ET1
+  B:0088H.5       PUBLIC        TF0
+  C:034EH         PUBLIC        InitTimer0
+  B:0088H.7       PUBLIC        TF1
+  B:0098H.2       PUBLIC        RB8
+  D:008CH         PUBLIC        TH0
+  C:0003H         PUBLIC        end_Timer0
+  B:00A8H.0       PUBLIC        EX0
+  B:0088H.0       PUBLIC        IT0
+  D:0014H         PUBLIC        work_status
+  B:0098H.3       PUBLIC        TB8
+  B:00A8H.2       PUBLIC        EX1
+  B:0088H.2       PUBLIC        IT1
+  B:00D0H.0       PUBLIC        P
+  B:0098H.7       PUBLIC        SM0
+  D:008AH         PUBLIC        TL0
+  B:0098H.6       PUBLIC        SM1
+  B:0098H.5       PUBLIC        SM2
+  B:00B8H.1       PUBLIC        PT0
+  B:00B8H.3       PUBLIC        PT1
+  B:00D0H.3       PUBLIC        RS0
+  B:0088H.4       PUBLIC        TR0
+  B:00D0H.4       PUBLIC        RS1
+  B:0088H.6       PUBLIC        TR1
+  B:00B8H.0       PUBLIC        PX0
+  B:00B8H.2       PUBLIC        PX1
+  C:0240H         PUBLIC        _display
+  B:0098H.4       PUBLIC        REN
+  D:0015H         PUBLIC        qd_time
+  B:00B0H.0       PUBLIC        RXD
+  C:02AAH         PUBLIC        ack_qd_status
+  C:01BBH         PUBLIC        start_qd_status
+  B:00B0H.1       PUBLIC        TXD
+  B:00D0H.5       PUBLIC        F0
+BL51 BANKED LINKER/LOCATER V4.13                                                      01/13/2015  22:56:47  PAGE 4
+
+
+  C:000EH         PUBLIC        wait_qd_status
+  -------         PROC          DELAY2MS
+  -------         DO            DELAY2MS
+  D:0006H         SYMBOL        a
+  D:0007H         SYMBOL        b
+  -------         ENDDO         b
+  C:035EH         LINE#         32
+  C:035EH         LINE#         33
+  C:035EH         LINE#         35
+  C:0360H         LINE#         36
+  C:0366H         LINE#         37
+  C:0367H         LINE#         38
+  -------         ENDPROC       DELAY2MS
+  -------         PROC          L?0064
+  -------         ENDPROC       L?0064
+  -------         PROC          _DELAY50MS
+  D:0006H         SYMBOL        num
+  -------         DO            num
+  D:0003H         SYMBOL        a
+  D:0004H         SYMBOL        b
+  D:0005H         SYMBOL        i
+  -------         ENDDO         i
+  C:02FFH         LINE#         40
+  C:02FFH         LINE#         41
+  C:02FFH         LINE#         43
+  C:0301H         LINE#         45
+  C:0308H         LINE#         46
+  C:0308H         LINE#         47
+  C:030AH         LINE#         48
+  C:0310H         LINE#         49
+  C:0313H         LINE#         50
+  -------         ENDPROC       _DELAY50MS
+  C:0348H         SYMBOL        L?0063
+  -------         PROC          L?0062
+  -------         ENDPROC       L?0062
+  C:0348H         SYMBOL        L?0063
+  -------         PROC          INITTIMER0
+  C:034EH         LINE#         53
+  C:034EH         LINE#         54
+  C:034EH         LINE#         55
+  C:0351H         LINE#         56
+  C:0354H         LINE#         57
+  C:0357H         LINE#         58
+  C:0359H         LINE#         59
+  C:035BH         LINE#         60
+  C:035DH         LINE#         61
+  -------         ENDPROC       INITTIMER0
+  -------         PROC          END_TIMER0
+  C:0003H         LINE#         63
+  C:0003H         LINE#         64
+  C:0003H         LINE#         65
+  C:0005H         LINE#         66
+  C:0007H         LINE#         67
+  -------         ENDPROC       END_TIMER0
+  -------         PROC          INIT
+  C:0368H         LINE#         69
+  C:0368H         LINE#         70
+BL51 BANKED LINKER/LOCATER V4.13                                                      01/13/2015  22:56:47  PAGE 5
+
+
+  C:0368H         LINE#         71
+  C:036AH         LINE#         72
+  C:036CH         LINE#         73
+  C:036EH         LINE#         75
+  C:0370H         LINE#         76
+  -------         ENDPROC       INIT
+  -------         PROC          START_QD_STATUS
+  C:01BBH         LINE#         81
+  C:01BBH         LINE#         82
+  C:01BBH         LINE#         83
+  C:01BEH         LINE#         84
+  C:01BEH         LINE#         85
+  C:01C1H         LINE#         86
+  C:01C4H         LINE#         87
+  C:01C7H         LINE#         88
+  C:01C9H         LINE#         89
+  C:01CCH         LINE#         90
+  C:01CCH         LINE#         91
+  C:01CFH         LINE#         92
+  C:01CFH         LINE#         93
+  C:01D2H         LINE#         94
+  C:01DFH         LINE#         95
+  C:01EBH         LINE#         96
+  C:01EFH         LINE#         97
+  C:01FBH         LINE#         98
+  C:01FBH         LINE#         99
+  C:01FBH         LINE#         100
+  C:01FEH         LINE#         101
+  C:01FEH         LINE#         102
+  -------         ENDPROC       START_QD_STATUS
+  -------         PROC          WAIT_QD_STATUS
+  -------         DO            WAIT_QD_STATUS
+  D:001AH         SYMBOL        i
+  -------         ENDDO         i
+  C:000EH         LINE#         104
+  C:000EH         LINE#         105
+  C:000EH         LINE#         106
+  C:0011H         LINE#         107
+  C:0015H         LINE#         108
+  C:0015H         LINE#         109
+  C:0018H         LINE#         112
+  C:001AH         LINE#         113
+  C:0020H         LINE#         114
+  C:0022H         LINE#         116
+  C:0025H         LINE#         117
+  C:0025H         LINE#         118
+  C:0028H         LINE#         119
+  C:0028H         LINE#         120
+  C:002BH         LINE#         121
+  C:002EH         LINE#         122
+  C:0030H         LINE#         123
+  C:0032H         LINE#         124
+  C:0032H         LINE#         125
+  C:0054H         LINE#         126
+  C:0054H         LINE#         127
+  C:0054H         LINE#         128
+  C:0057H         LINE#         129
+BL51 BANKED LINKER/LOCATER V4.13                                                      01/13/2015  22:56:47  PAGE 6
+
+
+  C:0057H         LINE#         130
+  C:0057H         LINE#         131
+  C:005AH         LINE#         132
+  C:005DH         LINE#         133
+  C:005EH         LINE#         134
+  C:005EH         LINE#         135
+  C:0061H         LINE#         136
+  C:0061H         LINE#         137
+  C:0061H         LINE#         138
+  C:0064H         LINE#         139
+  C:0067H         LINE#         140
+  C:0068H         LINE#         141
+  C:0068H         LINE#         142
+  C:006BH         LINE#         143
+  C:006BH         LINE#         144
+  C:006BH         LINE#         145
+  C:006EH         LINE#         146
+  C:0071H         LINE#         147
+  C:0072H         LINE#         148
+  C:0072H         LINE#         149
+  C:0075H         LINE#         150
+  C:0075H         LINE#         151
+  C:0075H         LINE#         152
+  C:0078H         LINE#         153
+  C:007BH         LINE#         154
+  C:007CH         LINE#         155
+  C:007CH         LINE#         156
+  C:007FH         LINE#         157
+  C:007FH         LINE#         158
+  C:007FH         LINE#         159
+  C:0082H         LINE#         160
+  C:0085H         LINE#         161
+  C:0086H         LINE#         162
+  C:0086H         LINE#         163
+  C:0089H         LINE#         164
+  C:0089H         LINE#         165
+  C:0089H         LINE#         166
+  C:008CH         LINE#         167
+  C:008FH         LINE#         168
+  C:0090H         LINE#         169
+  C:0090H         LINE#         170
+  C:0093H         LINE#         171
+  C:0093H         LINE#         172
+  C:0093H         LINE#         173
+  C:0096H         LINE#         174
+  C:0099H         LINE#         175
+  C:009AH         LINE#         176
+  C:009AH         LINE#         177
+  C:009DH         LINE#         178
+  C:009DH         LINE#         179
+  C:009DH         LINE#         180
+  C:00A0H         LINE#         181
+  C:00A3H         LINE#         182
+  C:00A3H         LINE#         183
+  C:00A3H         LINE#         184
+  C:00A3H         LINE#         185
+  C:00A3H         LINE#         186
+BL51 BANKED LINKER/LOCATER V4.13                                                      01/13/2015  22:56:47  PAGE 7
+
+
+  -------         ENDPROC       WAIT_QD_STATUS
+  -------         PROC          ACK_QD_STATUS
+  -------         DO            ACK_QD_STATUS
+  D:0002H         SYMBOL        i
+  -------         ENDDO         i
+  C:02AAH         LINE#         188
+  C:02AAH         LINE#         189
+  C:02AAH         LINE#         190
+  C:02ACH         LINE#         191
+  C:02B0H         LINE#         192
+  C:02B0H         LINE#         193
+  C:02B3H         LINE#         194
+  C:02B5H         LINE#         195
+  C:02B7H         LINE#         197
+  C:02B7H         LINE#         198
+  C:02B7H         LINE#         199
+  C:02B7H         LINE#         200
+  C:02B7H         LINE#         201
+  C:02B7H         LINE#         202
+  C:02BAH         LINE#         203
+  C:02BEH         LINE#         205
+  C:02C1H         LINE#         206
+  C:02C1H         LINE#         207
+  C:02C4H         LINE#         208
+  C:02C4H         LINE#         209
+  C:02C7H         LINE#         210
+  C:02CAH         LINE#         211
+  C:02CCH         LINE#         212
+  C:02CEH         LINE#         213
+  C:02CEH         LINE#         214
+  -------         ENDPROC       ACK_QD_STATUS
+  -------         PROC          ACK_SRAND_STATUS
+  -------         DO            ACK_SRAND_STATUS
+  D:0002H         SYMBOL        i
+  -------         ENDDO         i
+  C:02CFH         LINE#         216
+  C:02CFH         LINE#         217
+  C:02CFH         LINE#         218
+  C:02D1H         LINE#         219
+  C:02D5H         LINE#         220
+  C:02D5H         LINE#         221
+  C:02D8H         LINE#         222
+  C:02DAH         LINE#         223
+  C:02DCH         LINE#         224
+  C:02DCH         LINE#         225
+  C:02DCH         LINE#         226
+  C:02DCH         LINE#         227
+  C:02DCH         LINE#         228
+  C:02DCH         LINE#         229
+  C:02DFH         LINE#         230
+  C:02E3H         LINE#         232
+  C:02E6H         LINE#         233
+  C:02E6H         LINE#         234
+  C:02E9H         LINE#         235
+  C:02E9H         LINE#         236
+  C:02ECH         LINE#         237
+  C:02EFH         LINE#         238
+BL51 BANKED LINKER/LOCATER V4.13                                                      01/13/2015  22:56:47  PAGE 8
+
+
+  C:02F1H         LINE#         239
+  C:02F3H         LINE#         240
+  C:02F3H         LINE#         241
+  -------         ENDPROC       ACK_SRAND_STATUS
+  -------         PROC          _DISPLAY
+  D:0004H         SYMBOL        qd_time
+  D:0005H         SYMBOL        qd_num
+  C:0240H         LINE#         245
+  C:0242H         LINE#         246
+  C:0242H         LINE#         247
+  C:024DH         LINE#         248
+  C:024FH         LINE#         249
+  C:0252H         LINE#         250
+  C:0254H         LINE#         252
+  C:0261H         LINE#         253
+  C:0263H         LINE#         254
+  C:0266H         LINE#         255
+  C:0268H         LINE#         257
+  C:0275H         LINE#         258
+  C:0277H         LINE#         259
+  C:027AH         LINE#         260
+  C:027CH         LINE#         261
+  -------         ENDPROC       _DISPLAY
+  -------         PROC          MAIN
+  C:027DH         LINE#         264
+  C:027DH         LINE#         265
+  C:027DH         LINE#         266
+  C:0280H         LINE#         268
+  C:0280H         LINE#         269
+  C:0280H         LINE#         270
+  C:028FH         LINE#         271
+  C:028FH         LINE#         272
+  C:028FH         LINE#         273
+  C:0292H         LINE#         274
+  C:0294H         LINE#         275
+  C:0294H         LINE#         276
+  C:0297H         LINE#         277
+  C:0299H         LINE#         278
+  C:0299H         LINE#         279
+  C:029CH         LINE#         280
+  C:029EH         LINE#         281
+  C:029EH         LINE#         282
+  C:02A1H         LINE#         283
+  C:02A1H         LINE#         284
+  C:02A1H         LINE#         285
+  C:02A1H         LINE#         286
+  C:02A1H         LINE#         287
+  C:02A8H         LINE#         288
+  -------         ENDPROC       MAIN
+  -------         PROC          TIMER0INTERRUPT
+  C:0314H         LINE#         292
+  C:0318H         LINE#         294
+  C:031AH         LINE#         295
+  C:031DH         LINE#         296
+  C:0320H         LINE#         298
+  C:0325H         LINE#         299
+  C:0325H         LINE#         300
+BL51 BANKED LINKER/LOCATER V4.13                                                      01/13/2015  22:56:47  PAGE 9
+
+
+  C:0328H         LINE#         301
+  C:032AH         LINE#         302
+  C:032AH         LINE#         303
+  -------         ENDPROC       TIMER0INTERRUPT
+  -------         ENDMOD        QIANGDA
+
+  -------         MODULE        ?C?SIDIV
+  C:0130H         PUBLIC        ?C?SIDIV
+  -------         ENDMOD        ?C?SIDIV
+
+  -------         MODULE        RAND
+  D:0016H         PUBLIC        ?SRAND?BYTE
+  C:01FFH         PUBLIC        RAND
+  C:0236H         PUBLIC        _SRAND
+  -------         ENDMOD        RAND
+
+  -------         MODULE        ?C?UIDIV
+  C:0166H         PUBLIC        ?C?UIDIV
+  -------         ENDMOD        ?C?UIDIV
+
+******************************************************************************
+* RESTRICTED VERSION WITH FFFFH BYTE CODE SIZE LIMIT; USED: 0227H BYTE ( 0%) *
+******************************************************************************
+
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,5 @@
+"STARTUP.obj",
+"脉搏计测量程序.obj",
+"DS18N02.obj" 
+TO "脉搏计测量程序" 
+RAMSIZE(256) 

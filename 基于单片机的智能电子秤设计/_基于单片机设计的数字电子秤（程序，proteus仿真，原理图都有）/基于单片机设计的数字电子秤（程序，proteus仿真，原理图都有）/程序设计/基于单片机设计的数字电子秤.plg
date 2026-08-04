@@ -1,0 +1,36 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Project:</h2>
+E:\Èí¼şÊÓÆµ\ÏÂÔØ\¿ª·¢°åÉè¼Æ³ÌĞò¼°51+AVR·ÂÕæºÍUCosIIÒÆÖ²\C51¾­µäÊµÑé\¾­µäÊµÀı\112.»ùÓÚµ¥Æ¬»úÉè¼ÆµÄÊı×Öµç×Ó³Ó£¨±ÏÒµÉè¼Æ£©\³ÌĞòÉè¼Æ\»ùÓÚµ¥Æ¬»úÉè¼ÆµÄÊı×Öµç×Ó³Ó.uvproj
+Project File Date:  06/12/2014
+
+<h2>Output:</h2>
+compiling »ùÓÚµ¥Æ¬»úÉè¼ÆµÄÊı×Öµç×Ó³Ó.c...
+»ùÓÚµ¥Æ¬»úÉè¼ÆµÄÊ×Öµç×Ó³Ó.C(207): warning C291: not every exit path returns a value
+»ùÓÚµ¥Æ¬»úÉè¼ÆµÄÊı×Öµç×Ó³Ó.c - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+compiling »ùÓÚµ¥Æ¬»úÉè¼ÆµÄÊı×Öµç×Ó³Ó.c...
+»ùÓÚµ¥Æ¬»úÉè¼ÆµÄÊ×Öµç×Ó³Ó.C(207): warning C291: not every exit path returns a value
+linking...
+Program Size: data=61.0 xdata=0 code=1877
+creating hex file from "»ùÓÚµ¥Æ¬»úÉè¼ÆµÄÊı×Öµç×Ó³Ó"...
+"»ùÓÚµ¥Æ¬»úÉè¼ÆµÄÊı×Öµç×Ó³Ó" - 0 Error(s), 1 Warning(s).
+compiling »ùÓÚµ¥Æ¬»úÉè¼ÆµÄÊı×Öµç×Ó³Ó.c...
+»ùÓÚµ¥Æ¬»úÉè¼ÆµÄÊ×Öµç×Ó³Ó.C(207): warning C291: not every exit path returns a value
+»ùÓÚµ¥Æ¬»úÉè¼ÆµÄÊı×Öµç×Ó³Ó.c - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+compiling »ùÓÚµ¥Æ¬»úÉè¼ÆµÄÊı×Öµç×Ó³Ó.c...
+»ùÓÚµ¥Æ¬»úÉè¼ÆµÄÊ×Öµç×Ó³Ó.C(207): warning C291: not every exit path returns a value
+linking...
+Program Size: data=61.0 xdata=0 code=1877
+creating hex file from "»ùÓÚµ¥Æ¬»úÉè¼ÆµÄÊı×Öµç×Ó³Ó"...
+"»ùÓÚµ¥Æ¬»úÉè¼ÆµÄÊı×Öµç×Ó³Ó" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+compiling »ùÓÚµ¥Æ¬»úÉè¼ÆµÄÊı×Öµç×Ó³Ó.c...
+»ùÓÚµ¥Æ¬»úÉè¼ÆµÄÊ×Öµç×Ó³Ó.C(207): warning C291: not every exit path returns a value
+linking...
+Program Size: data=61.0 xdata=0 code=1877
+creating hex file from "»ùÓÚµ¥Æ¬»úÉè¼ÆµÄÊı×Öµç×Ó³Ó"...
+"»ùÓÚµ¥Æ¬»úÉè¼ÆµÄÊı×Öµç×Ó³Ó" - 0 Error(s), 1 Warning(s).

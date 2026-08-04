@@ -1,0 +1,94 @@
+C51 COMPILER V9.01   DS12CR887                                                             11/23/2012 21:35:32 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE DS12CR887
+OBJECT MODULE PLACED IN ds12cr887.OBJ
+COMPILER INVOKED BY: D:\Keil\C51\BIN\C51.EXE ds12cr887.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include<reg52.h>
+   2          #define uint unsigned int
+   3          #define uchar unsigned char
+   4          
+   5          
+   6          sbit dscs=P2^4;
+   7          sbit dsas=P2^5;
+   8          sbit dsrw=P2^6;
+   9          sbit dsds=P2^7;
+  10          sbit irq=P3^3;
+  11          
+  12          
+  13          void writeds(uchar add,uchar dat)       // 向ds12cr887指定地址和写入数据
+  14          {
+  15   1       dscs=0;
+  16   1       dsas=1;
+  17   1       dsds=1;
+  18   1       dsrw=1;
+  19   1       P1=add;
+  20   1       dsas=0;
+  21   1       dsrw=0;
+  22   1       P1=dat;
+  23   1       dsrw=1;
+  24   1       dsas=1;
+  25   1       dscs=1;
+  26   1      }
+  27          
+  28          uchar readds(uchar add) //访问12887寄存器的函数
+  29          {
+  30   1       uchar dsdata;
+  31   1       dsas=1;
+  32   1       dsds=1;
+  33   1       dsrw=1;
+  34   1       dscs=0;
+  35   1       P1=add;
+  36   1       dsas=0;
+  37   1       dsds=0;
+  38   1       P1=0xff;
+  39   1       dsdata=P1;
+  40   1       dsas=1;
+  41   1       dsds=1;
+  42   1       dscs=1;
+  43   1       return dsdata;
+  44   1      
+  45   1      }
+  46          
+  47          void initds()
+  48          {
+  49   1      writeds(0,0);
+  50   1      writeds(1,02);
+  51   1      writeds(2,30);
+  52   1      writeds(3,30);
+  53   1      writeds(4,15);
+  54   1      writeds(5,15);
+  55   1      writeds(6,4);
+C51 COMPILER V9.01   DS12CR887                                                             11/23/2012 21:35:32 PAGE 2   
+
+  56   1      writeds(7,22);
+  57   1      writeds(8,11);
+  58   1      writeds(9,12);
+  59   1      writeds(0x0A,0x20);//打开振荡器（不打开12887内部的振荡器，时钟将不会运行）
+  60   1      writeds(0x0B,0x26);//打开闹钟中断使能，设置24小时模式，数据二进制格式
+  61   1      readds(0x0c);//读C寄存器将IRQF清除
+  62   1      }
+  63          
+  64          void writealarm(uchar ahour,uchar aminute,uchar asecond) //将预定时的数据写进12887内的寄存器函数
+  65          {
+  66   1      writeds(1,asecond);
+  67   1      writeds(3,aminute);
+  68   1      writeds(5,ahour);
+  69   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    147    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

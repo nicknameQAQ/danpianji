@@ -1,0 +1,78 @@
+C51 COMPILER V8.02   蒧日歌                                                                08/02/2011 10:48:53 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE 蒧日歌
+OBJECT MODULE PLACED IN 生日歌.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 生日歌.C BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2          *生日歌*
+   3          */
+   4          #include <reg51.h>
+   5          typedef unsigned char uint8;
+   6          typedef unsigned int uint16;
+   7          
+   8          sbit K1 = P1^0;
+   9          sbit BUZZER = P3^0;
+  10          
+  11          code uint8 SONG_TONE[]=
+  12          {
+  13                  212,212,190,212,159,169,212,212,190,212,142,159,212,212,106,126,129,169,190,119,119,126,159,142,159,0
+  14          };
+  15          code uint8 SONG_LONG[]=
+  16          {
+  17                  9,3,12,12,12,24,9,3,12,12,12,24,9,3,12,12,12,12,12,9,3,12,12,12,24,0
+  18          };
+  19                                   
+  20          void delay(uint16 x)
+  21          {
+  22   1              uint16 i,j;
+  23   1              for(i = x; i > 0; i --)
+  24   1                      for(j = 114; j > 0; j --);              
+  25   1      }
+  26          
+  27          void PlayMusic()
+  28          {
+  29   1              uint16 i =0,j,k;
+  30   1              while(SONG_LONG[i]!=0||SONG_TONE[i]!=0)
+  31   1              {
+  32   2                      for(j=0;j<SONG_LONG[i]*20;j++)
+  33   2                      {
+  34   3                              BUZZER = ~BUZZER;
+  35   3                              for(k=0;k<SONG_TONE[i]/3;k++);
+  36   3                      }
+  37   2                      delay(10);
+  38   2                      i++;
+  39   2              }
+  40   1      }
+  41          
+  42          void main()
+  43          {
+  44   1              P1 = 0xFF;
+  45   1              while(1)
+  46   1              {
+  47   2                      if(K1==1)
+  48   2                      { 
+  49   3                              PlayMusic();
+  50   3                              delay(1000);
+  51   3                      }
+  52   2              }
+  53   1      }
+
+
+C51 COMPILER V8.02   蒧日歌                                                                08/02/2011 10:48:53 PAGE 2   
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    145    ----
+   CONSTANT SIZE    =     52    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       2
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
