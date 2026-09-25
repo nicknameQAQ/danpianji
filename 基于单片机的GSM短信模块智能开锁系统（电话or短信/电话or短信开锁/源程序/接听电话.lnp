@@ -1,8 +1,0 @@
-"STARTUP.obj",
-"main.obj",
-"Delay.obj",
-"LCD1602.obj",
-"fmq.obj",
-"28BYJ.obj" 
-TO "½ÓÌýµç»°" 
-RAMSIZE(256) 

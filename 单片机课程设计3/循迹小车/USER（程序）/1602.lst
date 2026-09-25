@@ -1,0 +1,147 @@
+C51 COMPILER V9.60.0.0   1602                                                              06/16/2020 13:19:17 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE 1602
+OBJECT MODULE PLACED IN .\1602.obj
+COMPILER INVOKED BY: D:\keil5\C51\BIN\C51.EXE ..\HARDWARE\1602.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\USER;..\HARDWARE) DE
+                    -BUG OBJECTEXTEND PRINT(.\1602.lst) TABS(2) OBJECT(.\1602.obj)
+
+line level    source
+
+   1          #include<reg52.h>
+   2          #include "1602.h"
+   3          #include<intrins.h>
+   4          
+   5          void LCD_Init()
+   6          {
+   7   1        DelayMs(15); //延迟15ms，等待LCD电源稳定,使其进入工作状态
+   8   1        LCD_IO = 0x00;
+   9   1        LCD_Write_Command(LCD_DISPLAY_DOUBLE_LINE); 
+  10   1        DelayMs(5); 
+  11   1        LCD_Write_Command(LCD_DISPLAY_DOUBLE_LINE); 
+  12   1        DelayMs(5); 
+  13   1        LCD_Write_Command(LCD_DISPLAY_DOUBLE_LINE); //显示模式设置为两行显示，8位数据接口，5*8点阵
+  14   1        DelayMs(5);
+  15   1        LCD_Write_Command(LCD_AC_AUTO_INCREMENT | LCD_MOVE_DISENABLE); //数据读、写操作后,AC自动增一,画面不动
+  16   1        DelayMs(5);
+  17   1        LCD_Write_Command(LCD_DISPLAY_ON | LCD_CURSOR_OFF); //显示开，光标不显示
+  18   1        DelayMs(5);
+  19   1        LCD_Write_Command(LCD_CLEAR_SCREEN); //清除LCD显示内容 
+  20   1      }
+  21          /************延迟函数*******************************/
+  22          void DelayUs(uchar us)//delay us
+  23          {
+  24   1        unsigned char uscnt;
+  25   1        uscnt=us>>1; /* Crystal frequency in 12MHz*/
+  26   1        while(--uscnt);
+  27   1      }
+  28          void DelayMs(uchar ms)//delay Ms
+  29          {
+  30   1        while(--ms)
+  31   1      {
+  32   2        DelayUs(250);
+  33   2        DelayUs(250);
+  34   2        DelayUs(250);
+  35   2        DelayUs(250);
+  36   2      }
+  37   1      }
+  38          /************LCD1602写指令*******************************/
+  39          void LCD_Write_Command(uchar com)
+  40          {
+  41   1        LCD_Check_Busy();
+  42   1        LCD_RS = LOW;
+  43   1        LCD_RW = LOW;
+  44   1        _nop_(); //一个_nop_();是一个机器周期，是1us
+  45   1        LCD_EN = HIGH;
+  46   1        LCD_IO = com;
+  47   1        LCD_EN = LOW;
+  48   1      }
+  49          /********************************************************/
+  50          /*****************LCD1602写数据**************************/
+  51          void LCD_Write_Data(uchar dat)
+  52          {
+  53   1        LCD_Check_Busy();
+  54   1        LCD_RS = HIGH;
+C51 COMPILER V9.60.0.0   1602                                                              06/16/2020 13:19:17 PAGE 2   
+
+  55   1        LCD_RW = LOW;
+  56   1        _nop_();
+  57   1        LCD_EN=HIGH;
+  58   1        LCD_IO=dat;
+  59   1        LCD_EN=LOW;
+  60   1      }
+  61          /********************************************************/
+  62          /**********************显示一个字节**************************/
+  63          void LCD_Char(uchar x, uchar line, uchar dat) //从第x开始写一个字节
+  64          {
+  65   1        unsigned char address;
+  66   1        if (line == LINE1) // line=0，为第一行
+  67   1        address = LINE1_HEAD + x;
+  68   1        else // 否则为第二行
+  69   1        address = LINE2_HEAD + x;
+  70   1        LCD_Write_Command(address); 
+  71   1        LCD_Write_Data(dat);
+  72   1      }
+  73          /********************************************************/
+  74          /******************LCD1602显示字符串*********************/
+  75          void LCD_Str(uchar x,uchar line,uchar *Str) //从第line行的第x位置开始显示字符串
+  76          {
+  77   1        uchar i = x;
+  78   1        
+  79   1        if (line == LINE1)
+  80   1        {
+  81   2        while( *Str != '\0')
+  82   2          LCD_Char(i++, 0, *Str++);
+  83   2        }
+  84   1        else 
+  85   1        {
+  86   2        while( *Str != '\0')
+  87   2        LCD_Char(i++, 1, *Str++);
+  88   2        }
+  89   1      }
+  90          /***************************LCD忙碌状态*******************************/
+  91          void LCD_Check_Busy(void) //检测LCD状态,看它是不是还在忙呢
+  92          {
+  93   1        do
+  94   1        {
+  95   2        LCD_EN=0;
+  96   2        LCD_RS=0;
+  97   2        LCD_RW=1;
+  98   2        LCD_IO=0xff;
+  99   2        LCD_EN=1;
+ 100   2        }
+ 101   1        while (LCD_BUSY==1);
+ 102   1        
+ 103   1        LCD_EN=0;
+ 104   1      }
+ 105          /*****************屏幕闪烁********************/
+ 106          void LCD_Flash(uchar time)
+ 107          { 
+ 108   1        //控制停留时间
+ 109   1        LCD_Write_Command(LCD_DISPLAY_OFF); //关闭显示
+ 110   1        DelayMs(time); 
+ 111   1        //延时
+ 112   1        LCD_Write_Command(LCD_DISPLAY_ON); //开显示
+ 113   1        DelayMs(time);
+ 114   1        LCD_Write_Command(LCD_DISPLAY_OFF); //关闭显示
+ 115   1        DelayMs(time); 
+ 116   1        //延时
+C51 COMPILER V9.60.0.0   1602                                                              06/16/2020 13:19:17 PAGE 3   
+
+ 117   1        LCD_Write_Command(LCD_DISPLAY_ON); //开显示
+ 118   1        DelayMs(time);
+ 119   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    291    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       9
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

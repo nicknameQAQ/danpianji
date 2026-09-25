@@ -1,0 +1,64 @@
+C51 COMPILER V8.02   WAVE                                                                  07/05/2013 23:45:42 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE WAVE
+OBJECT MODULE PLACED IN wave.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE wave.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include "wave.h"  
+   2          #include "PCF8591.h"
+   3          #include "delay.h"
+   4          
+   5          
+   6          uchar time1;
+   7          uchar a,range=100;  
+   8          void  triangular(void)  //Èý½Ç²¨
+   9             {
+  10   1              write_add(0x40,a);  
+  11   1              delay_1ms(time1);  
+  12   1              a++;  
+  13   1              if(a>range)
+  14   1                      while(a>0)  
+  15   1              {       
+  16   2                              a--;
+  17   2                              write_add(0x40,a);  
+  18   2                              delay_1ms(time1);
+  19   2                      }
+  20   1              
+  21   1                               
+  22   1        }
+  23          
+  24            void  triangular1(void)//¾â³Ý²¨
+  25             {
+  26   1              write_add(0x40,a);  
+  27   1              delay_1ms(time1);  
+  28   1              a++;  
+  29   1              if(a>range)  
+  30   1                  a=0; 
+  31   1        }
+  32            void square(void)        //·½²¨
+  33           {
+  34   1              a=range;
+  35   1                      write_add(0x40,a);
+  36   1              delay_1ms(time1);
+  37   1                      a=0;
+  38   1                      write_add(0x40,a);
+  39   1              delay_1ms(time1); 
+  40   1       }
+  41          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    110    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      3    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

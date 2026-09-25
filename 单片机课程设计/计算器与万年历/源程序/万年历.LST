@@ -1,0 +1,797 @@
+C51 COMPILER V9.01   ÍòÄêÀ_                                                                06/11/2020 17:59:02 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE ÍòÄêÀ_
+OBJECT MODULE PLACED IN ÍòÄêÀú.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE ÍòÄêÀú.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include <reg52.h>
+   2          #include <intrins.h>  //°üº¬_nop_()º¯Êı¶¨ÒåµÄÍ·ÎÄ¼ş
+   3          #define uchar unsigned char
+   4          #define uint  unsigned int
+   5          //ÒÔÏÂÊÇ¶Ô1302µÄ¶¨Òå 
+   6          sbit  clk= P2^3;              //ÊµÊ±Ê±ÖÓÊ±ÖÓÏßÒı½Å 
+   7          sbit  IO= P2^2;              //ÊµÊ±Ê±ÖÓÊı¾İÏßÒı½Å 
+   8          sbit  rst =P2^1;              //ÊµÊ±Ê±ÖÓ¸´Î»ÏßÒı½Å
+   9          uchar second,minute,hour,week,day,month,year;       //8421Âë±íÊ¾µÄÊ±¼ä  ¸ßËÄÎ»ÓÃÓÚ±íÊ¾Ê®Î»£¬µÍËÄÎ»ÓÃÓÚ±íÊ¾
+             -¸öÎ»
+  10          char second1,minute1,hour1,week1,day1,month1,year1;//Ê®½øÖÆ±íÊ¾µÄÊ±¼ä  Ò²¼´ÆÕÍ¨ÒâÒåÏÂµÄÊ±¼ä
+  11          uchar read_byte(uchar com);
+  12          uchar readyear_byte(uchar com);
+  13          void write_byte(uchar com,uchar date); 
+  14          void init_1302();
+  15          void readtime(); 
+  16          //ÒÔÏÂÊÇ¶Ôlcd1602µÄ¶¨Òå
+  17          sbit wela=P2^6;
+  18          sbit dula=P2^7;
+  19          uchar table[]="0123456789";
+  20          sbit LCM_RS=P2^6;    //¼Ä´æÆ÷Ñ¡ÔñÎ»£¬½«RSÎ»¶¨ÒåÎªP2.6Òı½Å
+  21          sbit LCM_EN=P2^5;     //Ê¹ÄÜĞÅºÅÎ»£¬½«EÎ»¶¨ÒåÎªP2.5Òı½Å
+  22          bit lcd_bz(void);
+  23          void write_com(unsigned char CMD);
+  24          void write_date(unsigned char dataW);
+  25          void init_1602();
+  26          void displaytime();
+  27          void delaynms(unsigned char n);
+  28          //ÒÔÏÂÊÇ¶Ô°´¼üµ÷Ê±³ÌĞòµÄ¶¨Òå
+  29          sbit mode=P1^0;  //µ÷ÕûÄÖÖÓ»òÕßÊ±¼äÊ±µÄÑ¡Ôñ°´¼ü
+  30          sbit plus=P1^1;  //¼Ó1¼ü
+  31          sbit minus=P1^2; //¼õ1¼ü
+  32          sbit s1=P1^3;    //¼ÆËãÆ÷ºÍÍòÄêÀúÇĞ»»¼ü
+  33          void key();
+  34          void delay20ms(); 
+  35          //ÒÔÏÂÊÇ¶ÔÎÂ¶È²É¼¯²¿·ÖµÄ¶¨Òå 
+  36          sbit DS=P2^0;                    //DS18B20Êı¾İ¶Ë¿Ú
+  37          uchar code wendu[]="0123456789";        //ÀûÓÃÒ»¸öÎÂ¶È±í½â¾öÎÂ¶ÈÏÔÊ¾ÂÒÂë 
+  38          void write_byte(uchar com,uchar date);   //Ğ´Ò»¸ö×Ö½Ú
+  39          void tmpDelay(int num);                                 // ÑÓÊ±
+  40          void Init_DS18B20();                                    //³õÊ¼»¯DS18B20
+  41          unsigned char ReadOneChar();                //¶ÁÒ»¸ö×Ö½Ú
+  42          void WriteOneChar(unsigned char dat);   //Ğ´Êı¾İ
+  43          unsigned int Readtemp();                                //¶ÁÎÂ¶È
+  44          void display();                                                 //ÏÔÊ¾ÎÂ¶È
+  45          
+  46          uchar num;       
+  47          sbit lcden=P2^5; //¶¨ÒåÒı½Å
+  48          sbit rs=P2^6;
+  49          
+  50          sbit busy=P0^7;  //LCD1602Ã¦
+  51          //¼ÆËãÆ÷ÓĞ¹Ø±äÁ¿¶¨Òå
+  52          char i,j,temp,num_1,num1_2=0;
+  53          long a,b,c;     //a,µÚÒ»¸öÊı b,µÚ¶ş¸öÊı c,µÃÊı
+  54          float a_c,b_c;
+C51 COMPILER V9.01   ÍòÄêÀ_                                                                06/11/2020 17:59:02 PAGE 2   
+
+  55          uchar flag,fuhao;//flag±íÊ¾ÊÇ·ñÓĞ·ûºÅ¼ü°´ÏÂ£¬fuhao±íÕ÷°´ÏÂµÄÊÇÄÄ¸ö·ûºÅ
+  56          
+  57          uchar code table1[]={
+  58          7,8,9,0,
+  59          4,5,6,0,
+  60          1,2,3,0,
+  61          0,0,0,0};
+  62          uchar code table2[]={
+  63          7,8,9,0x2f-0x30,
+  64          4,5,6,0x2a-0x30,
+  65          1,2,3,0x2d-0x30,
+  66          0x01-0x30,0,0x3d-0x30,0x2b-0x30};
+  67          
+  68          void delay2(uchar z) // ÑÓ³Ùº¯Êı
+  69          {
+  70   1      uchar y;
+  71   1      for(z;z>0;z--)
+  72   1         for(y=0;y<110;y++);
+  73   1      }
+  74          
+  75          void check() // ÅĞ¶ÏÃ¦»ò¿ÕÏĞ
+  76          {
+  77   1      do{
+  78   2          P0=0xFF;    rs=0;     //Ö¸Áî
+  79   2          lcden=0;     //½ûÖ¹¶ÁĞ´
+  80   2          delay2(1); //µÈ´ı£¬Òº¾§ÏÔÊ¾Æ÷´¦ÀíÊı¾İ
+  81   2          lcden=1;     //ÔÊĞí¶ÁĞ´
+  82   2              delay2(1);      busy=0;
+  83   2          }while(busy==1); //ÅĞ¶ÏÊÇ·ñÎª¿ÕÏĞ£¬1ÎªÃ¦£¬0Îª¿ÕÏĞ
+  84   1      }
+  85          void write_com1(uchar com) // Ğ´Ö¸Áîº¯Êı
+  86          {
+  87   1      P0=com;    //comÖ¸Áî¸¶¸øP0¿Ú
+  88   1      rs=0;lcden=0;
+  89   1      check();lcden=1;
+  90   1      }
+  91          
+  92          void write_date1(uchar date) // Ğ´Êı¾İº¯Êı
+  93          {
+  94   1              P0=date;
+  95   1              rs=1;
+  96   1              lcden=0;
+  97   1              check();
+  98   1              lcden=1;
+  99   1      }
+ 100          
+ 101          void init1() //³õÊ¼»¯
+ 102          {
+ 103   1              num=-1;
+ 104   1              lcden=1; //Ê¹ÄÜĞÅºÅÎª¸ßµçÆ½
+ 105   1              write_com1(0x38); //8Î»£¬2ĞĞ
+ 106   1              delay2(5);
+ 107   1              write_com1(0x38); //8Î»£¬2ĞĞ
+ 108   1              delay2(5);
+ 109   1              write_com1(0x0c); //ÏÔÊ¾¿ª£¬¹â±ê¹Ø£¬²»ÉÁË¸*/
+ 110   1              delay2(1);
+ 111   1              write_com1(0x06); //ÔöÁ¿·½Ê½²»ÒÆÎ»
+ 112   1              delay2(1);
+ 113   1              write_com1(0x80); //¼ì²âÃ¦ĞÅºÅ
+ 114   1              delay2(1);
+ 115   1              write_com1(0x01); //ÏÔÊ¾¿ª£¬¹â±ê¹Ø£¬²»ÉÁË¸
+ 116   1              num_1=0;
+C51 COMPILER V9.01   ÍòÄêÀ_                                                                06/11/2020 17:59:02 PAGE 3   
+
+ 117   1              i=0;
+ 118   1              j=0;
+ 119   1              a=0;     //µÚÒ»¸ö²ÎÓëÔËËãµÄÊı
+ 120   1              b=0;     //µÚ¶ş¸ö²ÎÓëÔËËãµÄÊı
+ 121   1              c=0;
+ 122   1              flag=0; //flag±íÊ¾ÊÇ·ñÓĞ·ûºÅ¼ü°´ÏÂ£¬ 
+ 123   1              fuhao=0; // fuhao±íÕ÷°´ÏÂµÄÊÇÄÄ¸ö·ûºÅ
+ 124   1      }
+ 125          void keyscan1() // ¼üÅÌÉ¨Ãè³ÌĞò
+ 126          {
+ 127   1              P3=0xfe; 
+ 128   1              if(P3!=0xfe)
+ 129   1              {   delay2(20);// ÑÓ³Ù20ms
+ 130   2                 if(P3!=0xfe) { temp=P3&0xf0;
+ 131   3                                          switch(temp)
+ 132   3                                          {
+ 133   4                                           case 0xe0:num=0;      break;
+ 134   4                                           case 0xd0:num=1;      break; 
+ 135   4                                           case 0xb0:num=2;      break;
+ 136   4                                           case 0x70:num=3;      break;
+ 137   4                                          }
+ 138   3                 } while(P3!=0xfe);
+ 139   2                 if(num==0||num==1||num==2)//Èç¹û°´ÏÂµÄÊÇ'7','8'»ò'9
+ 140   2                 { 
+ 141   3                     if(j!=0){ write_com1(0x01);  j=0;  }
+ 142   3                     if(flag==0){  a=a*10+table1[num];  }//Ã»ÓĞ°´¹ı·ûºÅ¼ü         
+ 143   3                     else{ b=b*10+table1[num];  }//Èç¹û°´¹ı·ûºÅ¼ü          
+ 144   3                 }
+ 145   2                 else//Èç¹û°´ÏÂµÄÊÇ'/'
+ 146   2                 {  flag=1; fuhao=4;}//4±íÊ¾³ıºÅÒÑ°´   
+ 147   2                 i=table2[num];   write_date1(0x30+i);
+ 148   2              }
+ 149   1      
+ 150   1              P3=0xfd;
+ 151   1              if(P3!=0xfd)
+ 152   1              {  delay2(20);
+ 153   2                 if(P3!=0xfd){ temp=P3&0xf0;
+ 154   3                                          switch(temp)
+ 155   3                                          {
+ 156   4                                           case 0xe0:num=4;  break;
+ 157   4                                           case 0xd0:num=5;  break;
+ 158   4                                           case 0xb0:num=6;  break;
+ 159   4                                           case 0x70:num=7; break;
+ 160   4                                          }
+ 161   3                 } while(P3!=0xfd);
+ 162   2                 if(num==4||num==5||num==6&&num!=7)//Èç¹û°´ÏÂµÄÊÇ'4','5'»ò'6'
+ 163   2                 { 
+ 164   3                          if(j!=0){write_com1(0x01); j=0;}
+ 165   3                          if(flag==0){  a=a*10+table1[num];   }//Ã»ÓĞ°´¹ı·ûºÅ¼ü           
+ 166   3                          else{  b=b*10+table1[num];   }//Èç¹û°´¹ı·ûºÅ¼ü          
+ 167   3                 }
+ 168   2                 else//Èç¹û°´ÏÂµÄÊÇ'/'
+ 169   2                 { flag=1;   fuhao=3;}//3±íÊ¾³ËºÅÒÑ°´    
+ 170   2                 i=table2[num];          write_date1(0x30+i);
+ 171   2              }
+ 172   1      
+ 173   1              P3=0xfb;
+ 174   1              if(P3!=0xfb)
+ 175   1              {   delay2(20);
+ 176   2                 if(P3!=0xfb) { temp=P3&0xf0;
+ 177   3                                          switch(temp)
+ 178   3                                          {
+C51 COMPILER V9.01   ÍòÄêÀ_                                                                06/11/2020 17:59:02 PAGE 4   
+
+ 179   4                                           case 0xe0:num=8;   break;
+ 180   4                                           case 0xd0:num=9;   break;
+ 181   4                                           case 0xb0:num=10;  break;
+ 182   4                                           case 0x70:num=11;  break;
+ 183   4                                          }
+ 184   3                 }  while(P3!=0xfb);
+ 185   2                 if(num==8||num==9||num==10)//Èç¹û°´ÏÂµÄÊÇ'1','2'»ò'3'
+ 186   2                 { 
+ 187   3                          if(j!=0){ write_com1(0x01); j=0;  }
+ 188   3                          if(flag==0){ a=a*10+table1[num];  }//Ã»ÓĞ°´¹ı·ûºÅ¼ü             
+ 189   3                          else//Èç¹û°´¹ı·ûºÅ¼ü
+ 190   3                          {   b=b*10+table1[num];    }
+ 191   3                 }
+ 192   2                 else if(num==11)//Èç¹û°´ÏÂµÄÊÇ'-'
+ 193   2                 {  flag=1;   fuhao=2;}//2±íÊ¾¼õºÅÒÑ°´           
+ 194   2                 i=table2[num];          write_date1(0x30+i);
+ 195   2              }
+ 196   1      
+ 197   1              P3=0xf7;
+ 198   1              if(P3!=0xf7)
+ 199   1              {  delay2(20);
+ 200   2                 if(P3!=0xf7) {temp=P3&0xf0;
+ 201   3                          switch(temp)
+ 202   3                          {
+ 203   4                           case 0xe0:num=12; break;
+ 204   4                           case 0xd0:num=13; break;
+ 205   4                           case 0xb0:num=14; break;
+ 206   4                           case 0x70:num=15; break;
+ 207   4                          }
+ 208   3                 } while(P3!=0xf7);
+ 209   2                 switch(num)
+ 210   2                 {
+ 211   3                  case 12:{write_com1(0x01);a=0;b=0;flag=0;fuhao=0;}  break;//°´ÏÂµÄÊÇ"ÇåÁã"       
+ 212   3                  case 13:{                //°´ÏÂµÄÊÇ"0"
+ 213   4                                     if(flag==0)//Ã»ÓĞ°´¹ı·ûºÅ¼ü
+ 214   4                                     {   a=a*10;  write_date1(0x30);  P2=0;    }
+ 215   4                                     else if(flag>=1)//Èç¹û°´¹ı·ûºÅ¼ü
+ 216   4                                     {    b=b*10;       write_date1(0x30);   }
+ 217   4                            }      break;
+ 218   3                  case 14:{j=1;
+ 219   4                         if(fuhao==1)
+ 220   4                                 {
+ 221   5                                              write_com1(0x80+0x4f);//°´ÏÂµÈÓÚ¼ü£¬¹â±êÇ°½øÖÁµÚ¶şĞĞ×îºóÒ»¸öÏÔÊ¾´¦ 
+ 222   5                                      write_com1(0x04);     //ÉèÖÃ´Óºó×¡Ç°Ğ´Êı¾İ£¬Ã¿Ğ´ÍêÒ»¸öÊı¾İ£¬¹â±êºóÍËÒ»¸ñ        
+ 223   5                                      c=a+b;
+ 224   5                                      while(c!=0){write_date1(0x30+c%10);c=c/10;  } 
+ 225   5                                      write_date1(0x3d);     //ÔÙĞ´"="
+ 226   5                                      a=0;b=0;flag=0;fuhao=0;
+ 227   5                         }
+ 228   4                       else if(fuhao==2)
+ 229   4                                 {
+ 230   5                                              write_com1(0x80+0x4f);//¹â±êÇ°½øÖÁµÚ¶şĞĞ×îºóÒ»¸öÏÔÊ¾´¦
+ 231   5                              write_com1(0x04);     //ÉèÖÃ´Óºó×¡Ç°Ğ´Êı¾İ£¬Ã¿Ğ´ÍêÒ»¸öÊı¾İ£¬¹â±êºóÍËÒ»¸ñ(Õâ¸öÕÕÀíËµË³Ğò²»¶Ô£
+             -¬¿ÉÏÔÊ¾ºÍÉÏ¶ÎÒ»Ñù)
+ 232   5                                      if(a-b>0)       c=a-b;
+ 233   5                                      else            c=b-a;
+ 234   5                                      while(c!=0) {write_date1(0x30+c%10);c=c/10; } 
+ 235   5                                      if(a-b<0)        write_date1(0x2d);
+ 236   5                                      write_date1(0x3d);     //ÔÙĞ´"="           
+ 237   5                                      a=0;b=0;flag=0;fuhao=0;
+ 238   5                         }
+ 239   4                       else if(fuhao==3)
+C51 COMPILER V9.01   ÍòÄêÀ_                                                                06/11/2020 17:59:02 PAGE 5   
+
+ 240   4                                      {write_com1(0x80+0x4f); write_com1(0x04);
+ 241   5                              c=a*b;
+ 242   5                              while(c!=0){ write_date1(0x30+c%10);c=c/10;} 
+ 243   5                              write_date1(0x3d);  a=0;b=0;flag=0;fuhao=0;
+ 244   5                           }
+ 245   4                        else if(fuhao==4)
+ 246   4                                {     write_com1(0x80+0x4f);  write_com1(0x04);
+ 247   5                          i=0;
+ 248   5                                              if(b!=0){
+ 249   6                                              c=(long)(((float)a/b)*1000);
+ 250   6                                              while(c!=0)     { write_date1(0x30+c%10); c=c/10;
+ 251   7                                                              i++;
+ 252   7                                                              if(i==3)write_date1(0x2e); }
+ 253   6                                                       if(a/b<=0)      {
+ 254   7                                                                      if(i<=2) {if(i==1) write_date1(0x30);
+ 255   8                                                                              write_date1(0x2e);         //  .
+ 256   8                                                                              write_date1(0x30);}                                                             
+ 257   7                                                      write_date1(0x30);         //
+ 258   7                                                              }
+ 259   6                                              write_date1(0x3d);  a=0;b=0;flag=0;fuhao=0;
+ 260   6                                                      }
+ 261   5                                                      else
+ 262   5                                                      {
+ 263   6                                                              write_date1('!');       write_date1('R');
+ 264   6                                                              write_date1('O');       write_date1('R');
+ 265   6                                                              write_date1('R');       write_date1('E');
+ 266   6                                                      }
+ 267   5                         }
+ 268   4                    }  break;
+ 269   3                   case 15:{write_date1(0x30+table2[num]);flag=1;fuhao=1;}     break;
+ 270   3                 }
+ 271   2              }
+ 272   1      }
+ 273          /**************************************************************
+ 274          Ê±ÖÓ¡¢¼ÆËãÆ÷ÇĞ»»³ÌĞò
+ 275          *************************************************************/
+ 276          void switchfunction()
+ 277          {unsigned char ID;
+ 278   1        if(!s1)       //ÇĞ»»¼ü°´ÏÂ
+ 279   1       {  delay2(20);  //ÑÓÊ±
+ 280   2              if(!s1)          //ÔÙÅĞ
+ 281   2              { init1();      //¼ÆËãÆ÷³õÊ¼»¯
+ 282   3                ID=1;     //ÉèÖÃ¼ÆËãÆ÷¹¤×÷Ä£Ê½±êÖ¾
+ 283   3                while(!s1) ;//µÈ´ıÇĞ»»¼üÊÍ·Å
+ 284   3                      while(ID)
+ 285   3                              {   
+ 286   4                                 keyscan1();  //µ÷¾ØÕó¼üÅÌÉ¨Ãè £¬½øÈë¼ÆËãÆ÷¹¤×÷Ä£Ê½
+ 287   4                                 if(!s1)              //ÇĞ»»¼ü°´ÏÂ
+ 288   4                                       {  delay2(20); if(!s1)
+ 289   5                                              { ID=0;  //ÍË³ö¼ÆËãÆ÷¹¤×÷Ä£Ê½£¬½øÈëÍòÄêÀú¹¤×÷Ä£Ê½
+ 290   6                                                 init_1602();//ÍòÄêÀú¹¤×÷Ä£Ê½LCD1602³õÊ¼»¯
+ 291   6                                              }
+ 292   5                                              while(!s1) ; //µÈ´ıÇĞ»»¼ü°´ÏÂ
+ 293   5                                       }
+ 294   4                              }                                       
+ 295   3              }
+ 296   2       }                              
+ 297   1      }  
+ 298          /**************************************************************
+ 299          Ö÷³ÌĞò
+ 300          *************************************************************/
+ 301          main()
+C51 COMPILER V9.01   ÍòÄêÀ_                                                                06/11/2020 17:59:02 PAGE 6   
+
+ 302          {       init_1602();   //LCD1602³õÊ¼»¯
+ 303   1              while(1)
+ 304   1              {readtime();    //¶ÁÊ±¼ä        
+ 305   2               displaytime(); //ÏÔÊ¾Ê±¼ä
+ 306   2               key();                 //µ÷ÕûÊ±¼ä¼üÅÌ
+ 307   2               display();        //¶ÁÎÂ¶È²¢ÏÔÊ¾
+ 308   2               switchfunction();//µ÷¹¦ÄÜÇĞ»»³ÌĞò£¬Èô¹¦ÄÜÇĞ»»¼ü°´ÏÂ£¬½øÈë¼ÆËãÆ÷ÏÔÊ¾Ä£Ê½
+ 309   2               }      
+ 310   1      }                               
+ 311          
+ 312          /*****************************************************
+ 313          º¯Êı¹¦ÄÜ£ºÑÓÊ±Èô¸ÉºÁÃë
+ 314          Èë¿Ú²ÎÊı£ºn
+ 315          ***************************************************/
+ 316           void delaynms(unsigned char n) {    unsigned char t,i,j;
+ 317   1              for(t=0;t<n;t++)  for(i=0;i<10;i++)         for(j=0;j<33;j++); }
+ 318          /*********************************************************************
+ 319          ds1302Ğ´Ò»¸ö×Ö½ÚµÄÊı¾İ
+ 320          ²ÎÊı£ºcom Ñ¡ÔñÒªĞ´Êı¾İµÄ¼Ä´æÆ÷µØÖ·
+ 321                date Ïò¼Ä´æÆ÷Ğ´ÈëµÄÊı¾İ
+ 322          **********************************************************************/
+ 323          void write_byte(uchar com,uchar date)
+ 324          {
+ 325   1          uchar i;
+ 326   1          rst=0;  //Ã»ÓĞÏÈÇ°µÄµÍµçÆ½²»ÄÜ¹¤×÷,ËùÒÔÏÈ½«RSTÖÃ³ÉµÄµÍµçÆ½          
+ 327   1          clk=0;      //ÔÚĞ´ÃüÁîÇ°clkÒ²ÊÇµÍµçÆ½
+ 328   1          rst=1;      //¿ªÊ¼Ğ´ÃüÁî
+ 329   1              for(i=0;i<8;i++)
+ 330   1              {
+ 331   2               if(com&0x01) IO=1;//»ñÈ¡comµÄ×îµÍÎ»
+ 332   2                       else IO=0;
+ 333   2               com=com>>1;        //ÒÆÎ»£¬ÎªÏÂÒ»Î»µÄ·¢ËÍ×öºÃ×¼±¸
+ 334   2               clk=1;  _nop_();                  //clkµÄ¸ßµçÆ½ÖÁÉÙÎª250ns
+ 335   2               clk=0;                    
+ 336   2              }                  //µ½´Ë£¬ÃüÁî´«ÊäÍê±Ï 
+ 337   1              for(i=0;i<8;i++)   //½ô½Ó×Å´«ÊäÊı¾İ
+ 338   1              {
+ 339   2                       if(date&0x01) IO=1; 
+ 340   2                                else IO=0;
+ 341   2                       date=date>>1;   clk=1;  _nop_(); clk=0;                           
+ 342   2               }
+ 343   1         rst=0;              //½áÊø´«Êä
+ 344   1      }
+ 345          /*********************************************************************
+ 346          ds1302¶ÁÒ»¸ö×Ö½ÚµÄÊı¾İ
+ 347          ²ÎÊı£ºcom Ñ¡ÔñÒª¶ÁÊı¾İµÄ¼Ä´æÆ÷µØÖ·
+ 348                date ´Ó¼Ä´æÆ÷¶Á³öµÄÊı¾İ  
+ 349          **********************************************************************/
+ 350          uchar read_byte(uchar com)
+ 351          {
+ 352   1          uchar i; 
+ 353   1              uchar date; //ÓÃÀ´´æ´¢¶Áµ½µÄÊı¾İ
+ 354   1          rst=0;          //Ã»ÓĞÏÈÇ°µÄµÍµçÆ½²»ÄÜ¹¤×÷,ËùÒÔÏÈ½«RSTÖÃ³ÉµÄµÍµçÆ½
+ 355   1          clk=0;          //ÔÚĞ´ÃüÁîÇ°clkÒ²ÊÇµÍµçÆ½
+ 356   1          rst=1;              //¿ªÊ¼Ğ´ÃüÁî
+ 357   1              for(i=0;i<8;i++)
+ 358   1              {
+ 359   2               if(com&0x01) IO=1;//»ñÈ¡comµÄ×îµÍÎ»
+ 360   2                       else IO=0;
+ 361   2               com=com>>1;        //ÒÆÎ»£¬ÎªÏÂÒ»Î»µÄ·¢ËÍ×öºÃ×¼±¸
+ 362   2               clk=0;  _nop_();                  //clkµÄµÍµçÆ½ÖÁÉÙÎª250ns
+ 363   2               clk=1;                    
+C51 COMPILER V9.01   ÍòÄêÀ_                                                                06/11/2020 17:59:02 PAGE 7   
+
+ 364   2              }                  //µ½´Ë£¬ÃüÁî´«ÊäÍê±Ï
+ 365   1              /*********************************************************************
+ 366   1               ½ÓÊÕÊı¾İ,½ÓÊÕµÄÊÇ1302·¢ËÍµÄµÍ7Î»£¬¶ødeteµÄ×î¸ßÎ»Îª0£¬ÕâÑù×öµÄÄ¿µÄÊÇ±ÜÃâÁËºó±ß¶Ô
+ 367   1               ½ÓÊÕµ½Êı¾İµÄ´¦Àí£¨ÒòÎªÈÕÀúµÄÆß¸ö±äÁ¿µÄ×î¸ßÎ»ÔÚ¼ÆËãÊ±±ØĞë´¦Àí³É0£©¡£
+ 368   1               ÕâÀïÍ¨¹ıÉÙ½ÓÊÕÒ»´ÎÊı¾İÊµÏÖ³ıÈ¥×î¸ßÎ»¡£
+ 369   1               *********************************************************************/
+ 370   1          for(i=0;i<8;i++)  
+ 371   1              {
+ 372   2                   if(IO==1) date|=0x80;//ËäÈ»Ò²½ÓÊÕÁË°Ë´Î£¬µ«µÚÒ»´Î½ÓÊÕµÄÊı¾İ²»¶Ô£¨½ÓÊÕµÄ¿Ï¶¨ÊÇ1£©£¬ÇÒºóÀ´ÒÆÎ»³ıµôÁË¡£
+             -Êµ¼ÊÉÏÊÇ½ÓÊÕÁËÆßÎ»    
+ 373   2                       date=date>>1;                                                                                                  
+             -                                                                                                                        
+             -                                                                                                                        
+             -                                                                                                                        
+             -                                                                                                                        
+             -                                                                                                                        
+             -                                                                                                                        
+             -                                                             
+ 374   2                       clk=1;  _nop_();        clk=0;             //Ê±ÖÓµÄÏÂ½µÑØ,ds1302¿ªÊ¼ÏòÖ÷»ú·¢ËÍÊı¾İ
+ 375   2               }
+ 376   1          rst=0;                         //½áÊø´«Êä
+ 377   1          return date;
+ 378   1      } 
+ 379          uchar readyear_byte(uchar com)
+ 380          {
+ 381   1          uchar i; 
+ 382   1              uchar date; //ÓÃÀ´´æ´¢¶Áµ½µÄÊı¾İ
+ 383   1          rst=0;          //Ã»ÓĞÏÈÇ°µÄµÍµçÆ½²»ÄÜ¹¤×÷,ËùÒÔÏÈ½«RSTÖÃ³ÉµÄµÍµçÆ½
+ 384   1          clk=0;          //ÔÚĞ´ÃüÁîÇ°clkÒ²ÊÇµÍµçÆ½
+ 385   1          rst=1;              //¿ªÊ¼Ğ´ÃüÁî
+ 386   1              for(i=0;i<8;i++)
+ 387   1              {
+ 388   2               if(com&0x01) IO=1;//»ñÈ¡comµÄ×îµÍÎ»
+ 389   2                       else IO=0;
+ 390   2               com=com>>1;        //ÒÆÎ»£¬ÎªÏÂÒ»Î»µÄ·¢ËÍ×öºÃ×¼±¸
+ 391   2               clk=0;
+ 392   2               _nop_();                  //clkµÄµÍµçÆ½ÖÁÉÙÎª250ns
+ 393   2               clk=1;                    
+ 394   2              }                  //µ½´Ë£¬ÃüÁî´«ÊäÍê±Ï
+ 395   1          for(i=0;i<8;i++)  
+ 396   1              {
+ 397   2               date=date>>1;  //ÓÉÓÚ¿ÕÒÆÁËÒ»´Î£¬ËùÒÔÃ»ÓĞÀË·ÑÊı¾İ                                                       
+             -                                                                                                                        
+             -                                                                                                                        
+             -                                                                                                                        
+             -                                                                                                                        
+             -                                                                                                                        
+             -                                                                                                                        
+             -                                                                                               
+ 398   2               clk=0;                            //Ê±ÖÓµÄÏÂ½µÑØ,ds1302¿ªÊ¼ÏòÖ÷»ú·¢ËÍÊı¾İ
+ 399   2               if(IO==1) date|=0x80;//ÕâÒ»´Î¾ÍÄÜ½ÓÊÕ°Ë´ÎÊı¾İ£¬Ã»ÓĞÎŞÓÃµÄ£¬Ò²Ã»ÓĞÀË·Ñ
+ 400   2               clk=1;             
+ 401   2               }
+ 402   1          rst=0;                         //½áÊø´«Êä
+ 403   1              clk=0;
+ 404   1          return date;
+ 405   1      }
+ 406           
+ 407          void readtime()//¶Á³öÊ±¼ä  Ê±¼äµÄÃ¿Ò»²¿·ÖµÄ×î¸ßÎ»¶¼ÒÑ¾­ÖÃÁã
+ 408          {
+ 409   1      year=readyear_byte(0x8d);
+ 410   1      month=read_byte(0x89);
+C51 COMPILER V9.01   ÍòÄêÀ_                                                                06/11/2020 17:59:02 PAGE 8   
+
+ 411   1      day=read_byte(0x87);
+ 412   1      hour=read_byte(0x85);  
+ 413   1      minute=read_byte(0x83); 
+ 414   1      second=read_byte(0x81);
+ 415   1      week=read_byte(0x8b); 
+ 416   1      }
+ 417          /*********************************************************************************
+ 418          Ò»ÏÂÊÇ¶Ôlcd1602µÄ²Ù×÷
+ 419          ***********************************************************************************/              
+ 420          /*******************************/       //lcd1602Ğ´ÃüÁî           
+ 421          void write_com(unsigned char CMD)
+ 422          {                                       
+ 423   1              delaynms(10);   LCM_RS=0;       LCM_EN=0;       _nop_();        _nop_();
+ 424   1              P0=CMD;         _nop_();        _nop_();        _nop_();        _nop_();        
+ 425   1              LCM_EN=1;_nop_();_nop_();_nop_(); _nop_();LCM_EN=0;
+ 426   1      }                                       
+ 427          /*******************************/       //lcd1602Ğ´Êı¾İ             
+ 428          void write_date(unsigned char dataW) 
+ 429          {                                       
+ 430   1              delaynms(10);   LCM_RS=1;       LCM_EN=0;       _nop_();
+ 431   1              P0=dataW;       _nop_();        _nop_();        _nop_();        _nop_();
+ 432   1              LCM_EN=1;       _nop_();        _nop_();        _nop_();        _nop_();
+ 433   1              LCM_EN=0;
+ 434   1      }
+ 435          void init_1602()//³õÊ¼»¯Òº¾§
+ 436          {
+ 437   1              wela=0;dula=0;
+ 438   1              write_com(0x38);delay20ms();
+ 439   1              write_com(0x38); delay20ms();
+ 440   1              write_com(0x38);delay20ms();     //³õÊ¼»¯Èı´ÎÈ·±£¹¦ÄÜÉè¶¨³É¹¦
+ 441   1              write_com(0x0c);  write_com(0x06);      write_com(0x01);
+ 442   1              
+ 443   1              write_com(0x85);//ÒÔÏÂ½«Òº¾§ÉÏ²»±äµÄ×Ö·ûÏÈÏÔÊ¾³öÀ´
+ 444   1              write_date('/');
+ 445   1              write_com(0x88);write_date('/');
+ 446   1              write_com(0xc2);write_date(':');
+ 447   1              write_com(0xc5);write_date(':');
+ 448   1              write_com(0xc0+13);write_date(0xdf);  write_date('C');  
+ 449   1      }
+ 450          /***************************************************************************
+ 451          ÏÔÊ¾Ê±¼ä  ÔÚ¼ÆËãÊ±¼ä£¨Äê ¡¢ÔÂ¡¢ÈÕµÈµÈ£©µÄÊ®Î»ºÍ¸öÎ»Ê±ĞèÒª×¢Òâ
+ 452          ÕâĞèÒª½«8421Âë±íÊ¾µÄÁ½Î»Ê®½øÖÆÊıµÄÊ®Î»ºÍ¸öÎ»·Ö±ğÇó³öÀ´ Ê®Î»=Ê±¼ä£¨±È·½ËµÌì£©/16;¸öÎ»=Ê±¼ä%16
+ 453          *****************************************************************************/
+ 454          void displaytime() 
+ 455          {
+ 456   1              write_com(0x81); write_date(table[2]);write_date(table[0]);
+ 457   1              write_date(table[year/16]);     write_date(table[year%16]);//ÏÔÊ¾³öÄê
+ 458   1              
+ 459   1              write_com(0x86);write_date(table[month/16]);write_date(table[month%16]);//ÏÔÊ¾³öÔÂ
+ 460   1              
+ 461   1              write_com(0x89);write_date(table[day/16]); //ÏÔÊ¾³öÈÕ
+ 462   1              write_date(table[day%16]);
+ 463   1              
+ 464   1              write_com(0x80+12);                //ÏÔÊ¾³öĞÇÆÚ
+ 465   1              switch(week) {
+ 466   2                case 1:write_date('M'); write_date('O');  write_date('N'); break;
+ 467   2                case 2:write_date('T'); write_date('U');  write_date('E'); break;
+ 468   2                case 3:write_date('W'); write_date('E');  write_date('D'); break;
+ 469   2                case 4:write_date('T'); write_date('H');      write_date('U'); break;
+ 470   2                case 5:write_date('F'); write_date('R');  write_date('T'); break;
+ 471   2                case 6:write_date('S'); write_date('A');  write_date('T'); break;
+ 472   2                case 7:write_date('S'); write_date('U');  write_date('N'); break;
+C51 COMPILER V9.01   ÍòÄêÀ_                                                                06/11/2020 17:59:02 PAGE 9   
+
+ 473   2              }
+ 474   1              write_com(0xc0);write_date(table[hour/16]);     write_date(table[hour%16]);//ÏÔÊ¾³öĞ¡Ê±
+ 475   1              write_com(0xc3);write_date(table[minute/16]); write_date(table[minute%16]);//ÏÔÊ¾³ö·ÖÖÓ
+ 476   1              write_com(0xc6);write_date(table[second/16]);write_date(table[second%16]);//ÏÔÊ¾³öÃë
+ 477   1      }                                       
+ 478          /****************************************************************************
+ 479          ÒÔÏÂÊÇÓĞ¹Ø¼üÅÌµ÷Ê±ÄÚÈİµÄ³ÌĞò
+ 480          ******************************************************************************/
+ 481          /**************************************************************
+ 482          º¯Êı¹¦ÄÜ£ºÑÓÊ±20msµÄ×Ó³ÌĞò
+ 483          **************************************************************/
+ 484          void delay20ms(){  unsigned char i,j;
+ 485   1        for(i=0;i<100;i++)   for(j=0;j<60;j++)  ;}
+ 486          
+ 487          void delay1(uchar z){ uchar x,y;
+ 488   1              for(x=1000;x>1;x--)     for(y=z;y>1;y--);  } 
+ 489          /**************************************************************
+ 490          º¯Êı¹¦ÄÜ£ºÉ¨Ãè¼üÅÌµ÷Ê±³ÌĞò
+ 491          **************************************************************/  
+ 492          void key()
+ 493          {       uchar timenum;          //µ÷ÕûÊ±µÄ±êÖ¾·û¡£µ±num=0Ê±,Õı³£¹¤×÷×´Ì¬¡£µ±num£¡=0Ê±£¬¾ÍÊÇµ÷Ê±×´Ì¬¡£
+ 494   1              if(mode==0)                                     //µ±°´ÏÂÄ£Ê½Ñ¡Ôñ¼ü¾Í¿ªÊ¼½øÈëµ÷Ê±Ä£Ê½£¬Ö±µ½num=0ÎªÖ¹
+ 495   1              {delay20ms();  if(mode==0) { timenum++;}
+ 496   2                      while(!mode==1);        }         
+ 497   1              if(timenum) //µ±num²»ÎªÁãÊ±£¬¾Í´¦ÓÚµ÷Ê±×´Ì¬£¬¾ÍÈÃ1302Í£Ö¹¼ÆÊ±¡£µ÷Ê±Íê³Éºó£¬¾ÍÖØĞÂ´ò¿ª¼ÆÊ±                                              
+ 498   1              {write_byte(0x8e,0);            //µ÷Ê±¹ı³ÌÖĞÔÊĞíĞ´Èë
+ 499   2              second=read_byte(0x81);         //ÏÈÇó³öÃëµÄÊıÖµ
+ 500   2              write_byte(0x80,second|0x80);//ÔÙÈÃ1302Í£Ö¹         
+ 501   2              while(timenum)                                    //½øÈëÑ­»·µÄµ÷Ê±×´Ì¬£¬Ö±µ½num=0£¬Ìø³öµ÷Ê±Ä£¿é
+ 502   2              {switch(timenum)
+ 503   3                       { case 1:write_com(0x84);   write_com(0x0f); //Äê
+ 504   4                                   delaynms(200);                        //ÈÃÄêµÄ¸öÎ»ÉÁË¸ĞèÒª×ã¹»µÄÊ±¼ä
+ 505   4                                       year1=(year/16)*10+year%16;  //°Ñµ±Ç°´Ó1302ÖĞ¶Á³öµÄ8424Âë±íÊ¾µÄÊı£¬×ª»¯³ÉÊ®½øÖÆ¼ÆËã       
+ 506   4                               if(plus==0)                              //É¨Ãè°´¼ü
+ 507   4                                              { delay20ms();                    //ÑÓ³ÙºóÔÙ¼ì²âÈ¥³ı¶¶¶¯
+ 508   5                                                if(plus==0){  year1++;   //È·ÈÏ°´ÏÂºó¾Í¼Ó1
+ 509   6                                                  if(year1==100) year1=0;     write_byte(0x8c,((year1/10)*16+year1%10));}//½«¸ü¸ÄºóµÄÊ®½øÖÆÄê×ª»»³É8421
+             -Âë´æÈë1302µÄÄê¼Ä´æÆ÷ÖĞ
+ 510   5                                               }      while(!plus)  ;                                                          //µÈ´ı°´¼üÊÍ·Å
+ 511   4                                              if(minus==0){delay20ms();
+ 512   5                                                      if(minus==0){   year1--;        if(year1==-1) year1=99;
+ 513   6                                                      write_byte(0x8c,((year1/10)*16+year1%10));      }
+ 514   5                                              }while(!minus) ;
+ 515   4                                              year=readyear_byte(0x8d);                                  //½«Äê¶Á³öÀ´
+ 516   4                                              write_com(0x83);                                                   //½«ÄêÏÔÊ¾³öÀ´£¬ÒÔÊ¹µ÷ÕûºóÄÜ¿´µ½±ä»¯
+ 517   4                                              write_date(table[year/16]);   write_date(table[year%16]);   break;
+ 518   4                               case 2: write_com(0x87);                                 //Ñ¡Ôñ¹â±êÉÁË¸µÄÎ»ÖÃ£¬ÔÂµÄ¸öÎ»
+ 519   4                                       delaynms(200);                                   //ÈÃÔÂµÄ¸öÎ»ÉÁË¸ĞèÒª×ã¹»µÄÊ±¼ä
+ 520   4                                               month1=(month/16)*10+month%16;  //°Ñµ±Ç°´Ó1302ÖĞ¶Á³öµÄ8424Âë±íÊ¾µÄÊı£¬×ª»¯³ÉÊ®½øÖÆ¼ÆËã 
+ 521   4                                               if(plus==0) { delay20ms();
+ 522   5                                                if(plus==0) {month1++; if(month1==13) month1=1;write_byte(0x88,((month1/10)*16+month1%10));}                          
+ 523   5                                                }     while(!plus) ;
+ 524   4                                              if(minus==0){  delay20ms();
+ 525   5                                                      if(minus==0){  month1--; if(month1==0) month1=12;
+ 526   6                                                      write_byte(0x88,((month1/10)*16+month1%10)); }                                  
+ 527   5                                              }  while(!minus) ;
+ 528   4                                              month=read_byte(0x89);
+ 529   4                                              write_com(0x86); write_date(table[month/16]);
+ 530   4                              write_date(table[month%16]);//ÏÔÊ¾³öÔÂ
+ 531   4                                              break;
+ 532   4                               case 3:write_com(0x80+10);      
+ 533   4                                              delaynms(200);
+C51 COMPILER V9.01   ÍòÄêÀ_                                                                06/11/2020 17:59:02 PAGE 10  
+
+ 534   4                                              day1=(day/16)*10+day%16;                 //°Ñµ±Ç°´Ó1302ÖĞ¶Á³öµÄ8424Âë±íÊ¾µÄÊı£¬×ª»¯³ÉÊ®½øÖÆ¼ÆËã 
+ 535   4                                              if(plus==0){ delay20ms();
+ 536   5                                                if(plus==0){                  day1++;
+ 537   6                                                              switch(month1)//¶ÔÓÚÈÕµÄµ÷Õû±È½ÏÂé·³1,3,5,7,8,10,12ÔÂÓĞ31Ìì£»¶ø4,6,9,11ÓĞ30Ìì£»ÈòÄêµÄ2ÔÂ29Ìì£¬Æ½ÄêÔ
+             -òÓĞ28Ìì
+ 538   6                                                         {case 1:case 3:case 5:case 7:case 8:case 10:case 12: if(day1==32)   day1=1;break;  
+ 539   7                                                          case 4:case 6:case 9:case 11: if(day1==31) day1=1;break;
+ 540   7                                                              case 2:if(year1%4==0) {if(day1==30)  day1=1;}
+ 541   7                                                                     else {if(day1=29)  day1=1;} break;
+*** WARNING C276 IN LINE 541 OF ÍòÄêÀú.C: constant in condition expression
+ 542   7                                                          }  
+ 543   6                                              write_byte(0x86,((day1/10)*16+day1%10));
+ 544   6                                  }                        
+ 545   5                                      }while(!plus)  ;
+ 546   4                                              if(minus==0){ delay20ms();
+ 547   5                                                      if(minus==0){ day1--;
+ 548   6                                                  switch(month1)
+ 549   6                                                 {case 1:case 3:case 5:case 7:case 8:case 10:case 12: if(day1==0)   day1=31;break;  
+ 550   7                                                  case 4:case 6:case 9:case 11: if(day1==0) day1=30;break;
+ 551   7                                                      case 2:if(year1%4==0) {if(day1==0)  day1=29;}
+ 552   7                                                               else {if(day1=0)  day1=28;} break;
+*** WARNING C276 IN LINE 552 OF ÍòÄêÀú.C: constant in condition expression
+ 553   7                                                  }    
+ 554   6                                                      write_byte(0x86,((day1/10)*16+day1%10));
+ 555   6                                }                          
+ 556   5                                      }while(!minus) ;
+ 557   4                                              day=read_byte(0x87);write_com(0x89);
+ 558   4                              write_date(table[day/16]);   write_date(table[day%16]);
+ 559   4                                              break; 
+ 560   4                       case 4:write_com(0x80+14);  //ĞÇÆÚ
+ 561   4                                              delaynms(200);
+ 562   4                                              week1=(week/16)*10+week%16;              //°Ñµ±Ç°´Ó1302ÖĞ¶Á³öµÄ8424Âë±íÊ¾µÄÊı£¬×ª»¯³ÉÊ®½øÖÆ¼ÆËã
+ 563   4                                       if(plus==0){ delay20ms();
+ 564   5                                                if(plus==0) { week1++;
+ 565   6                                                      if(week1==8) week1=1;
+ 566   6                                                      write_byte(0x8a,((week1/10)*16+week1%10));      }
+ 567   5                                              }       while(!plus)  ;
+ 568   4                                              if(minus==0){ delay20ms();
+ 569   5                                                      if(minus==0) { week1--;
+ 570   6                                                      if(week1==0) week1=7;
+ 571   6                                                      write_byte(0x8a,((week1/10)*16+week1%10)); }
+ 572   5                                              }while(!minus) ;
+ 573   4                                              week=read_byte(0x8b);//ÏÔÊ¾³öĞÇÆÚ
+ 574   4                                              write_com(0x80+12);                
+ 575   4                                              switch(week)
+ 576   4                                              {
+ 577   5                                                      case 1: write_date('M');write_date('O'); write_date('N');break;
+ 578   5                                                      case 2:write_date('T');write_date('U');write_date('E'); break;
+ 579   5                                                      case 3:write_date('W');write_date('E');write_date('D'); break;
+ 580   5                                                      case 4:write_date('T');write_date('H'); write_date('U');break;
+ 581   5                                                      case 5:write_date('F');write_date('R');write_date('T');break;
+ 582   5                                                      case 6:write_date('S');write_date('A'); write_date('T');break;
+ 583   5                                                      case 7:write_date('S');write_date('U');write_date('N');break;
+ 584   5                                              }       break;                                           
+ 585   4                      case 5:     write_com(0xc1);  //Ê±
+ 586   4                                              delaynms(200); 
+ 587   4                                              hour1=(hour/16)*10+hour%16;     //°Ñµ±Ç°´Ó1302ÖĞ¶Á³öµÄ8424Âë±íÊ¾µÄÊı£¬×ª»¯³ÉÊ®½øÖÆ¼ÆËã
+ 588   4                                      if(plus==0){ delay20ms();
+ 589   5                                                if(plus==0){ hour1++; if(hour1==24) hour1=0;
+ 590   6                                                      write_byte(0x84,((hour1/10)*16+hour1%10));      }
+ 591   5                                              }while(!plus)  ;
+ 592   4                                              if(minus==0)    {delay20ms();
+C51 COMPILER V9.01   ÍòÄêÀ_                                                                06/11/2020 17:59:02 PAGE 11  
+
+ 593   5                                                      if(minus==0){ hour1--;  if(hour1==-1) hour1=23;
+ 594   6                                                      write_byte(0x84,((hour1/10)*16+hour1%10));      }
+ 595   5                                              }       while(!minus) ;
+ 596   4                                              hour=read_byte(0x85);write_com(0xc0);
+ 597   4                                              write_date(table[hour/16]);     write_date(table[hour%16]);//ÏÔÊ¾³öĞ¡Ê±
+ 598   4              
+ 599   4                                              break;                                             
+ 600   4                               case 6: write_com(0xc4);        //·Ö
+ 601   4                                              delaynms(200);
+ 602   4                                              minute1=(minute/16)*10+minute%16;        //°Ñµ±Ç°´Ó1302ÖĞ¶Á³öµÄ8424Âë±íÊ¾µÄÊı£¬×ª»¯³ÉÊ®½øÖÆ¼ÆËã 
+ 603   4                                              if(plus==0){ delay20ms();
+ 604   5                                                if(plus==0){minute1++;        if(minute1==60) minute1=0;
+ 605   6                                                      write_byte(0x82,((minute1/10)*16+minute1%10));          }                                       
+ 606   5                                              }while(!plus)  ;
+ 607   4                                              if(minus==0){delay20ms();
+ 608   5                                                      if(minus==0){   minute1--;      if(minute1==-1) minute1=59;     }
+ 609   5                                                      write_byte(0x82,((minute1/10)*16+minute1%10));
+ 610   5                                              }   while(!minus) ;
+ 611   4                                              minute=read_byte(0x83); write_com(0xc3);
+ 612   4                                              write_date(table[minute/16]);write_date(table[minute%16]);//ÏÔÊ¾³ö·ÖÖÓ 
+ 613   4                                              break;
+ 614   4                                case 7: write_com(0xc7);       //Ãë
+ 615   4                                               delaynms(200);
+ 616   4                                               second1=(second/16)*10+second%16;       //°Ñµ±Ç°´Ó1302ÖĞ¶Á³öµÄ8424Âë±íÊ¾µÄÊı£¬×ª»¯³ÉÊ®½øÖÆ¼ÆËã 
+ 617   4                                              if(plus==0)     { delay20ms(); 
+ 618   5                                                if(plus==0){ second1++;if(second1==60) second1=0;
+ 619   6                                                      write_byte(0x80,((second1/10)*16+second1%10)|0x80);//½«¸ü¸ÄºóµÄÊ®½øÖÆÃë×ª»»³É8421Âë´æÈë1302µÄÄê¼Ä´æÆ
+             -÷ÖĞ
+ 620   6                                                   //ÓÉÓÚread_byte()º¯ÊıµÄ×î¸ßÎ»Ã»¶Á£¨Îª0£©¡£ËäÈ»ÃëµÄ×î¸ßÎ»ÔÚÍ£Ö¹Ê±ÒÑ¾­ÖÃ³É1£¬µ«ÊÇÓÉÓÚ×î¸ßÎ»µÄ¶ªÊ§£
+             -¬ËùÒÔ°´Ç°±ßµÄĞ´½øÈ¥±Ø¶¨ÓÖ½«¼ÆÊ±Æô¶¯ÁË¡£
+ 621   6                                                       //ÕâÀïÔÚcharĞÍ±äÁ¿ÃëµÄ×î¸ßÎ»ÌíÁË1ÒÔ±£Ö¤µ÷ÃëÊ±Ò²Í£Ö¹¼ÆÊ±
+ 622   6                                                      }           
+ 623   5                               }      while(!plus) ;
+ 624   4                                              if(minus==0){delay20ms();
+ 625   5                                                      if(minus==0){second1--; if(second1==-1) second1=59;
+ 626   6                                                      write_byte(0x80,((second1/10)*16+second1%10)|0x80);     }
+ 627   5                                              } while(!minus) ;
+ 628   4                                              second=read_byte(0x81); write_com(0xc6);
+ 629   4                                              write_date(table[second/16]);write_date(table[second%16]);//ÏÔÊ¾³öÃë  
+ 630   4                                              break;                           
+ 631   4                              }
+ 632   3                              if(mode==0)                                      //µ±°´ÏÂÄ£Ê½Ñ¡Ôñ¼üÑ¡ÔñÒªµ÷ÕûµÄÁ¿£¬µ±num=0Ê±Ìø³öµ÷Ê±×´Ì¬
+ 633   3                              {       delay20ms();   
+ 634   4                              if(mode==0)     { timenum++;            }
+ 635   4                                      while(!mode==1);
+ 636   4                              }         
+ 637   3                      if(timenum==8){ timenum=0;      } //µ±µ÷ÕûÍêÊ±£¬num=0,¾Í¿ÉÒÔÍÑÀëµ÷Ê±×´Ì¬
+ 638   3                                              
+ 639   3                }  
+ 640   2                second=read_byte(0x81);               //ÏÈÇó³öÃëµÄÊıÖµ
+ 641   2                write_byte(0x80,second&0x7f); //ÔÙÈÃ1302Æô¶¯
+ 642   2                write_byte(0x8e,0x80);                //½ûÖ¹Ğ´Èë
+ 643   2                write_com(0x0c);                          //¹â±êÔÚµ÷ÕûÄê£¨num=1£©Ê±¿ªÊ¼ÉÁË¸,ÔÚµ÷ÕûÆäËûÎ»£¨num=2,3,4,5,6,7£©Ê±Ò²ÔÚÉÁË¸£¬¡£
+             -µ÷ÕûÍê£¨num=0£©Ê±,Í£Ö¹ÉÁË¸
+ 644   2                }                                                                                                                                                              
+ 645   1      }
+ 646          
+ 647          /*************DS18B20ÎÂ¶È¶ÁÈ¡Ä£¿é*************/
+ 648          void tmpDelay(int num)//ÑÓÊ±º¯Êı
+ 649          {
+ 650   1              while(num--) ;
+ 651   1      }
+C51 COMPILER V9.01   ÍòÄêÀ_                                                                06/11/2020 17:59:02 PAGE 12  
+
+ 652          
+ 653          void Init_DS18B20()//³õÊ¼»¯ds1820
+ 654          {
+ 655   1              unsigned char x=0;
+ 656   1              DS = 1;    //DS¸´Î»
+ 657   1              tmpDelay(8);  //ÉÔ×öÑÓÊ±
+ 658   1              DS = 0;    //µ¥Æ¬»ú½«DSÀ­µÍ
+ 659   1              tmpDelay(80); //¾«È·ÑÓÊ± ´óÓÚ 480us
+ 660   1              DS = 1;    //À­¸ß×ÜÏß
+ 661   1              tmpDelay(14);
+ 662   1              x=DS;      //ÉÔ×öÑÓÊ±ºó Èç¹ûx=0Ôò³õÊ¼»¯³É¹¦ x=1Ôò³õÊ¼»¯Ê§°Ü
+ 663   1              tmpDelay(20);
+ 664   1      }
+ 665          
+ 666          unsigned char ReadOneChar()//¶ÁÒ»¸ö×Ö½Ú
+ 667          {
+ 668   1              unsigned char i=0;
+ 669   1              unsigned char dat = 0;
+ 670   1              for (i=8;i>0;i--)
+ 671   1              {
+ 672   2                      DS = 0; // ¸øÂö³åĞÅºÅ
+ 673   2                      dat>>=1;
+ 674   2                      DS = 1; // ¸øÂö³åĞÅºÅ
+ 675   2                      if(DS)  dat|=0x80;
+ 676   2                      tmpDelay(4);
+ 677   2              }
+ 678   1              return(dat);
+ 679   1      }
+ 680          
+ 681          void WriteOneChar(unsigned char dat)//Ğ´Ò»¸ö×Ö½Ú
+ 682          {       char i;
+ 683   1              for (i=8; i>0; i--)     {
+ 684   2                      DS = 0; DS = dat&0x01;  tmpDelay(5);
+ 685   2                      DS = 1; dat>>=1;  }
+ 686   1      }
+ 687          
+ 688          unsigned int Readtemp()//¶ÁÈ¡ÎÂ¶È
+ 689          {
+ 690   1              unsigned char a=0;
+ 691   1              unsigned char b=0;
+ 692   1              unsigned int t=0;
+ 693   1              float tt=0;     
+ 694   1              Init_DS18B20();
+ 695   1              WriteOneChar(0xCC); // Ìø¹ı¶ÁĞòºÅÁĞºÅµÄ²Ù×÷
+ 696   1              WriteOneChar(0x44); // Æô¶¯ÎÂ¶È×ª»»
+ 697   1              Init_DS18B20();
+ 698   1              WriteOneChar(0xCC); //Ìø¹ı¶ÁĞòºÅÁĞºÅµÄ²Ù×÷
+ 699   1              WriteOneChar(0xBE); //¶ÁÈ¡ÎÂ¶È¼Ä´æÆ÷
+ 700   1              a=ReadOneChar();   //Á¬Ğø¶ÁÁ½¸ö×Ö½ÚÊı¾İ   //¶ÁµÍ8Î» 
+ 701   1              b=ReadOneChar();                          //¶Á¸ß8Î»
+ 702   1              t=b;
+ 703   1              t<<=8;
+ 704   1              t=t|a;                  //Á½×Ö½ÚºÏ³ÉÒ»¸öÕûĞÍ±äÁ¿¡£
+ 705   1              tt=t*0.0625;    //µÃµ½ÕæÊµÊ®½øÖÆÎÂ¶ÈÖµ£¬ÒòÎªDS18B20¿ÉÒÔ¾«È·µ½0.0625¶È£¬ËùÒÔ¶Á»ØÊı¾İµÄ×îµÍÎ»´ú±íµÄÊÇ0.0625¶
+             -È
+ 706   1              t= tt*10+0.5;   //·Å´óÊ®±¶£¬ÕâÑù×öµÄÄ¿µÄ½«Ğ¡ÊıµãºóµÚÒ»Î»Ò²×ª»»Îª¿ÉÏÔÊ¾Êı×Ö£¬Í¬Ê±½øĞĞÒ»¸öËÄÉáÎåÈë²Ù×÷¡£
+ 707   1              return(t);
+ 708   1      }
+ 709          
+ 710          void display()
+ 711          {
+ 712   1              uint num;                   //¶¨ÒåµÄÊ±ºòÓÃucharºê¶¨Òå¾Í»á³ö´í
+C51 COMPILER V9.01   ÍòÄêÀ_                                                                06/11/2020 17:59:02 PAGE 13  
+
+ 713   1              uint shi,ge,xiaoshu;        //ÕâÀïµÄnum,shi,ge,xiaoshu ±ØĞëÓÃuintÎŞ·ûºÅÕûÊıÀ´±íÊ¾£¬ÓÃuchar×Ö·ûĞÍÔòÏÔÊ¾´íÎó
+ 714   1              num=Readtemp();
+ 715   1              shi=num/100;    ge=num/10%10;   xiaoshu=num%10;   //
+ 716   1              write_com(0x80+0x40+0xa);       write_date(wendu[shi]);
+ 717   1              write_com(0x80+0x40+0xb);       write_date(wendu[ge]);
+ 718   1              write_com(0x80+0x40+0xc);       write_date(0x2e);
+ 719   1              write_com(0x80+0x40+0xd);       write_date(wendu[xiaoshu]);     
+ 720   1              write_com(0x80+0x40+0xe);       write_date(0xdf);
+ 721   1              write_com(0x80+0x40+0xf);       write_date(0x43); 
+ 722   1      }                       
+ 723           
+ 724           
+ 725           
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   4287    ----
+   CONSTANT SIZE    =     43    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     53      10
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  2 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,22 @@
+<html>
+<body>
+<pre>
+<h1>礦ision Build Log</h1>
+<h2>Project:</h2>
+C:\Users\2000601\Desktop\单片机课程设计\基于单片机的电子钟\电子钟\time1\time1.uvproj
+Project File Date:  11/23/2019
+
+<h2>Output:</h2>
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(99): error C202: 'time_data': undefined identifier
+MAIN.C(100): error C202: 'time_data': undefined identifier
+MAIN.C(101): error C202: 'time_data': undefined identifier
+MAIN.C(106): error C202: 'time_data': undefined identifier
+目标未创建
+compiling main.c...
+MAIN.C(99): error C202: 'time_data': undefined identifier
+MAIN.C(100): error C202: 'time_data': undefined identifier
+MAIN.C(101): error C202: 'time_data': undefined identifier
+MAIN.C(106): error C202: 'time_data': undefined identifier
+main.c - 4 Error(s), 0 Warning(s).

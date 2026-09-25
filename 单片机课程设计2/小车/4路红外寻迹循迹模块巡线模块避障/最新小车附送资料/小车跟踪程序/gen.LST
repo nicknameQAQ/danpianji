@@ -1,0 +1,111 @@
+C51 COMPILER V7.50   GEN                                                                   05/09/2010 14:16:36 PAGE 1   
+
+
+C51 COMPILER V7.50, COMPILATION OF MODULE GEN
+OBJECT MODULE PLACED IN gen.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE gen.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          //巍巍机器人小卖部提供//
+   2          //淘宝地址：http://shop58277238.taobao.com//
+   3          //欢迎您的使用//
+   4          
+   5          
+   6          /**************************Timer0*********************************************/
+   7          
+   8          #include <REGX51.H>
+   9          #include <intrins.h>
+  10          
+  11          
+  12          #define RightSenser P1_4    //左信号
+  13          #define LeftSenser  P1_5    //右信号
+  14          
+  15          unsigned char a,b,k,j;de;
+  16          
+  17          void delay10ms()   //延时函数
+  18            {
+  19   1          for(a=100;a>0;a--)
+  20   1            for(b=225;b>0;b--);
+  21   1         }
+  22          
+  23          
+  24          
+  25          
+  26          //********************************************************
+  27          
+  28          //********************************************************
+  29          main()
+  30          {
+  31   1      
+  32   1      
+  33   1      
+  34   1              while(1)                
+  35   1              {
+  36   2      P1_0 = 1 ;
+  37   2      P1_1 = 1 ;
+  38   2      P1_2 = 1 ; 
+  39   2      P1_3 = 1; 
+  40   2                      
+  41   2              if((!RightSenser) && LeftSenser)   // 如果右边假，左边真
+  42   2                      {
+  43   3                                      
+  44   3                              P1_0 = 0 ;
+  45   3                      P1_1 = 1 ;
+  46   3      
+  47   3                      for (de=0; de<100; de++);   // 延时
+  48   3                      }
+  49   2      
+  50   2              if(RightSenser && (!LeftSenser))  // 如果左边假，右边真
+  51   2                      {
+  52   3                              P1_2 = 0 ; 
+  53   3                          P1_3 = 1;                   
+  54   3      
+  55   3              
+C51 COMPILER V7.50   GEN                                                                   05/09/2010 14:16:36 PAGE 2   
+
+  56   3                                              for (de=0; de<100; de++);  // 延时
+  57   3                              }
+  58   2              if((!RightSenser) && (!LeftSenser))  //左右都有信号，前进
+  59   2              {
+  60   3                     P1_0 = 0 ;
+  61   3                     P1_1 = 1 ;
+  62   3                     P1_2 = 0 ; 
+  63   3                     P1_3 = 1; 
+  64   3                                 for (de=0; de<100; de++);  // 延时
+  65   3              }
+  66   2      
+  67   2              if((RightSenser) && (LeftSenser))  //无信号 停止
+  68   2                      {
+  69   3                     P1_0 = 1 ;
+  70   3                     P1_1 = 1 ;
+  71   3                     P1_2 = 1 ; 
+  72   3                     P1_3 = 1; 
+  73   3      
+  74   3                  
+  75   3              
+  76   3                                              for (de=0; de<100; de++);  // 延时
+  77   3      
+  78   3                      }
+  79   2      
+  80   2      
+  81   2              }
+  82   1              }
+  83          
+  84          
+  85          
+  86          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    157    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      6    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

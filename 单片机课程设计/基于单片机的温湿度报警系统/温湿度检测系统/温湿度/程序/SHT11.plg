@@ -1,0 +1,549 @@
+<html>
+<body>
+<pre>
+<h1>礦ision3 Build Log</h1>
+<h2>Project:</h2>
+D:\ET pro\单片机仿真公众号文章\20180704SHT11\程序\SHT11.uv2
+Project File Date:  07/03/2018
+
+<h2>Output:</h2>
+Build target 'Target 1'
+compiling main.c...
+main.c(9): warning C318: can't open file 'lcd1602.h'
+main.c(10): warning C318: can't open file 'adc0832.h'
+MAIN.C(47): error C129: missing ';' before 'TEMP_BUF'
+Target not created
+Build target 'Target 1'
+compiling main.c...
+main.c(9): warning C318: can't open file 'lcd1602.h'
+main.c(10): warning C318: can't open file 'adc0832.h'
+MAIN.C(48): error C129: missing ';' before 'TEMP_BUF'
+Target not created
+Build target 'Target 1'
+compiling main.c...
+main.c(9): warning C318: can't open file 'lcd1602.h'
+main.c(10): warning C318: can't open file 'adc0832.h'
+MAIN.C(48): error C129: missing ';' before 'TEMP_BUF'
+Target not created
+Build target 'Target 1'
+compiling main.c...
+main.c(9): warning C318: can't open file 'lcd1602.h'
+main.c(10): warning C318: can't open file 'adc0832.h'
+MAIN.C(48): error C129: missing ';' before 'TEMP_BUF'
+Target not created
+Build target 'Target 1'
+compiling main.c...
+main.c(9): warning C318: can't open file 'lcd1602.h'
+main.c(10): warning C318: can't open file 'adc0832.h'
+MAIN.C(48): error C129: missing ';' before 'TEMP_BUF'
+Target not created
+Build target 'Target 1'
+compiling main.c...
+main.c(9): warning C318: can't open file 'lcd1602.h'
+main.c(10): warning C318: can't open file 'adc0832.h'
+MAIN.C(48): error C129: missing ';' before 'TEMP_BUF'
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(45): error C129: missing ';' before 'TEMP_BUF'
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(45): error C129: missing ';' before 'TEMP_BUF'
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(432): warning C206: 'write_firstline': missing function-prototype
+MAIN.C(432): error C267: 'write_firstline': requires ANSI-style prototype
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(443): warning C206: 'init_lcd1602': missing function-prototype
+MAIN.C(546): warning C206: 'write_com': missing function-prototype
+MAIN.C(546): error C267: 'write_com': requires ANSI-style prototype
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(443): warning C206: 'init_lcd1602': missing function-prototype
+MAIN.C(569): warning C206: 'write_secondline': missing function-prototype
+MAIN.C(569): error C267: 'write_secondline': requires ANSI-style prototype
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(443): warning C206: 'init_lcd1602': missing function-prototype
+MAIN.C(583): warning C206: 'write_secondline': missing function-prototype
+MAIN.C(583): error C267: 'write_secondline': requires ANSI-style prototype
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(443): warning C206: 'init_lcd1602': missing function-prototype
+MAIN.C(599): warning C206: 'write_firstline': missing function-prototype
+MAIN.C(599): error C267: 'write_firstline': requires ANSI-style prototype
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(443): warning C206: 'init_lcd1602': missing function-prototype
+MAIN.C(614): warning C206: 'write_firstline': missing function-prototype
+MAIN.C(614): error C267: 'write_firstline': requires ANSI-style prototype
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(443): warning C206: 'init_lcd1602': missing function-prototype
+MAIN.C(629): warning C206: 'write_firstline': missing function-prototype
+MAIN.C(629): error C267: 'write_firstline': requires ANSI-style prototype
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(443): warning C206: 'init_lcd1602': missing function-prototype
+MAIN.C(643): warning C206: 'write_date': missing function-prototype
+MAIN.C(643): error C267: 'write_date': requires ANSI-style prototype
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(443): warning C206: 'init_lcd1602': missing function-prototype
+MAIN.C(711): warning C206: 'write_com': missing function-prototype
+MAIN.C(711): error C267: 'write_com': requires ANSI-style prototype
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(443): warning C206: 'init_lcd1602': missing function-prototype
+MAIN.C(535): warning C206: 'choiceADC': missing function-prototype
+MAIN.C(535): error C267: 'choiceADC': requires ANSI-style prototype
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(443): warning C206: 'init_lcd1602': missing function-prototype
+MAIN.C(537): warning C206: 'choiceADC': missing function-prototype
+MAIN.C(537): error C267: 'choiceADC': requires ANSI-style prototype
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(424): warning C206: 'init_lcd1602': missing function-prototype
+MAIN.C(518): warning C206: 'choiceADC': missing function-prototype
+MAIN.C(518): error C267: 'choiceADC': requires ANSI-style prototype
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(518): warning C206: 'choiceADC': missing function-prototype
+MAIN.C(518): error C267: 'choiceADC': requires ANSI-style prototype
+Target not created
+Build target 'Target 1'
+compiling main.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DATA_TO_HEX?MAIN
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DELAY_1MS?MAIN
+Program Size: data=85.3 xdata=0 code=3369
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 2 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(413): warning C206: 'Time1_init': missing function-prototype
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DATA_TO_HEX?MAIN
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DELAY_1MS?MAIN
+*** WARNING L1: UNRESOLVED EXTERNAL SYMBOL
+    SYMBOL:  TIME1_INIT
+    MODULE:  main.obj (MAIN)
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  TIME1_INIT
+    MODULE:  main.obj (MAIN)
+    ADDRESS: 0AEEH
+Program Size: data=85.3 xdata=0 code=3353
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 5 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DATA_TO_HEX?MAIN
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DELAY_1MS?MAIN
+Program Size: data=85.3 xdata=0 code=3350
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 2 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DATA_TO_HEX?MAIN
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DELAY_1MS?MAIN
+Program Size: data=85.3 xdata=0 code=3339
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 2 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DATA_TO_HEX?MAIN
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DELAY_1MS?MAIN
+Program Size: data=85.3 xdata=0 code=3334
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 2 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DATA_TO_HEX?MAIN
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DELAY_1MS?MAIN
+Program Size: data=82.3 xdata=0 code=3325
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 2 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DATA_TO_HEX?MAIN
+Program Size: data=82.3 xdata=0 code=3332
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DATA_TO_HEX?MAIN
+Program Size: data=82.3 xdata=0 code=3342
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DATA_TO_HEX?MAIN
+Program Size: data=82.3 xdata=0 code=3342
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DATA_TO_HEX?MAIN
+Program Size: data=82.3 xdata=0 code=3335
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DATA_TO_HEX?MAIN
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_COVERT_SCOPE_DATA?MAIN
+Program Size: data=82.3 xdata=0 code=3330
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 2 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(390): error C202: 'error': undefined identifier
+MAIN.C(391): error C202: 'error': undefined identifier
+MAIN.C(392): error C202: 'error': undefined identifier
+MAIN.C(393): error C202: 'error': undefined identifier
+MAIN.C(396): error C202: 'humi_val': undefined identifier
+MAIN.C(397): error C202: 'temp_val': undefined identifier
+MAIN.C(398): error C202: 'humi_val': undefined identifier
+MAIN.C(400): error C202: 'temp_val': undefined identifier
+MAIN.C(401): error C202: 'humi_val': undefined identifier
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(392): error C202: 'temp_val': undefined identifier
+MAIN.C(393): error C202: 'humi_val': undefined identifier
+MAIN.C(397): error C202: 'humi_val': undefined identifier
+MAIN.C(398): error C202: 'temp_val': undefined identifier
+MAIN.C(399): error C202: 'humi_val': undefined identifier
+MAIN.C(401): error C202: 'temp_val': undefined identifier
+MAIN.C(402): error C202: 'humi_val': undefined identifier
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(393): error C202: 'checksum': undefined identifier
+MAIN.C(394): error C202: 'checksum': undefined identifier
+Target not created
+Build target 'Target 1'
+compiling main.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DATA_TO_HEX?MAIN
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?COVERT_HT?MAIN
+Program Size: data=92.3 xdata=0 code=3642
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 2 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DATA_TO_HEX?MAIN
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?_SHTXX_MEASURE?MAIN
+    CALLER1: ?PR?TIME0?MAIN
+    CALLER2: ?C_C51STARTUP
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?_SHTXX_CALC?MAIN
+    CALLER1: ?PR?TIME0?MAIN
+    CALLER2: ?C_C51STARTUP
+*** ERROR L107: ADDRESS SPACE OVERFLOW
+    SPACE:   DATA    
+    SEGMENT: ?DT?MAIN
+    LENGTH:  0024H
+*** ERROR L105: PUBLIC REFERS TO IGNORED SEGMENT
+    SYMBOL:  CURSOR_POSITION
+    SEGMENT: ?DT?MAIN
+*** ERROR L105: PUBLIC REFERS TO IGNORED SEGMENT
+    SYMBOL:  TEMP_BUF
+    SEGMENT: ?DT?MAIN
+*** ERROR L105: PUBLIC REFERS TO IGNORED SEGMENT
+    SYMBOL:  HUMI_BUF
+    SEGMENT: ?DT?MAIN
+*** ERROR L105: PUBLIC REFERS TO IGNORED SEGMENT
+    SYMBOL:  SET_SMOKESCOPE
+    SEGMENT: ?DT?MAIN
+*** ERROR L105: PUBLIC REFERS TO IGNORED SEGMENT
+    SYMBOL:  SET_TEMPURE_L
+    SEGMENT: ?DT?MAIN
+*** ERROR L105: PUBLIC REFERS TO IGNORED SEGMENT
+    SYMBOL:  SET_TEMPURE_H
+    SEGMENT: ?DT?MAIN
+*** ERROR L105: PUBLIC REFERS TO IGNORED SEGMENT
+    SYMBOL:  TMPDISPLAY
+    SEGMENT: ?DT?MAIN
+*** ERROR L105: PUBLIC REFERS TO IGNORED SEGMENT
+    SYMBOL:  REAL_SMOKESCOPE
+    SEGMENT: ?DT?MAIN
+*** ERROR L105: PUBLIC REFERS TO IGNORED SEGMENT
+    SYMBOL:  SMOKESCOPE
+    SEGMENT: ?DT?MAIN
+*** ERROR L105: PUBLIC REFERS TO IGNORED SEGMENT
+    SYMBOL:  TIME_COUNTER_50MS
+    SEGMENT: ?DT?MAIN
+*** ERROR L105: PUBLIC REFERS TO IGNORED SEGMENT
+    SYMBOL:  REAL_HUMI
+    SEGMENT: ?DT?MAIN
+*** ERROR L105: PUBLIC REFERS TO IGNORED SEGMENT
+    SYMBOL:  SET_POSITION
+    SEGMENT: ?DT?MAIN
+*** ERROR L105: PUBLIC REFERS TO IGNORED SEGMENT
+    SYMBOL:  FIRST_READ_TEMPE
+    SEGMENT: ?DT?MAIN
+*** ERROR L105: PUBLIC REFERS TO IGNORED SEGMENT
+    SYMBOL:  SET_HUMI_L
+    SEGMENT: ?DT?MAIN
+*** ERROR L105: PUBLIC REFERS TO IGNORED SEGMENT
+    SYMBOL:  REAL_TEMPURE
+    SEGMENT: ?DT?MAIN
+*** ERROR L105: PUBLIC REFERS TO IGNORED SEGMENT
+    SYMBOL:  SET_HUMI_H
+    SEGMENT: ?DT?MAIN
+Program Size: data=117.3 xdata=0 code=3645
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(462): warning C280: 'humi_val': unreferenced local variable
+MAIN.C(462): warning C280: 'temp_val': unreferenced local variable
+MAIN.C(463): warning C280: 'error': unreferenced local variable
+MAIN.C(464): warning C280: 'checksum': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DATA_TO_HEX?MAIN
+Program Size: data=91.3 xdata=0 code=3226
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 5 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(407): error C202: 'first_read_tempe': undefined identifier
+Target not created
+Build target 'Target 1'
+compiling main.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DATA_TO_HEX?MAIN
+Program Size: data=69.3 xdata=0 code=3115
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=69.3 xdata=0 code=3096
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(415): warning C206: 'Delay_1ms': missing function-prototype
+MAIN.C(415): error C267: 'Delay_1ms': requires ANSI-style prototype
+Target not created
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=69.3 xdata=0 code=3096
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=69.3 xdata=0 code=3096
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=69.3 xdata=0 code=3096
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=69.3 xdata=0 code=3096
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=69.3 xdata=0 code=3096
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=69.3 xdata=0 code=3096
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=69.3 xdata=0 code=3096
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=69.3 xdata=0 code=3096
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(83): warning C206: '_nop_': missing function-prototype
+MAIN.C(83): error C264: intrinsic '_nop_': declaration/activation error
+Target not created
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=69.3 xdata=0 code=3096
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=69.3 xdata=0 code=3096
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=69.3 xdata=0 code=3096
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=61.3 xdata=0 code=3096
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=61.2 xdata=0 code=3094
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=61.1 xdata=0 code=3092
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(335): error C202: 'real_tempure': undefined identifier
+MAIN.C(338): error C202: 'real_tempure': undefined identifier
+MAIN.C(340): error C202: 'real_tempure': undefined identifier
+MAIN.C(343): error C202: 'real_tempure': undefined identifier
+MAIN.C(345): error C202: 'real_tempure': undefined identifier
+MAIN.C(351): error C202: 'real_tempure': undefined identifier
+MAIN.C(353): error C202: 'real_tempure': undefined identifier
+Target not created
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=60.1 xdata=0 code=3089
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=60.1 xdata=0 code=3089
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=60.1 xdata=0 code=3079
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=60.1 xdata=0 code=3079
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=60.1 xdata=0 code=3098
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=60.1 xdata=0 code=3097
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=60.1 xdata=0 code=3088
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=60.1 xdata=0 code=3099
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=60.1 xdata=0 code=3099
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=60.1 xdata=0 code=3185
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=60.1 xdata=0 code=3099
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=60.1 xdata=0 code=3099
+creating hex file from "SHT11"...
+"SHT11" - 0 Error(s), 0 Warning(s).

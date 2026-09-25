@@ -1,0 +1,5 @@
+".\main.obj",
+".\delay.obj",
+".\key.obj" 
+TO "ward" 
+PRINT(".\Listings\ward.m51") RAMSIZE(256) 

@@ -1,0 +1,162 @@
+#include <reg52.h>	         //调用单片机头文件
+#define uchar unsigned char  //无符号字符型 宏定义	变量范围0~255
+#define uint  unsigned int	 //无符号整型 宏定义	变量范围0~65535
+
+#define key_io P1
+uchar key_can;
+
+//   红外热释电平时为0  有输出为1
+
+sbit beep = P2^3;	   //蜂鸣器定义
+sbit red  = P2^2;	   //红色发光二极管定义
+sbit green = P2^1;	   //绿色发光二极管定义
+sbit yellow = P2^0;	   //黄色发光二极管定义
+sbit hw    = P1^3;	   //红外热释传感器定义
+bit flag_300ms = 0;
+
+/****************独立按键处理函数************************/	   
+void key()
+{
+	static uchar key_new = 0,key_old = 0,key_value = 0;
+	if(key_new == 0)		 //按键松开
+	{
+		if((key_io & 0x07) == 0x07)
+			key_value ++;
+		else 
+			key_value = 0;
+		if(key_value >= 5)	 //按键松开松手检测
+		{
+			key_value = 0;
+			key_new = 1;	//按键松开后进入等待按键状态
+		}
+	}
+	else 
+	{
+		if((key_io & 0x07) != 0x07)	 //按键按下
+			key_value ++;
+		else 
+			key_value =0;
+		if(key_value >= 5)	//按键按下消抖
+		{
+			key_value = 0;
+			key_new = 0;	   //按键松开后进入等待松开按键状态
+		}
+	}
+	key_can = 20;
+	if((key_new == 0) && (key_old == 1))
+	{
+		switch(key_io & 0x07)
+		{
+			case 0x06: key_can = 1; break;	  //得到按键值 
+			case 0x05: key_can = 2; break;	  //得到按键值 
+			case 0x03: key_can = 3; break;	  //得到按键值 
+		}
+	}			 
+	key_old = key_new;	 
+}
+
+/*************定时器0初始化程序***************/
+void time_init()	  
+{
+	EA   = 1;	 	  //开总中断
+	TMOD = 0X01;	  //定时器0工作方式1
+	ET0  = 1;		  //开定时器0中断 
+	TR0  = 1;		  //允许定时器0定时
+}
+
+uchar flag_alarm ;     //报警标志位
+uchar flag_bufang ;    //布防标志位
+uchar flag_bufang_en ; //布防标志位使能
+uint  flag_value;      //用做定时器的变量
+
+/******************红外报警处理**********************/	   
+void hongwai_dis()
+{
+	if(flag_alarm == 1)	   //报警
+	{
+		red = ~red;		   //红灯报警
+		beep = ~beep;	   //蜂鸣器报警
+	}	
+	if(flag_bufang_en == 1) //准备开始布防
+	{
+		green = ~green;	   //绿灯闪
+			
+	}  
+	if(flag_bufang == 1)   //确认布防
+	{
+		green = 0;         //如果延时布防成功 绿灯长亮
+		if(hw == 1)	       //红外有输出
+		{
+			flag_alarm = 1;	
+		}
+	}
+
+}
+
+/******************对应不同按键处理**********************/	   
+void key_with()
+{
+	if(key_can == 1)	 //按键紧急报警
+	{
+		flag_alarm = 1;  //报警标志位 ; 		
+	}
+	if(key_can == 2)     //布防按键
+	{
+		flag_bufang_en = 1;		
+	}
+	if(key_can == 3)	 //取消报警  把变量清零
+	{
+		flag_alarm = 0;   
+		flag_bufang = 0; 
+		flag_bufang_en = 0;	
+		flag_value = 0;	
+		P2 = 0xff;      
+	}			
+}
+
+
+
+
+
+/******************主程序**********************/	   
+void main()
+{
+	time_init();
+	while(1)
+	{
+		key();		  
+		yellow = ~hw;	 //红外热释电指示灯 有输出就亮黄灯
+		if(key_can < 10)
+		{
+			key_with();	 //按键设置函数
+		}
+		if(flag_300ms == 1)
+		{
+			flag_300ms = 0;
+			hongwai_dis();	   //红外报警函数
+		}	
+	}
+}
+
+/*************定时器0中断服务程序***************/
+void time0_int() interrupt 1
+{	
+	static uint value;
+	TH0 = 0x3c;
+	TL0 = 0xb0;     // 50ms	  
+	value ++;
+	if(value % 6 == 0)
+	{
+		flag_300ms = 1;
+	}
+	if(flag_bufang_en == 1)
+	{
+		flag_value ++;
+		if(flag_value >= 600)  //30秒
+		{
+			flag_bufang = 1;
+			flag_bufang_en = 0;
+			flag_value = 0;	
+		}
+	}
+}

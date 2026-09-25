@@ -1,6 +1,0 @@
-"main.obj",
-"LCD1602.obj",
-"delay.obj",
-"adc0832.obj" 
-TO "ly" 
-RAMSIZE(256) 

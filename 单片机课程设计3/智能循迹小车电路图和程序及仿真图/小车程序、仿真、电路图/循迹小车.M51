@@ -1,0 +1,310 @@
+BL51 BANKED LINKER/LOCATER V6.00                                                        07/26/2009  00:05:29  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.00, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE STARTUP.obj, 循迹小车.obj TO 循迹小车 RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  STARTUP.obj (?C_STARTUP)
+  循迹小车.obj (循迹小车)
+  C:\KEIL\C51\LIB\C51S.LIB (?C?CCASE)
+
+
+LINK MAP OF MODULE:  循迹小车 (?C_STARTUP)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0003H     UNIT         ?DT?循迹小车
+            IDATA   000BH     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     000FH     UNIT         ?PR?MOTOR_RUN?循迹小车
+            CODE    0012H     0004H     UNIT         ?PR?MOTOR_STOP?循迹小车
+            CODE    0016H     0004H     UNIT         ?PR?MOTOR_BACK?循迹小车
+                    001AH     0001H                  *** GAP ***
+            CODE    001BH     0003H     ABSOLUTE     
+            CODE    001EH     007EH     UNIT         ?PR?MAIN?循迹小车
+            CODE    009CH     0028H     UNIT         ?PR?TIME1?循迹小车
+            CODE    00C4H     0026H     UNIT         ?C?LIB_CODE
+            CODE    00EAH     0022H     UNIT         ?PR?_DELAY_1MS?循迹小车
+            CODE    010CH     000FH     UNIT         ?PR?MOTOR_LEFT?循迹小车
+            CODE    011BH     000FH     UNIT         ?PR?MOTOR_RIGHT?循迹小车
+            CODE    012AH     000FH     UNIT         ?PR?MOTOR_BIG_RIGHT?循迹小车
+            CODE    0139H     000FH     UNIT         ?PR?MOTOR_BIG_LEFT?循迹小车
+            CODE    0148H     000CH     UNIT         ?C_C51STARTUP
+
+
+
+OVERLAY MAP OF MODULE:   循迹小车 (?C_STARTUP)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?循迹小车
+
+?PR?MAIN?循迹小车
+  +--> ?PR?MOTOR_RUN?循迹小车
+  +--> ?PR?MOTOR_LEFT?循迹小车
+  +--> ?PR?MOTOR_RIGHT?循迹小车
+  +--> ?PR?MOTOR_BIG_LEFT?循迹小车
+  +--> ?PR?MOTOR_BIG_RIGHT?循迹小车
+BL51 BANKED LINKER/LOCATER V6.00                                                      07/26/2009  00:05:29  PAGE 2
+
+
+  +--> ?PR?MOTOR_BACK?循迹小车
+  +--> ?PR?_DELAY_1MS?循迹小车
+  +--> ?PR?MOTOR_STOP?循迹小车
+
+?PR?MOTOR_RUN?循迹小车
+  +--> ?PR?_DELAY_1MS?循迹小车
+
+?PR?MOTOR_LEFT?循迹小车
+  +--> ?PR?_DELAY_1MS?循迹小车
+
+?PR?MOTOR_RIGHT?循迹小车
+  +--> ?PR?_DELAY_1MS?循迹小车
+
+?PR?MOTOR_BIG_LEFT?循迹小车
+  +--> ?PR?_DELAY_1MS?循迹小车
+
+?PR?MOTOR_BIG_RIGHT?循迹小车
+  +--> ?PR?_DELAY_1MS?循迹小车
+
+*** NEW ROOT ***************************************************
+
+?PR?TIME1?循迹小车
+  +--> ?PR?MOTOR_BACK?循迹小车
+
+
+
+SYMBOL TABLE OF MODULE:  循迹小车 (?C_STARTUP)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        ?C_STARTUP
+  C:0148H         SEGMENT       ?C_C51STARTUP
+  I:000BH         SEGMENT       ?STACK
+  C:0000H         PUBLIC        ?C_STARTUP
+  D:00E0H         SYMBOL        ACC
+  D:00F0H         SYMBOL        B
+  D:0083H         SYMBOL        DPH
+  D:0082H         SYMBOL        DPL
+  N:0000H         SYMBOL        IBPSTACK
+  N:0100H         SYMBOL        IBPSTACKTOP
+  N:0080H         SYMBOL        IDATALEN
+  C:014BH         SYMBOL        IDATALOOP
+  N:0000H         SYMBOL        PBPSTACK
+  N:0100H         SYMBOL        PBPSTACKTOP
+  N:0000H         SYMBOL        PDATALEN
+  N:0000H         SYMBOL        PDATASTART
+  N:0000H         SYMBOL        PPAGE
+  N:0000H         SYMBOL        PPAGEENABLE
+  D:00A0H         SYMBOL        PPAGE_SFR
+  D:0081H         SYMBOL        SP
+  C:0148H         SYMBOL        STARTUP1
+  N:0000H         SYMBOL        XBPSTACK
+  N:0000H         SYMBOL        XBPSTACKTOP
+  N:0000H         SYMBOL        XDATALEN
+  N:0000H         SYMBOL        XDATASTART
+  C:0000H         LINE#         126
+BL51 BANKED LINKER/LOCATER V6.00                                                      07/26/2009  00:05:29  PAGE 3
+
+
+  C:0148H         LINE#         133
+  C:014AH         LINE#         134
+  C:014BH         LINE#         135
+  C:014CH         LINE#         136
+  C:014EH         LINE#         185
+  C:0151H         LINE#         196
+  -------         ENDMOD        ?C_STARTUP
+
+  -------         MODULE        循迹小车
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0090H         PUBLIC        P1
+  D:0008H         PUBLIC        signal
+  D:00A0H         PUBLIC        P2
+  D:00B0H         PUBLIC        P3
+  B:00A8H.7       PUBLIC        EA
+  D:00A8H         PUBLIC        IE
+  D:00B8H         PUBLIC        IP
+  D:0009H         PUBLIC        tt1
+  C:001EH         PUBLIC        main
+  C:0016H         PUBLIC        motor_back
+  D:0098H         PUBLIC        SCON
+  D:0089H         PUBLIC        TMOD
+  D:0088H         PUBLIC        TCON
+  C:011BH         PUBLIC        motor_right
+  D:000AH         PUBLIC        temp
+  C:010CH         PUBLIC        motor_left
+  C:012AH         PUBLIC        motor_big_right
+  B:00A8H.3       PUBLIC        ET1
+  D:008DH         PUBLIC        TH1
+  D:008BH         PUBLIC        TL1
+  C:0139H         PUBLIC        motor_big_left
+  B:0088H.6       PUBLIC        TR1
+  C:0012H         PUBLIC        motor_stop
+  C:009CH         PUBLIC        time1
+  C:00EEH         PUBLIC        _delay_1ms
+  D:00C8H         PUBLIC        T2CON
+  C:0003H         PUBLIC        motor_run
+  D:00D0H         PUBLIC        PSW
+  C:00EAH         SYMBOL        L?0042
+  -------         PROC          L?0041
+  -------         ENDPROC       L?0041
+  C:00EAH         SYMBOL        L?0042
+  -------         PROC          _DELAY_1MS
+  D:0006H         SYMBOL        d
+  -------         DO            
+  D:0004H         SYMBOL        i
+  -------         ENDDO         
+  C:00EEH         LINE#         170
+  C:00EEH         LINE#         171
+  C:00EEH         LINE#         173
+  C:00F8H         LINE#         174
+  C:010BH         LINE#         175
+  -------         ENDPROC       _DELAY_1MS
+  -------         PROC          MOTOR_RUN
+  C:0003H         LINE#         177
+  C:0003H         LINE#         178
+  C:0003H         LINE#         179
+BL51 BANKED LINKER/LOCATER V6.00                                                      07/26/2009  00:05:29  PAGE 4
+
+
+  C:0006H         LINE#         180
+  C:0009H         LINE#         181
+  C:000CH         LINE#         182
+  -------         ENDPROC       MOTOR_RUN
+  -------         PROC          MOTOR_LEFT
+  C:010CH         LINE#         202
+  C:010CH         LINE#         203
+  C:010CH         LINE#         204
+  C:010FH         LINE#         205
+  C:0112H         LINE#         206
+  C:0115H         LINE#         207
+  -------         ENDPROC       MOTOR_LEFT
+  -------         PROC          MOTOR_RIGHT
+  C:011BH         LINE#         210
+  C:011BH         LINE#         211
+  C:011BH         LINE#         212
+  C:011EH         LINE#         213
+  C:0121H         LINE#         214
+  C:0124H         LINE#         215
+  -------         ENDPROC       MOTOR_RIGHT
+  -------         PROC          MOTOR_BIG_RIGHT
+  C:012AH         LINE#         218
+  C:012AH         LINE#         219
+  C:012AH         LINE#         220
+  C:012DH         LINE#         221
+  C:0130H         LINE#         222
+  C:0133H         LINE#         223
+  -------         ENDPROC       MOTOR_BIG_RIGHT
+  -------         PROC          MOTOR_BIG_LEFT
+  C:0139H         LINE#         225
+  C:0139H         LINE#         226
+  C:0139H         LINE#         227
+  C:013CH         LINE#         228
+  C:013FH         LINE#         229
+  C:0142H         LINE#         230
+  -------         ENDPROC       MOTOR_BIG_LEFT
+  -------         PROC          MOTOR_STOP
+  C:0012H         LINE#         232
+  C:0012H         LINE#         233
+  C:0012H         LINE#         234
+  C:0015H         LINE#         235
+  -------         ENDPROC       MOTOR_STOP
+  -------         PROC          MOTOR_BACK
+  C:0016H         LINE#         236
+  C:0016H         LINE#         237
+  C:0016H         LINE#         238
+  C:0019H         LINE#         239
+  -------         ENDPROC       MOTOR_BACK
+  -------         PROC          MAIN
+  C:001EH         LINE#         240
+  C:001EH         LINE#         241
+  C:001EH         LINE#         242
+  C:0021H         LINE#         243
+  C:0023H         LINE#         244
+  C:0025H         LINE#         245
+  C:0027H         LINE#         246
+  C:002AH         LINE#         247
+BL51 BANKED LINKER/LOCATER V6.00                                                      07/26/2009  00:05:29  PAGE 5
+
+
+  C:002DH         LINE#         248
+  C:0030H         LINE#         249
+  C:0030H         LINE#         250
+  C:0030H         LINE#         252
+  C:0033H         LINE#         253
+  C:0037H         LINE#         254
+  C:0070H         LINE#         255
+  C:0070H         LINE#         256
+  C:0070H         LINE#         257
+  C:0073H         LINE#         258
+  C:0075H         LINE#         259
+  C:0075H         LINE#         261
+  C:0078H         LINE#         262
+  C:007AH         LINE#         263
+  C:007AH         LINE#         265
+  C:007DH         LINE#         266
+  C:007FH         LINE#         267
+  C:007FH         LINE#         268
+  C:007FH         LINE#         269
+  C:007FH         LINE#         271
+  C:0081H         LINE#         273
+  C:0081H         LINE#         274
+  C:0081H         LINE#         275
+  C:0081H         LINE#         277
+  C:0083H         LINE#         279
+  C:0083H         LINE#         280
+  C:0083H         LINE#         281
+  C:0086H         LINE#         283
+  C:0088H         LINE#         285
+  C:0088H         LINE#         286
+  C:0088H         LINE#         287
+  C:008BH         LINE#         289
+  C:008DH         LINE#         291
+  C:008DH         LINE#         292
+  C:008DH         LINE#         293
+  C:008DH         LINE#         294
+  C:008DH         LINE#         295
+  C:008DH         LINE#         296
+  C:0090H         LINE#         297
+  C:0097H         LINE#         298
+  C:009AH         LINE#         302
+  C:009AH         LINE#         303
+  -------         ENDPROC       MAIN
+  -------         PROC          TIME1
+  C:009CH         LINE#         309
+  C:00A5H         LINE#         312
+  C:00A8H         LINE#         313
+  C:00ABH         LINE#         314
+  C:00ADH         LINE#         315
+  C:00B7H         LINE#         316
+  C:00B7H         LINE#         317
+  C:00BAH         LINE#         319
+  C:00BDH         LINE#         320
+  C:00BDH         LINE#         321
+  -------         ENDPROC       TIME1
+  -------         ENDMOD        循迹小车
+
+BL51 BANKED LINKER/LOCATER V6.00                                                      07/26/2009  00:05:29  PAGE 6
+
+
+  -------         MODULE        ?C?CCASE
+  C:00C4H         PUBLIC        ?C?CCASE
+  -------         ENDMOD        ?C?CCASE
+
+Program Size: data=12.0 xdata=0 code=339
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

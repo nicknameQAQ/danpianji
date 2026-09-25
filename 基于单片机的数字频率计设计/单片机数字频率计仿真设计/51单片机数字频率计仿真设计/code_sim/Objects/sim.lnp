@@ -1,4 +1,0 @@
-".\Objects\STARTUP.obj",
-".\Objects\sim.obj" 
-TO ".\Objects\sim" 
-PRINT(".\Listings\sim.m51") RAMSIZE(256) 

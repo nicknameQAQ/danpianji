@@ -1,7 +1,0 @@
-"STARTUP.obj",
-"main.obj",
-"sim800.obj",
-"LCD1602.obj",
-"DS18B20.obj" 
-TO "GSM·À»ð·ÀµÁ" 
-RAMSIZE(256) 

@@ -1,0 +1,711 @@
+C51 COMPILER V7.06   MAIN                         09/11/2014 20:19:53 PAGE 1   
+
+
+C51 COMPILER V7.06, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN Main.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE c\Main.c DEBUG OBJECTEXTEND PRINT(
+                    -.\lst\Main.lst) PAGEWIDTH(79) PAGELENGTH(66) OBJECT(Main.obj)
+
+stmt level    source
+
+   1          #include <stdio.h>
+   2          #include <intrins.h>
+   3          #include "ADC.h"
+   4          #include "PCA.h"
+   5          #include "Chars.h"
+   6          #include "EEPROM.h"
+   7          #include "LCD12864.h"
+   8          #include "STC12C5A60S2.h"
+   9          
+  10          //Ê±¼ä/Ã¿¸ñ3-10ms 4-5ms 5-2ms 6-1ms 7-500us 8-200us 9-100us 10-50
+             -us 11-20us 12-10us
+  11          unsigned char timpd;                    
+  12          unsigned char volpd;                                    //Ê¾²¨Æ÷ µçÑ¹/Ã¿¸ñ 1--1V/d£¬2--0.5V/d£¬3
+             ---0.2V/d
+  13          unsigned long freqin;                                   //Ê¾²¨Æ÷ÊäÈëµÄÐÅºÅÆµÂÊ,µ¥Î»Hz
+  14          unsigned int  T1count;                                  //T1¶¨Ê±Æ÷£¬ÆµÂÊ¼ÆÊý
+  15          unsigned int  PCA0loop;                                 //PCA0Ñ­»·³õÖµ
+  16          unsigned int  PCA1loop;                                 //PCA1Ñ­»·³õÖµ
+  17          unsigned int  PCA0count;                                //PCA0¼ÆÊ±ÀÛ¼Æ
+  18          unsigned int  PCA1count;                                //PCA1Ñ­»·µÝÔöÖµ£¬¼´Êä³ö·½²¨ÖÜÆÚ/2.5
+  19          unsigned int  samptime;                                 //²ÉÑùÊ±¼ä£¬¼´¶¨Ê±Æ÷0µÄ³õÖµ
+  20          unsigned int  T0count;                                  //¶¨Ê±Æ÷²ÉÑùÊ±¼ä¼ä¸ô¼ÆÊý
+  21          unsigned int  index;                                    //Ã¿´Î²ÉÑùµÄwave0Êý×éÏÂ±ê
+  22          unsigned int  shiftindex;                               //ÒÆÎ»Ê±Êý×éÏÂ±êÎ»ÖÃ
+  23          unsigned char hold;                                             //hold¼ü±êÖ¾Î»
+  24          unsigned char autotim;                                  //ÊÇ·ñ¸ù¾ÝÆµÂÊ×Ô¶¯Ñ¡ÔñÊ±¼äÃ¿¸ñ£¬ÊÇ=1£¬
+             -·ñ=ÆäËü
+  25          unsigned char shift;                                    //hold×´Ì¬ÒÆÎ»±êÖ¾Î»¡£1¡¢×óÒÆ£»2¡¢ÓÒÒÆ
+  26          //unsigned char grid;                                   //µã¸ñÑùÊ½
+  27          unsigned char shap;                                     //²¨ÐÎÊ§ÕæÐÞÕý£¬ÉÏÏÂÂÖÁ÷ÏÔÊ¾
+  28          unsigned char ROMEN;                                    //ÐèÒªÐ´EEPROMÊ±=0x55;²»ÐèÒª=ÆäËü
+  29          unsigned char EEPROM[5];                                //ËÄ×Ö½Úµôµç±£´æÊý¾Ý£¬µã¸ñÑùÊ½£¬Ê±¼ä/
+             -Ã¿¸ñ,µçÑ¹/Ã¿¸ñ,²¨ÐÎÑùÊ½,×Ô¶¯Ñ¡Ê±¼äµµ
+  30          unsigned char idata wave[127];                  //µ±Ç°ÏÔÊ¾Êý×é
+  31          unsigned char xdata wave0[512];                 //²ÉÑùÊý×é£¬´¦ÓÚ²»¶Ï¸üÐÂ×´Ì¬
+  32          unsigned char xdata wavep[512];                 //ÏÔÊ¾¼°HOLD»º´æÊý×é
+  33          
+  34          //***************************************************************
+             -***//
+  35          //Ð¡ÓÚ100us/div(50/20/10)²ÉÓÃÖ±½Ó²ÉÑù£¬Èí¼þÑÓÊ±
+  36          //´óÓÚµÈÓÚ100us/div²ÉÓÃ¶¨Ê±Æ÷²ÉÑù
+  37          //***************************************************************
+             -***//
+  38          
+  39          void main(void)
+  40          {
+  41   1              unsigned char disp;                                     //dispÏÔÊ¾Ë¢ÐÂ±êÖ¾Î»
+  42   1              unsigned char grid;                                     //µã¸ñÑùÊ½
+  43   1              unsigned char wavemode;                         //²¨ÐÎÑùÊ½
+  44   1      //      unsigned char volmax;   
+  45   1              unsigned int i,j;
+  46   1              unsigned int delaybtn;                          //°´¼üÏû¶¶ÑÓÊ±
+  47   1              unsigned long int delay,delaymin,freqauto;      
+  48   1      
+  49   1              disp=0;
+  50   1          freqin=0;
+C51 COMPILER V7.06   MAIN                         09/11/2014 20:19:53 PAGE 2   
+
+  51   1              autotim=0;                                                      //Ä¬ÈÏÉèÖÃ,ÊÖ¶¯
+  52   1              timpd=8;                                                        //Ä¬ÈÏÉèÖÃ200us/div                                                     
+  53   1              volpd=1;                                                        //Ä¬ÈÏÉèÖÃ1V/div                                        
+  54   1              index=0;                                                        //¸³Öµ0·Ç³£ÖØÒª
+  55   1              shiftindex=0;
+  56   1              T0count=0;
+  57   1              T1count=0;
+  58   1              PCA0loop=50000;                                         //PCA0¶¨Ê±20ms  //²»·ÖÆµÊ±PCA0loop=62500; 4
+             -80¸öÖÜÆÚ1s
+  59   1              PCA0count=0;
+  60   1              //PCA1loop=15000;                                               //PCA1(P1.4)Êä³ö500Hz·½²¨(²úÉúLCD¸ºÑ¹),±¾
+             -³ÌÐòÃ»¿ªÆô                                                
+  61   1              //PCA1count=15000;
+  62   1              hold=0;
+  63   1              shift=0;
+  64   1              grid=1;                                                         //Ä¬ÈÏÉèÖÃ£¬×ø±êÏß
+  65   1              wavemode=1;                                                     //Ä¬ÈÏÉèÖÃ£¬´ÖÏß£»=2Ï¸Ïß
+  66   1              samptime=0xfee3;                                        //¾«È·ÑÓÊ±100us,´ËÖµÑÏ½ûÈÎºÎ¸Ä¶¯samptime=0x
+             -fee2;        
+  67   1              EEPROM[0]=grid;
+  68   1              EEPROM[1]=timpd;  
+  69   1              EEPROM[2]=volpd;  
+  70   1              EEPROM[3]=wavemode;
+  71   1              EEPROM[4]=autotim;
+  72   1              ROMEN=0x55;                                                     //ÁÙÊ±²âÊÔ£¬ÕýÊ½±ØÐë=0£»
+  73   1      
+  74   1              //M1/M0£º00ÈõÉÏÀ­£¬01Ç¿ÍÆÍì£¬10ÊäÈë£¨¸ß×è£©£¬11¿ªÂ©
+  75   1              P0M1=0x00;P0M0=0x00;                            //
+  76   1              P1M1=0xee;P1M0=0x11;                            //P1.0/P1.4ÍÆÍìÊä³ö£¬ÆäÓàÉèÎªÊäÈë
+  77   1              P2M1=0x00;P2M0=0x00;                            //
+  78   1              P3M1=0x00;P3M0=0x00;                            //
+  79   1      
+  80   1              init_st7565();                                          //12864³õÊ¼»¯
+  81   1      
+  82   1              dispchar16(1,8,16,7,HZ1);                       //¿ª»úLOGO
+  83   1              write_string8(3,16,"www.crystalradio.cn");
+  84   1              dispchar16(5,10,12,9,HZ2);
+  85   1      
+  86   1              ADCinit();
+  87   1              timerinit();
+  88   1              PCAinit();
+  89   1      
+  90   1              //for(i=500;i>0;i--)for(j=5000;j>0;j--);        //ÑÓÊ±1
+  91   1      
+  92   1              IAPReadData(0,5,EEPROM);                        //¶ÁÈ¡ÉÏÒ»´Î¹Ø»úÇ°×îºóµÄÓÃ»§ÉèÖÃ
+  93   1              if((EEPROM[0]>=0)&&(EEPROM[0]<=2)&&(EEPROM[1]>=3)&&(EEPROM[1]<=1
+             -6)
+  94   1              &&(EEPROM[2]>=1)&&(EEPROM[2]<=4)&&(EEPROM[3]>=1)&&(EEPROM[3]<=2)
+             -&&(EEPROM[4]==0)||(EEPROM[4]==1))
+  95   1              {                                                                       //¶ÁÈ¡µ½ºÏ·¨ÉèÖÃÔò¸³Öµ£¬·ñÔòÏÔÊ¾Ä¬ÈÏÉèÖÃ
+  96   2                      grid=EEPROM[0];
+  97   2                      timpd=EEPROM[1];  
+  98   2                      volpd=EEPROM[2]; 
+  99   2                      wavemode=EEPROM[3];
+ 100   2                  autotim=EEPROM[4];
+ 101   2              }
+ 102   1              
+ 103   1              //for(i=500;i>0;i--)for(j=5000;j>0;j--);                //ÑÓÊ±2
+ 104   1      
+ 105   1              disp_grid(grid);                                        //ÏÔÊ¾Íø¸ñ
+ 106   1          disp_osc_settings();                                //ÏÔÊ¾Ê¾²¨Æ÷ÉèÖÃ
+ 107   1      
+ 108   1              while(1)
+ 109   1              {
+C51 COMPILER V7.06   MAIN                         09/11/2014 20:19:53 PAGE 3   
+
+ 110   2                      //---------------------1¡¢²ÉÑù-----------------------//
+ 111   2                      //°´ÁËHOLD¼ü£¬²ÉÑù¼ÌÐø£¬µ«²»ÔÊÐí¶Ôwavep»º´æÊý×é¸üÐÂ
+ 112   2                      if(hold==0)
+ 113   2                      {
+ 114   3                              switch(timpd)   
+ 115   3                              {
+ 116   4                                      case  3:
+ 117   4                                      case  4:                                        //5ms/div
+ 118   4                                      case  5:                                        //2ms/div
+ 119   4                                      case  6:                                        //1ms/div
+ 120   4                                      case  7:                                        //500us/div
+ 121   4                                      case  8:                                        //200us/div
+ 122   4                                      case  9:                                        //100us/div
+ 123   4                                      {
+ 124   5                                              TR0=1;ET0=1;
+ 125   5                                              if(index>=511)                  
+ 126   5                                              {
+ 127   6                                                      for(i=0;i<512;i++) 
+ 128   6                                                      {
+ 129   7                                                              wavep[i]=wave0[i];
+ 130   7                                                      }
+ 131   6                                                      index=0;                        //²ÉÑùÏÂÒ»×éÊý¾Ý
+ 132   6                                                      disp=1;                         //Ë¢ÐÂ±êÖ¾ÖÃÎ»
+ 133   6                                              }
+ 134   5                                              break;
+ 135   5                                      }
+ 136   4                                      case  10:                                       //50us/div
+ 137   4                                      {       
+ 138   5                                              TR0=0;ET0=0;
+ 139   5                                              for(i=0;i<512;i++)              //50us/div
+ 140   5                                              {
+ 141   6                                                      wavep[i]=getADC(1);
+ 142   6                                                      _nop_();_nop_();
+ 143   6                                                      _nop_();_nop_();
+ 144   6                                              }
+ 145   5                                              disp=1;                                 //Ë¢ÐÂ±êÖ¾ÖÃÎ»
+ 146   5                                              break;
+ 147   5                                      }
+ 148   4                                      case  11:                                       //20us(40us²åÖµµÃÀ´)
+ 149   4                                      {
+ 150   5                                              TR0=0;ET0=0;
+ 151   5                                              fastADC();
+ 152   5                                              for(i=0;i<512;i++)      //¸³Öµ£¨°üº¬²åÖµÔËËã£©
+ 153   5                                              {
+ 154   6                                                      if(!(i%2))
+ 155   6                                                      {wavep[i]=wave0[i/2];}
+ 156   6                                                      else
+ 157   6                                                      {wavep[i]=(unsigned int)(wave0[i/2]+wave0[i/2+1])/2;}
+ 158   6                                              }
+ 159   5                                              disp=1;                                 //Ë¢ÐÂ±êÖ¾ÖÃÎ»
+ 160   5                                              break;
+ 161   5                                      }
+ 162   4                                      case  12:                                       //10us(40usÁ½´Î²åÖµµÃÀ´)
+ 163   4                                      {
+ 164   5                                              TR0=0;ET0=0;
+ 165   5                                              fastADC();
+ 166   5                                              for(i=0;i<512;i++)      //¸³Öµ£¨°üº¬²åÖµÔËËã£©
+ 167   5                                              {
+ 168   6                                                      if(!(i%2))
+ 169   6                                                      {wavep[i]=wave0[i/2];}
+ 170   6                                                      else
+ 171   6                                                      {wavep[i]=(unsigned int)(wave0[i/2]+wave0[i/2+1])/2;}
+ 172   6                                              }
+ 173   5                                              for(i=0;i<512;i++)      //¸³Öµ£¨°üº¬²åÖµÔËËã£©
+C51 COMPILER V7.06   MAIN                         09/11/2014 20:19:53 PAGE 4   
+
+ 174   5                                              {
+ 175   6                                                      wave0[i]=wavep[i];
+ 176   6                                              }
+ 177   5                                              for(i=0;i<512;i++)      //¸³Öµ£¨°üº¬²åÖµÔËËã£©
+ 178   5                                              {
+ 179   6                                                      if(!(i%2))
+ 180   6                                                      {wavep[i]=wave0[i/2];}
+ 181   6                                                      else
+ 182   6                                                      {wavep[i]=(unsigned int)(wave0[i/2]+wave0[i/2+1])/2;}
+ 183   6                                              }
+ 184   5                                              disp=1;                                 //Ë¢ÐÂ±êÖ¾ÖÃÎ»
+ 185   5                                              break;  
+ 186   5                                      }
+ 187   4                              }//switch(timpd)²ÉÑù½áÊø
+ 188   3                      }
+ 189   2      
+ 190   2                      //-------------------2-1£º²¨ÐÎ´¥·¢´¦Àí-----------------//
+ 191   2                      if((disp==1)&&(hold==0))                        //½ÓÊÕµ½ÐÂÊý¾ÝÇÒÕý³£ÏÔÊ¾Ê±²Å´¦Àí
+ 192   2                      {
+ 193   3                              for(i=2;i<127;i++)              
+ 194   3                              {
+ 195   4                                      if( (((signed int)wavep[i-2]-127)<=0)&&(((signed int)wavep[i-
+             -1]-127)<=0)//&&(((signed int)wavep[i]-127)<=0)
+ 196   4                                      &&(((signed int)wavep[i+1]-127)>=0)&&(((signed int)wavep[i+2]
+             --127)>=0)&&(((signed int)wavep[i+3]-127)>0) )
+ 197   4                                      {       
+ 198   5                                              shiftindex=i;
+ 199   5                                              break;
+ 200   5                                      }               
+ 201   4                              }
+ 202   3                      }//if((disp==1)&&(hold==0))²¨ÐÎ´¥·¢´¦Àí½áÊø
+ 203   2      
+ 204   2                      //-------------------2-2£ºHOLD×´Ì¬ÒÆÎ»´¦Àí-----------------//
+ 205   2                      if(hold==1)
+ 206   2                      {
+ 207   3                              if(shift==2)                                    //×óÒÆ
+ 208   3                              {
+ 209   4                                      shiftindex=shiftindex+9;
+ 210   4                                      if((shiftindex+126)>=512)
+ 211   4                                      {
+ 212   5                                              shiftindex=shiftindex-9;
+ 213   5                                      }
+ 214   4                              }
+ 215   3                              if(shift==1)                                    //ÓÒÒÆ
+ 216   3                              {
+ 217   4                                      shiftindex=shiftindex-9;        //×¢ÒâÎÞ·ûºÅÊý
+ 218   4                                      if(shiftindex>512)                      //Ïàµ±ÓÚÅÐ¶ÏÐ¡ÓÚ0
+ 219   4                                      {
+ 220   5                                              shiftindex=shiftindex+9;//·ÀÖ¹ÎÞÏÞµÝ¼õ
+ 221   5                                      }
+ 222   4                              }
+ 223   3                      }
+ 224   2      
+ 225   2                      //-------------------3¡¢µçÑ¹Ë¥¼õ´¦Àí-----------------//
+ 226   2                      switch(volpd)                                   //´Ë²¿·ÖÓàÊý¼ÆËã¿ÉÄÜÓÐÎÊÌâ£¬Ðè¸Ä½ø
+ 227   2                      {
+ 228   3                              case  1:                                        //1v/div
+ 229   3                              {
+ 230   4                                      for(i=0;i<127;i++)              
+ 231   4                                      {
+ 232   5                                              if(((signed int)wavep[i+shiftindex]>=127))
+ 233   5                                              {
+ 234   6                                                      if(((wavep[i+shiftindex]-127)*35/256)<128)
+ 235   6                                                              wave[i]=(unsigned int)(wavep[i+shiftindex]-127)*35/256+28;
+C51 COMPILER V7.06   MAIN                         09/11/2014 20:19:53 PAGE 5   
+
+ 236   6                                                      else
+ 237   6                                                              wave[i]=(unsigned int)(wavep[i+shiftindex]-127)*35/256+29;
+ 238   6                                              }
+ 239   5                                              else
+ 240   5                                              {
+ 241   6                                                      if(((127-wavep[i+shiftindex])*35/256)<128)
+ 242   6                                                              wave[i]=27-(unsigned int)(127-wavep[i+shiftindex])*35/256;
+ 243   6                                                      else
+ 244   6                                                              wave[i]=26-(unsigned int)(127-wavep[i+shiftindex])*35/256;
+ 245   6                                              }
+ 246   5                                      }
+ 247   4                                      break;
+ 248   4                              }
+ 249   3                              case  2:                                        //0.5v/div
+ 250   3                              {
+ 251   4                                      for(i=0;i<127;i++)              
+ 252   4                                      {
+ 253   5                                              if(((signed int)wavep[i+shiftindex]>=127))
+ 254   5                                              {
+ 255   6                                                      if(((wavep[i+shiftindex]-127)*35/128)<64)
+ 256   6                                                              wave[i]=(unsigned int)(wavep[i+shiftindex]-127)*35/128+28;
+ 257   6                                                      else
+ 258   6                                                              wave[i]=(unsigned int)(wavep[i+shiftindex]-127)*35/128+29;
+ 259   6                                              }
+ 260   5                                              else
+ 261   5                                              {
+ 262   6                                                      if(((127-wavep[i+shiftindex])*35/128)<64)
+ 263   6                                                              wave[i]=27-(unsigned int)(127-wavep[i+shiftindex])*35/128;
+ 264   6                                                      else
+ 265   6                                                              wave[i]=26-(unsigned int)(127-wavep[i+shiftindex])*35/128;
+ 266   6                                                      //×¢Òâ Òª·ÀÖ¹ÏÔÊ¾Ô½½ç@@@@@@@@@@@@@@@@3£¨¼ûLCD12864.c£©
+ 267   6                                                      if(wave[i]>27)wave[i]=0;                //·ÀÖ¹³¬³öLCD12864ÏÔÊ¾±ß½ç
+ 268   6                                              }
+ 269   5                                      }
+ 270   4                                      break;
+ 271   4                              }
+ 272   3                              case  3:                                        //0.2v/div
+ 273   3                              {
+ 274   4                                      for(i=0;i<127;i++)              
+ 275   4                                      {
+ 276   5                                              if(((signed int)wavep[i+shiftindex]>=127))
+ 277   5                                              {
+ 278   6                                                      if(((wavep[i+shiftindex]-127)*35/51)<26)                                                        
+ 279   6                                                              wave[i]=(unsigned int)(wavep[i+shiftindex]-127)*35/51+28;       
+             -                                        
+ 280   6                                                      else                                                                      
+ 281   6                                                              wave[i]=(unsigned int)(wavep[i+shiftindex]-127)*35/51+29;
+ 282   6                                                      //if(wave[i]>56)wave[i]=56;
+ 283   6                                              }
+ 284   5                                              else
+ 285   5                                              {
+ 286   6                                                      if(((127-wavep[i+shiftindex])*35/51)<26)
+ 287   6                                                              wave[i]=27-(unsigned int)(127-wavep[i+shiftindex])*35/51;
+ 288   6                                                      else
+ 289   6                                                              wave[i]=26-(unsigned int)(127-wavep[i+shiftindex])*35/51;
+ 290   6                                                      if(wave[i]>27)wave[i]=0;                //·ÀÖ¹³¬³öLCD12864ÏÔÊ¾±ß½ç
+ 291   6                                              }
+ 292   5                                      }
+ 293   4                                      break;
+ 294   4                              }
+ 295   3                              case  4:                                        //0.1v/div
+ 296   3                              {
+ 297   4                                      for(i=0;i<127;i++)              
+ 298   4                                      {
+C51 COMPILER V7.06   MAIN                         09/11/2014 20:19:53 PAGE 6   
+
+ 299   5                                              if(((signed int)wavep[i+shiftindex]>=127))
+ 300   5                                              {
+ 301   6                                                      if(((wavep[i+shiftindex]-127)*70/51)<26)                                                        
+ 302   6                                                              wave[i]=(unsigned int)(wavep[i+shiftindex]-127)*70/51+28;       
+             -                                        
+ 303   6                                                      else                                                                      
+ 304   6                                                              wave[i]=(unsigned int)(wavep[i+shiftindex]-127)*70/51+29;
+ 305   6                                                      //if(wave[i]>56)wave[i]=56;
+ 306   6                                              }
+ 307   5                                              else
+ 308   5                                              {
+ 309   6                                                      if(((127-wavep[i+shiftindex])*70/51)<26)
+ 310   6                                                              wave[i]=27-(unsigned int)(127-wavep[i+shiftindex])*70/51;
+ 311   6                                                      else
+ 312   6                                                              wave[i]=26-(unsigned int)(127-wavep[i+shiftindex])*70/51;
+ 313   6                                                      if(wave[i]>27)wave[i]=0;                //·ÀÖ¹³¬³öLCD12864ÏÔÊ¾±ß½ç
+ 314   6                                              }
+ 315   5                                      }
+ 316   4                                      break;
+ 317   4                              }
+ 318   3                      }//switch(volpd)µçÑ¹Ë¥¼õ´¦Àí½áÊø
+ 319   2                      
+ 320   2                      //---------------------4¡¢²¨ÐÎÏÔÊ¾-------------------//
+ 321   2      
+ 322   2                      if((disp==1)&&(hold==0))                //Õý³£ÏÔÊ¾
+ 323   2                      {
+ 324   3                              TR0=0;ET0=0;                            //Ë¢ÐÂ¹ý³Ì²»ÔÊÐíÖÐ¶Ï
+ 325   3                              if(ROMEN==0x55)
+ 326   3                              {
+ 327   4                                      EEPROM[0]=grid;
+ 328   4                                      EEPROM[1]=timpd;  
+ 329   4                                      EEPROM[2]=volpd; 
+ 330   4                                  EEPROM[3]=wavemode; 
+ 331   4                                      EEPROM[4]=autotim;
+ 332   4                                      IAPWriteData(0,5,EEPROM);
+ 333   4                                      ROMEN=0;
+ 334   4                              }
+ 335   3                              if(wavemode==1){dispwave2(grid);}               //Ê¸Á¿Í¼
+ 336   3                              if(wavemode==2){dispwave(grid);}                //É¢µãÍ¼
+ 337   3                              if(autotim==1)write_string8(3,106,"Auto");
+ 338   3                              disp=0;                                         //Ë¢ÐÂ±êÖ¾ÇåÁã
+ 339   3                              index=0;                                        //Ë¢ÐÂºóÖØÐÂ²ÉÑù
+ 340   3                              TR0=1;ET0=1;
+ 341   3                      }
+ 342   2                      if(hold==1)                                             //HOLD×´Ì¬µÄÏÔÊ¾
+ 343   2                      {
+ 344   3                              if(wavemode==1){dispwave2(grid);}               //Ê¸Á¿Í¼
+ 345   3                              if(wavemode==2){dispwave(grid);}                //É¢µãÍ¼
+ 346   3                              if(autotim==1)write_string8(3,106,"Auto");
+ 347   3                              for(i=40;i>0;i--)                       //ÏÔÊ¾ÑÓÊ±
+ 348   3                              {
+ 349   4                                      for(j=1200;j>0;j--);
+ 350   4                                      //if(P1&0x38)break;             //ÓÐ°´¼ü°´ÏÂÌáÇ°ÍË³öÑÓÊ±Ñ­»·
+ 351   4                              }               
+ 352   3                      }
+ 353   2                      
+ 354   2                      //---------------5¡¢°´¼ü´¦Àí¼°ÏÔÊ¾ÑÓÊ±---------------//
+ 355   2      
+ 356   2                      shift=0;                                        //°´¼ü´¦ÀíÇ°ÇåÒÆÎ»±êÖ¾Î»
+ 357   2                      if(wavemode==1)                         //Ê¸Á¿ÏÔÊ¾ÑÓÊ±Ð¡
+ 358   2                      {
+ 359   3                              if(timpd==3){i=1;}
+ 360   3                              else if(timpd==4){i=2;}
+ 361   3                              else {i=30;}
+C51 COMPILER V7.06   MAIN                         09/11/2014 20:19:53 PAGE 7   
+
+ 362   3                      }                       
+ 363   2                      if(wavemode==2)                         //É¢µãÏÔÊ¾ÑÓÊ±´ó
+ 364   2                      {
+ 365   3                              if(timpd==3){i=1;}
+ 366   3                              else if(timpd==4){i=2;}
+ 367   3                              else {i=120;}
+ 368   3                      }                       
+ 369   2                      for(;i>0;i--)                           //É¢µãÏÔÊ¾Ë¢ÐÂi=120
+ 370   2                      {
+ 371   3                              //²»Í¬²ÉÑùÂÊ²ÉÓÃ²»Í¬ÑÓÊ±£¬ÒÔµÃµ½ÏàÍ¬Ë¢ÐÂÂÊ
+ 372   3                              switch(timpd)                                   
+ 373   3                              {
+ 374   4                                      case  3:{j=1;delaymin=180000;delaybtn=60000;break;}             //10ms/d
+             -iv
+ 375   4                                      case  4:{j=1;delaymin=140000;delaybtn=60000;break;}             //5ms/di
+             -v
+ 376   4                                      case  5:{j=100;delaymin=120000;delaybtn=40000;break;}           //2ms/
+             -div
+ 377   4                                      case  6:{j=200;delaymin=120000;delaybtn=40000;break;}           //1ms/
+             -div
+ 378   4                                      case  7:{j=400;delaymin=90000;delaybtn=30000;break;}            //500us
+             -/div
+ 379   4                                      case  8:{j=200;delaymin=60000;delaybtn=20000;break;}            //200us
+             -/div
+ 380   4                                      case  9:{j=120;delaymin=30000;delaybtn=10000;break;}            //100us
+             -/div
+ 381   4                                      case  10:{j=1000;delaymin=250000;delaybtn=80000;break;}         //50
+             -us/div
+ 382   4                                      case  11:{j=1000;delaymin=250000;delaybtn=80000;break;}         //20
+             -us(40us²åÖµµÃÀ´)
+ 383   4                                      case  12:{j=1000;delaymin=250000;delaybtn=80000;break;}         //10
+             -us(40usÁ½´Î²åÖµµÃÀ´)
+ 384   4                              }
+ 385   3                              for(;j>0;j--);                                  //ÄÚ²ãÑ­»·ÑÓÊ±
+ 386   3                              //--------°´¼ü´¦Àí--------//
+ 387   3                              //--1¡¢HOLD¼ü--//
+ 388   3                              if((P3&0x04)==0)                                
+ 389   3                              {
+ 390   4                                      for(;delaybtn>0;delaybtn--);
+ 391   4                                      if((P3&0x04)==0)                
+ 392   4                                      {
+ 393   5                                              delay=0;
+ 394   5                                              if(hold==1){delaymin*=3;}//holdÄ£Ê½¶¨Ê±Æ÷È«¹Ø£¬°´¼ü¼ì²â¼Ó³¤Ñ
+             -ÓÊ±
+ 395   5                                              while((P3&0x04)==0)
+ 396   5                                              {
+ 397   6                                                      delay++;
+ 398   6                                              }
+ 399   5                                              if(delay<delaymin)
+ 400   5                                              {
+ 401   6                                                      if(hold==0){hold=1;TR0=0;ET0=0;}
+ 402   6                                                      else{hold=0;TR0=1;ET0=1;}
+ 403   6                                              }
+ 404   5                                              else
+ 405   5                                              {
+ 406   6                                                      if(hold==0)                     //holdÄ£Ê½ÏÂ²»ÇÐ»»×Ô¶¯ÊÖ¶¯
+ 407   6                                                      {
+ 408   7                                                              if(autotim==1){autotim=0;}
+ 409   7                                                              else {autotim=1;}
+ 410   7                                                              ROMEN=0x55;
+ 411   7                                                      }
+ 412   6                                              }
+ 413   5                                      }
+ 414   4                              }
+C51 COMPILER V7.06   MAIN                         09/11/2014 20:19:53 PAGE 8   
+
+ 415   3                              //--2¡¢Ê±¼ä++/×óÒÆ¼ü--//
+ 416   3                              if((P3&0x08)==0)                                
+ 417   3                              {
+ 418   4                                      if(hold==0)                                     //Õý³£ÏÔÊ¾£¬Ê±¼ä++
+ 419   4                                      {
+ 420   5                                              for(;delaybtn>0;delaybtn--);
+ 421   5                                              if((P3&0x08)==0)                
+ 422   5                                              {
+ 423   6                                                      while((P3&0x08)==0);
+ 424   6                                                      index=0;                        //µ÷ÕûÊ±¼äºó±ØÐëÖØÐÂ²ÉÑù
+ 425   6                                                      timpd--;
+ 426   6                                                      ROMEN=0x55;
+ 427   6                                                      if(timpd<3){timpd=12;}
+ 428   6                                              }
+ 429   5                                      }
+ 430   4                                      if(hold==1)                                     //HOLD×´Ì¬£¬²¨ÐÎ×óÒÆ
+ 431   4                                      {
+ 432   5                                              for(j=50000;j>0;j--);
+ 433   5                                              if((P3&0x08)==0)                
+ 434   5                                              {
+ 435   6                                                      shift=1;break;
+ 436   6                                              }
+ 437   5                                      }
+ 438   4                              }
+ 439   3                              //--3¡¢Ê±¼ä--/ÓÒÒÆ¼ü--//
+ 440   3                              if((P3&0x80)==0)                                //Ê±¼ä--
+ 441   3                              {
+ 442   4                                      if(hold==0)                                     //Õý³£ÏÔÊ¾£¬Ê±¼ä++
+ 443   4                                      {
+ 444   5                                              for(;delaybtn>0;delaybtn--);
+ 445   5                                              if((P3&0x80)==0)                
+ 446   5                                              {
+ 447   6                                                      while((P3&0x80)==0);
+ 448   6                                                      index=0;
+ 449   6                                                      timpd++;
+ 450   6                                                      ROMEN=0x55;
+ 451   6                                                      if(timpd>12)timpd=3;
+ 452   6                                              }
+ 453   5                                      }
+ 454   4                                      if(hold==1)                                     //HOLD×´Ì¬£¬²¨ÐÎ×óÒÆ
+ 455   4                                      {
+ 456   5                                              for(j=50000;j>0;j--);
+ 457   5                                              if((P3&0x80)==0)                
+ 458   5                                              {
+ 459   6                                                      shift=2;break;
+ 460   6                                              }
+ 461   5                                      }
+ 462   4                              }
+ 463   3                              //--4¡¢//µçÑ¹++--//
+ 464   3                              if((P3&0x40)==0)                                //µçÑ¹++
+ 465   3                              {
+ 466   4                                      for(;delaybtn>0;delaybtn--);
+ 467   4                                      if((P3&0x40)==0)                
+ 468   4                                      {
+ 469   5                                              while((P3&0x40)==0);
+ 470   5                                              volpd++;
+ 471   5                                              if(volpd>4)volpd=1;
+ 472   5                                              if(hold==0){ROMEN=0x55;}
+ 473   5                                      }
+ 474   4                              }
+ 475   3                              //--5¡¢//µçÑ¹----//
+ 476   3                              if((P3&0x10)==0)                                //µçÑ¹--
+ 477   3                              {
+ 478   4                                      for(;delaybtn>0;delaybtn--);
+C51 COMPILER V7.06   MAIN                         09/11/2014 20:19:53 PAGE 9   
+
+ 479   4                                      if((P3&0x10)==0)                
+ 480   4                                      {
+ 481   5                                              while((P3&0x10)==0);
+ 482   5                                              volpd--;
+ 483   5                                              if(volpd<1)volpd=4;
+ 484   5                                              if(hold==0){ROMEN=0x55;}
+ 485   5                                      }
+ 486   4                              }
+ 487   3                              //--6¡¢µã¸ñÑùÊ½ÇÐ»»/ÏßÐÎÇÐ»»--//
+ 488   3                              if((P1&0x80)==0)                                //µã¸ñÑùÊ½ÇÐ»»
+ 489   3                              {
+ 490   4                                      for(;delaybtn>0;delaybtn--);
+ 491   4                                      if((P1&0x80)==0)                
+ 492   4                                      {
+ 493   5                                              delay=0;
+ 494   5                                              if(hold==1){delaymin*=3;}//holdÄ£Ê½¶¨Ê±Æ÷È«¹Ø£¬°´¼ü¼ì²â¼Ó³¤Ñ
+             -ÓÊ±
+ 495   5                                              while((P1&0x80)==0)
+ 496   5                                              {
+ 497   6                                                      delay++;
+ 498   6                                              }
+ 499   5                                              if(delay<delaymin)
+ 500   5                                              {
+ 501   6                                                      grid++;
+ 502   6                                                      if(grid>3)grid=0;
+ 503   6                                                      if(hold==0){ROMEN=0x55;}
+ 504   6                                              }
+ 505   5                                              else
+ 506   5                                              {
+ 507   6                                                      wavemode++;
+ 508   6                                                      if(wavemode>2)wavemode=1;
+ 509   6                                                      if(hold==0){ROMEN=0x55;}
+ 510   6                                              }
+ 511   5                                      }
+ 512   4                              }
+ 513   3                      }//for()°´¼ü´¦Àíend     
+ 514   2      
+ 515   2                      //---------------6¡¢¸ù¾ÝÆµÂÊ×Ô¶¯Ñ¡Ôñ²ÉÑùÊ±¼ä---------------//
+ 516   2                      if(autotim==1)
+ 517   2                      {
+ 518   3                              if(freqauto==freqin)
+ 519   3                              {
+ 520   4                                      if((freqin>5)&&(freqin<20)){timpd=3;}
+ 521   4                                      else if((freqin>=20)&&(freqin<45)){timpd=4;}
+ 522   4                                      else if((freqin>=45)&&(freqin<120)){timpd=5;}
+ 523   4                                      else if((freqin>=120)&&(freqin<220)){timpd=6;}
+ 524   4                                      else if((freqin>=220)&&(freqin<500)){timpd=7;}
+ 525   4                                      else if((freqin>=500)&&(freqin<1200)){timpd=8;}
+ 526   4                                      else if((freqin>=1200)&&(freqin<2200)){timpd=9;}
+ 527   4                                      else if((freqin>=2200)&&(freqin<5000)){timpd=10;}
+ 528   4                                      else if((freqin>=5000)&&(freqin<12000)){timpd=11;}
+ 529   4                                      else if(freqin>=12000){timpd=12;}                                       
+ 530   4                              }
+ 531   3                              else
+ 532   3                              {
+ 533   4                                      freqauto=freqin;
+ 534   4                              }
+ 535   3                              //volmax=0;
+ 536   3                              //for(j=0;j<512;j++)
+ 537   3                              //{
+ 538   3                              //      if(wavep[j]>volmax){volmax=wavep[i];}
+ 539   3                              //}
+ 540   3                              //if(volmax>187){volpd=1;}
+ 541   3                              //else if(volmax>151){volpd=2;}
+C51 COMPILER V7.06   MAIN                         09/11/2014 20:19:53 PAGE 10  
+
+ 542   3                              //else if(volmax>135){volpd=3;}
+ 543   3                              //else if(volmax>127){volpd=4;}
+ 544   3                      }
+ 545   2      
+ 546   2              }//while(1)-end
+ 547   1      //*/
+ 548   1      }
+ 549          /*
+ 550                          //-------------------3¡¢µçÑ¹Ë¥¼õ´¦Àí-----------------//
+ 551                          switch(volpd)                                   //´Ë²¿·ÖÓàÊý¼ÆËã¿ÉÄÜÓÐÎÊÌâ£¬Ðè¸Ä½ø
+ 552                          {
+ 553                                  case  1:                                        //1v/div
+ 554                                  {
+ 555                                          for(i=0;i<127;i++)              
+ 556                                          {
+ 557                                                  if(((signed int)wavep[i+shiftindex]>=127))
+ 558                                                  {
+ 559                                                          if(((wavep[i+shiftindex]-127)*35/256)<128)
+ 560                                                                  wave[i]=(unsigned int)(wavep[i+shiftindex]-127)*35/256+28;
+ 561                                                          else
+ 562                                                                  wave[i]=(unsigned int)(wavep[i+shiftindex]-127)*35/256+29;
+ 563                                                  }
+ 564                                                  else
+ 565                                                  {
+ 566                                                          if(((127-wavep[i+shiftindex])*35/256)<128)
+ 567                                                                  wave[i]=27-(unsigned int)(127-wavep[i+shiftindex])*35/256;
+ 568                                                          else
+ 569                                                                  wave[i]=26-(unsigned int)(127-wavep[i+shiftindex])*35/256;
+ 570                                                  }
+ 571                                          }
+ 572                                          break;
+ 573                                  }
+ 574                                  case  2:                                        //0.5v/div
+ 575                                  {
+ 576                                          for(i=0;i<127;i++)              
+ 577                                          {
+ 578                                                  if(((signed int)wavep[i+shiftindex]>=127))
+ 579                                                  {
+ 580                                                          if(((wavep[i+shiftindex]-127)*35/128)<64)
+ 581                                                                  wave[i]=(unsigned int)(wavep[i+shiftindex]-127)*35/128+28;
+ 582                                                          else
+ 583                                                                  wave[i]=(unsigned int)(wavep[i+shiftindex]-127)*35/128+29;
+ 584                                                  }
+ 585                                                  else
+ 586                                                  {
+ 587                                                          if(((127-wavep[i+shiftindex])*35/128)<64)
+ 588                                                                  wave[i]=27-(unsigned int)(127-wavep[i+shiftindex])*35/128;
+ 589                                                          else
+ 590                                                                  wave[i]=26-(unsigned int)(127-wavep[i+shiftindex])*35/128;
+ 591                                                  }
+ 592                                          }
+ 593                                          break;
+ 594                                  }
+ 595                                  case  3:                                        //0.2v/div
+ 596                                  {
+ 597                                          for(i=0;i<127;i++)              
+ 598                                          {
+ 599                                                  if(((signed int)wavep[i+shiftindex]>=127))
+ 600                                                  {
+ 601                                                          if(((wavep[i+shiftindex]-127)*35/51)<26)
+ 602                                                          {
+ 603                                                                  if(((unsigned int)(wavep[i+shiftindex]-127)*35/51+28)>55){
+             -wave[i]=56;}
+ 604                                                                  else{wave[i]=(unsigned int)(wavep[i+shiftindex]-127)*35/51
+C51 COMPILER V7.06   MAIN                         09/11/2014 20:19:53 PAGE 11  
+
+             -+28;}
+ 605                                                          }
+ 606                                                          else
+ 607                                                          {
+ 608                                                                  if(((unsigned int)(wavep[i+shiftindex]-127)*35/51+29)>55){
+             -wave[i]=56;}
+ 609                                                                  else{wave[i]=(unsigned int)(wavep[i+shiftindex]-127)*35/51
+             -+29;}
+ 610                                                          }
+ 611                                                          //      wave[i]=(unsigned int)(wavep[i+shiftindex]-127)*35/51+29
+             -;
+ 612                                                  }
+ 613                                                  else
+ 614                                                  {
+ 615                                                          if(((127-wavep[i+shiftindex])*35/51)<26)
+ 616                                                          {
+ 617                                                                  if(((signed int)27-(127-wavep[i+shiftindex])*35/51)<0){wav
+             -e[i]=0;}
+ 618                                                                  else{wave[i]=(signed int)27-(127-wavep[i+shiftindex])*35/5
+             -1;}
+ 619                                                          }
+ 620                                                          else
+ 621                                                          {
+ 622                                                                  if(((signed int)26-(127-wavep[i+shiftindex])*35/51)<0){wav
+             -e[i]=0;}
+ 623                                                                  else{wave[i]=(signed int)26-(127-wavep[i+shiftindex])*35/5
+             -1;}
+ 624                                                          }
+ 625                                                  }
+ 626                                          }
+ 627                                          break;
+ 628                                  }
+ 629                          }//switch(volpd)µçÑ¹Ë¥¼õ´¦Àí½áÊø
+ 630          
+ 631          */              
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   3853    ----
+   CONSTANT SIZE    =    693    ----
+   XDATA SIZE       =   1024    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     34      21
+   IDATA SIZE       =    127    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,7 @@
+"main.obj",
+"AD0832.obj",
+"LCD.obj",
+"DA0832.obj",
+"DS18B20.obj" 
+TO "ad_da" 
+RAMSIZE(256) 

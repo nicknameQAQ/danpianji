@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- 由 Microsoft Visio, SVG Export 生成 系统框图.svg Page-1 -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events"
+		xmlns:v="http://schemas.microsoft.com/visio/2003/SVGExtensions/" width="11.6929in" height="8.26772in"
+		viewBox="0 0 841.89 595.276" xml:space="preserve" color-interpolation-filters="sRGB" class="st7">
+	<v:documentProperties v:langID="2052" v:metric="true" v:viewMarkup="false">
+		<v:userDefs>
+			<v:ud v:nameU="msvNoAutoConnect" v:val="VT0(1):26"/>
+		</v:userDefs>
+	</v:documentProperties>
+
+	<style type="text/css">
+	<![CDATA[
+		.st1 {fill:#ffffff;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st2 {fill:#000000;font-family:宋体;font-size:1.00001em}
+		.st3 {font-size:1em}
+		.st4 {marker-end:url(#mrkr1-29);stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st5 {fill:#000000;fill-opacity:1;stroke:#000000;stroke-opacity:1;stroke-width:0.22935779816514}
+		.st6 {marker-start:url(#mrkr1-45);stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st7 {fill:none;fill-rule:evenodd;font-size:12px;overflow:visible;stroke-linecap:square;stroke-miterlimit:3}
+	]]>
+	</style>
+
+	<defs id="Markers">
+		<g id="lend1">
+			<path d="M 1 -1 L 0 0 L 1 1 " style="stroke-linecap:round;stroke-linejoin:round;fill:none"/>
+		</g>
+		<marker id="mrkr1-29" class="st5" v:arrowType="1" v:arrowSize="2" orient="auto" markerUnits="strokeWidth"
+				overflow="visible">
+			<use xlink:href="#lend1" transform="scale(-4.36,-4.36) "/>
+		</marker>
+		<marker id="mrkr1-45" class="st5" v:arrowType="1" v:arrowSize="2" orient="auto" markerUnits="strokeWidth"
+				overflow="visible">
+			<use xlink:href="#lend1" transform="scale(4.36) "/>
+		</marker>
+	</defs>
+	<g v:mID="0" v:index="1" v:groupContext="foregroundPage">
+		<title>页-1</title>
+		<v:pageProperties v:drawingScale="0.0393701" v:pageScale="0.0393701" v:drawingUnits="24" v:shadowOffsetX="8.50394"
+				v:shadowOffsetY="-8.50394"/>
+		<v:layer v:name="流程图" v:index="0"/>
+		<v:layer v:name="连接线" v:index="1"/>
+		<g id="group21-1" transform="translate(188.504,-158.858)" v:mID="21" v:groupContext="group">
+			<title>工作表.21</title>
+			<g id="shape3-2" v:mID="3" v:groupContext="shape" transform="translate(109.134,-65.1969)">
+				<title>工作表.3</title>
+				<desc>51单片机</desc>
+				<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+				<v:textRect cx="35.4331" cy="523.051" width="70.87" height="144.449"/>
+				<rect x="0" y="450.827" width="70.8661" height="144.449" class="st1"/>
+				<text x="11.43" y="526.65" class="st2" v:langID="2052"><v:paragraph v:horizAlign="1"/><v:tabList/>51单片机</text>			</g>
+			<g id="shape4-5" v:mID="4" v:groupContext="shape">
+				<title>工作表.4</title>
+				<desc>电源模块</desc>
+				<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+				<v:textRect cx="129.685" cy="579.685" width="259.38" height="31.1811"/>
+				<rect x="0" y="564.094" width="259.37" height="31.1811" class="st1"/>
+				<text x="105.68" y="583.29" class="st2" v:langID="2052"><v:paragraph v:horizAlign="1"/><v:tabList/>电源模块</text>			</g>
+			<g id="shape5-8" v:mID="5" v:groupContext="shape" transform="translate(0,-178.583)">
+				<title>工作表.5</title>
+				<desc>信号放大模块</desc>
+				<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+				<v:textRect cx="41.1024" cy="578.268" width="82.21" height="34.0157"/>
+				<rect x="0" y="561.26" width="82.2047" height="34.0157" class="st1"/>
+				<text x="5.1" y="581.87" class="st2" v:langID="2052"><v:paragraph v:horizAlign="1"/><v:tabList/>信号放大模块</text>			</g>
+			<g id="shape6-11" v:mID="6" v:groupContext="shape" transform="translate(0,-120.472)">
+				<title>工作表.6</title>
+				<desc>信号整形模块</desc>
+				<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+				<v:textRect cx="41.1024" cy="576.85" width="82.21" height="36.8504"/>
+				<rect x="0" y="558.425" width="82.2047" height="36.8504" class="st1"/>
+				<text x="5.1" y="580.45" class="st2" v:langID="2052"><v:paragraph v:horizAlign="1"/><v:tabList/>信号整形模块</text>			</g>
+			<g id="shape7-14" v:mID="7" v:groupContext="shape" transform="translate(206.929,-150.236)">
+				<title>工作表.7</title>
+				<desc>LCD12864显示模块</desc>
+				<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+				<v:textRect cx="29.7638" cy="565.571" width="59.53" height="59.4094"/>
+				<rect x="0" y="535.866" width="59.5276" height="59.4094" class="st1"/>
+				<text x="5.76" y="561.97" class="st2" v:langID="2052"><v:paragraph v:horizAlign="1"/><v:tabList/>LCD12864<tspan
+							x="5.76" dy="1.2em" class="st3">显示模块</tspan></text>			</g>
+			<g id="shape8-18" v:mID="8" v:groupContext="shape" transform="translate(206.929,-70.9843)">
+				<title>工作表.8</title>
+				<desc>按键模块</desc>
+				<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+				<v:textRect cx="29.7638" cy="566.28" width="59.53" height="57.9921"/>
+				<rect x="0" y="537.283" width="59.5276" height="57.9921" class="st1"/>
+				<text x="5.76" y="569.88" class="st2" v:langID="2052"><v:paragraph v:horizAlign="1"/><v:tabList/>按键模块</text>			</g>
+			<g id="shape9-21" v:mID="9" v:groupContext="shape" transform="translate(1.59872E-14,-65.1969)">
+				<title>工作表.9</title>
+				<desc>分频模块</desc>
+				<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+				<v:textRect cx="41.1024" cy="578.268" width="82.21" height="34.0157"/>
+				<rect x="0" y="561.26" width="82.2047" height="34.0157" class="st1"/>
+				<text x="17.1" y="581.87" class="st2" v:langID="2052"><v:paragraph v:horizAlign="1"/><v:tabList/>分频模块</text>			</g>
+			<g id="shape10-24" v:mID="10" v:groupContext="shape" v:layerMember="1" transform="translate(34.0157,-178.583)">
+				<title>动态连接线</title>
+				<path d="M7.09 595.28 L7.09 616.54" class="st4"/>
+			</g>
+			<g id="shape11-30" v:mID="11" v:groupContext="shape" v:layerMember="1" transform="translate(34.0157,-120.472)">
+				<title>动态连接线.11</title>
+				<path d="M7.09 595.28 L7.09 616.54" class="st4"/>
+			</g>
+			<g id="shape12-35" v:mID="12" v:groupContext="shape" v:layerMember="1" transform="translate(82.2047,-75.1181)">
+				<title>动态连接线.12</title>
+				<path d="M0 588.19 L26.93 588.19" class="st4"/>
+			</g>
+			<g id="shape13-40" v:mID="13" v:groupContext="shape" v:layerMember="1" transform="translate(206.929,-172.854)">
+				<title>动态连接线.13</title>
+				<path d="M0 588.19 L-26.93 588.19" class="st6"/>
+			</g>
+			<g id="shape14-46" v:mID="14" v:groupContext="shape" v:layerMember="1" transform="translate(206.929,-92.8937)">
+				<title>动态连接线.14</title>
+				<path d="M0 588.19 L-26.93 588.19" class="st4"/>
+			</g>
+			<g id="shape15-51" v:mID="15" v:groupContext="shape" v:layerMember="1" transform="translate(31.1811,-237.992)">
+				<title>动态连接线.15</title>
+				<path d="M7.09 595.28 L7.09 620.67" class="st4"/>
+			</g>
+			<g id="shape16-56" v:mID="16" v:groupContext="shape" transform="translate(32.5984,-237.992)">
+				<title>工作表.16</title>
+				<ellipse cx="5.66929" cy="589.606" rx="5.66929" ry="5.66929" class="st1"/>
+			</g>
+			<g id="shape17-58" v:mID="17" v:groupContext="shape" v:layerMember="1" transform="translate(34.0157,-31.1811)">
+				<title>动态连接线.17</title>
+				<path d="M7.09 595.28 L7.09 561.26" class="st4"/>
+			</g>
+			<g id="shape18-63" v:mID="18" v:groupContext="shape" v:layerMember="1" transform="translate(137.48,-31.1811)">
+				<title>动态连接线.18</title>
+				<path d="M7.09 595.28 L7.09 561.26" class="st4"/>
+			</g>
+			<g id="shape19-68" v:mID="19" v:groupContext="shape" v:layerMember="1" transform="translate(226.063,-31.1811)">
+				<title>动态连接线.19</title>
+				<path d="M7.09 595.28 L7.09 555.47" class="st4"/>
+			</g>
+		</g>
+	</g>
+</svg>

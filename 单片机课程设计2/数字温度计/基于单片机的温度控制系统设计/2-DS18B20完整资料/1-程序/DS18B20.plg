@@ -1,0 +1,29 @@
+<html>
+<body>
+<pre>
+<h1>礦ision Build Log</h1>
+<h2>Project:</h2>
+C:\Users\2000601\Desktop\个人文件夹\单片机课程设计\数字温度计\基于单片机的温度控制系统设计\2-DS18B20完整资料\1-程序\DS18B20.uvproj
+Project File Date:  08/01/2016
+
+<h2>Output:</h2>
+Build target 'Target 1'
+compiling DS18B20.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?TEMPER?DS18B20
+    CALLER1: ?PR?UART_1?DS18B20
+    CALLER2: ?C_C51STARTUP
+Program Size: data=26.2 xdata=0 code=3355
+creating hex file from "DS18B20"...
+"DS18B20" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+compiling DS18B20.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?TEMPER?DS18B20
+    CALLER1: ?PR?UART_1?DS18B20
+    CALLER2: ?C_C51STARTUP
+Program Size: data=26.2 xdata=0 code=3355
+creating hex file from "DS18B20"...
+"DS18B20" - 0 Error(s), 1 Warning(s).

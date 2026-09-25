@@ -1,0 +1,129 @@
+C51 COMPILER V9.00   BJQ                                                                   06/04/2014 11:34:54 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE BJQ
+OBJECT MODULE PLACED IN bjq.OBJ
+COMPILER INVOKED BY: D:\keil4\C51\BIN\C51.EXE bjq.c DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          //包含头文件
+   2          #include <reg51.h>
+   3          //宏定义
+   4          #define uc unsigned char
+   5          #define ui unsigned int
+   6          
+   7          sbit SOS        =       P1^0;//报警按键 连接热释电模块
+   8          sbit bufang     =       P1^1;//布防
+   9          sbit chefang=   P1^2;//撤防
+  10          sbit baojing=   P1^3;//蜂鸣器
+  11          
+  12          bit bdata flag,flag1;//flag布防标志，flag1布防倒计时标志 
+  13          uc t,t1;                        //定时器专用变量 
+  14          
+  15          void delay(ui x)        //延时函数 大约延时x ms （不精确） 
+  16          {
+  17   1              ui i,j;
+  18   1              for(i=0;i<x;i++)
+  19   1              for(j=0;j<110;j++);
+  20   1      }
+  21                  
+  22          void kongzhi()          //控制函数 
+  23          {
+  24   1              if((bufang==1)&&(flag==0))      //在待机时按下布防键 
+  25   1              {
+  26   2                      delay(10);                              //延时去抖
+  27   2                      if((bufang==1)&&(flag==0))//再次判断按键是否按下
+  28   2                      {
+  29   3                              t=0;                    //清零计时器
+  30   3                              t1=0;                   //清零计时器 
+  31   3                              TR0=1;                  //打开计时器 
+  32   3                              P2=0x85;                //显示字母b 
+  33   3                      }
+  34   2              }
+  35   1              if((flag==1)&&(SOS==1)) //进入布防状态后报警按键按下（或者热释电模块有信号发出）
+  36   1              {
+  37   2                      flag1=1;                        //蜂鸣器鸣响 
+  38   2                      P2=0xbf;                        //显示"-"
+  39   2                      TR0=1;                          //开启定时器 
+  40   2              }
+  41   1              if(chefang==1)                  //撤防键按下 
+  42   1              {
+  43   2                      delay(10);
+  44   2                      if(chefang==1)
+  45   2                      {
+  46   3                              {
+  47   4                                      flag1=0;        //关闭布防计时
+  48   4                                      baojing=1;      //关闭蜂鸣器 
+  49   4                                      flag=0;         //停止计时器计时
+  50   4                                      TR0=0;          //关闭计时器 
+  51   4                                      P2=0xa7;        //显示字母c 
+  52   4                                      delay(1000);//延时1s 
+  53   4                                      P2=0xff;        //关闭显示，进入等待布防状态  
+  54   4                              }
+  55   3                      }
+C51 COMPILER V9.00   BJQ                                                                   06/04/2014 11:34:54 PAGE 2   
+
+  56   2              }
+  57   1      }
+  58          
+  59          void init()     //初始化函数 
+  60          {
+  61   1              TH0=0x3C;
+  62   1              TL0=0xB0;  //赋初值50ms（12MHz晶振）
+  63   1              TMOD=0x01; //定义工作方式
+  64   1              EA=1;      //打开中断总开关
+  65   1              ET0=1;     //打开中断允许开关
+  66   1              TR0=0;     //关闭定时器定时开关 
+  67   1              bufang=0;
+  68   1              SOS=0;
+  69   1              chefang=0;      //按键初始化 
+  70   1      }
+  71          
+  72          void main()     //主函数
+  73          {
+  74   1              init(); //调用初始化 
+  75   1              while(1)//循环
+  76   1              {
+  77   2                      kongzhi();//控制函数 
+  78   2              }
+  79   1      }
+  80          
+  81          void time() interrupt 1//定时器函数 
+  82          {
+  83   1              TH0=0x3C;
+  84   1              TL0=0xB0;               //重新赋初值 
+  85   1              t++;
+  86   1              if(t==20)               //t加一次时50ms，加20次时1s
+  87   1              {
+  88   2                      t=0;            //t清零
+  89   2                      t1++;           //t1加一次时1s
+  90   2                      if(t1==30)//计时到30s时开启布防数码管停止显示  关闭定时器   
+  91   2                      {
+  92   3                              t1=0;   //t1清零
+  93   3                              flag=1; //布防标志位，=1时进入布防状态
+  94   3                              P2=0xff;//数码管关闭显示
+  95   3                              TR0=0;  //停止计时
+  96   3                      }
+  97   2              }
+  98   1              if((t>=10)&&(flag1==1))//报警 t每加到10（500ms）蜂鸣器引脚取反一次
+  99   1              {
+ 100   2                      baojing=~baojing;  //闪烁鸣响
+ 101   2                      t=0;                       //t清零
+ 102   2              }
+ 103   1      }
+ 104          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    196    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      2    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

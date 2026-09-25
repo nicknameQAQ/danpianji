@@ -1,0 +1,1353 @@
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE ¶à¹¦Ä_µç×Ó_Ó
+OBJECT MODULE PLACED IN ¶à¹¦ÄÜµç×ÓÖÓ.OBJ
+COMPILER INVOKED BY: E:\keil\C51\BIN\C51.EXE ¶à¹¦ÄÜµç×ÓÖÓ.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1            #include<reg52.h>
+   2          #include<intrins.h>
+   3          unsigned char code displaywelcome[]={" Welcome To My Lcd Timer"};//»¶Ó­½çÃæ
+   4          unsigned char code displaywish[]={" Happy Every Day ^_^"}; //»¶Ó­½çÃæ
+   5          unsigned char code overtemperature[]={"OVERTEMPERATURE!"};
+   6          unsigned char code digit[]={"0123456789"}; //Êý×Ö´úÂë
+   7          unsigned char mode,TH,TL,TN,TD,length,tempswitch,Maxtemp=40,amode,alarmmode,minutes,hours,
+   8          minutea,seconds,houra=12;
+   9          sbit SCLK=P1^0; //DS1302 Ê±ÖÓÊäÈë
+  10          sbit DATE=P1^1; //DS1302 Êý¾ÝÊäÈë
+  11          sbit REST=P1^2; //DS1302 ¸´Î»¶Ë¿Ú
+  12          sbit SET=P1^4; //DS1302 ÉèÖÃÄ£Ê½Ñ¡ÔñÎ»
+  13          sbit ADD=P1^5; //Ôö¼Ó
+  14          sbit RED=P1^6; //¼õÐ¡
+  15          sbit CANL=P1^7;
+  16          void delay1ms(int i)//1 ºÁÃëÑÓÊ±
+  17          {
+  18   1      int j,k;
+  19   1      while(i--)
+  20   1      for(j=76;j>1;j--);
+  21   1      for(k=29;k>1;k--);
+  22   1      }
+  23          void delaynus(unsigned char n) //ÑÓÊ±Èô¸ÉÎ¢Ãë
+  24          {
+  25   1      unsigned char i;
+  26   1      for(i=0;i<n;i++);
+  27   1      }
+  28          /***********·äÃùÆ÷Ä£¿é************/
+  29          sbit beep=P3^6; //Î»¶¨Òå£¬¶¨ÒåP.6 Î»fmp
+  30          void dely500(void)
+  31          {
+  32   1      unsigned char i;
+  33   1      for(i=250;i>0;i--)
+  34   1      {
+  35   2      _nop_();
+  36   2      }
+  37   1      }
+  38          void baojing(unsigned char n)
+  39          {
+  40   1      unsigned char x,i;
+  41   1      while(n--)
+  42   1      {
+  43   2      for(i=0;i<5;i++)
+  44   2      {
+  45   3      for(x=0;x<200;x++)
+  46   3      {
+  47   4      beep=~beep;
+  48   4      dely500();
+  49   4      }
+  50   3      }
+  51   2      for(i=0;i<3;i++)
+  52   2      {
+  53   3      for(x=0;x<200;x++)
+  54   3      {
+  55   4      beep=~beep;
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 2   
+
+  56   4      dely500();
+  57   4      dely500();
+  58   4      }
+  59   3      }
+  60   2      }
+  61   1      }
+  62          /*******DS1302 Ä£¿é*************/
+  63          void Write1302(unsigned char date)//Ïò1302 Ð´Êý¾Ý
+  64          {
+  65   1      unsigned char i;
+  66   1      SCLK=0;
+  67   1      delaynus(2);
+  68   1      for(i=0;i<8;i++)
+  69   1      {
+  70   2      DATE=date&0x01;
+  71   2      SCLK=1;
+  72   2      delaynus(2);
+  73   2      SCLK=0;
+  74   2      delaynus(2);
+  75   2      date>>=1;
+  76   2      }
+  77   1      }
+  78          void WriteSet1302(unsigned char cmd,unsigned char date) //¸ù¾ÝÏàÓ¦µÄÃüÁîÊäÈëÏàÓ¦µÄÊý¾Ý
+  79          {
+  80   1      REST=0;
+  81   1      SCLK=0;
+  82   1      REST=1;
+  83   1      Write1302(cmd);
+  84   1      delaynus(5);
+  85   1      Write1302(date);
+  86   1      SCLK=1;
+  87   1      REST=0;
+  88   1      }
+  89          unsigned char Read1302(void) //¶ÁÈ¡1302 Êý¾Ý
+  90          {
+  91   1      unsigned char i,date;
+  92   1      delaynus(2);
+  93   1      for(i=0;i<8;i++)
+  94   1      {
+  95   2      date>>=1;
+  96   2      if(DATE==1)
+  97   2      date|=0x80;
+  98   2      SCLK=1;
+  99   2      delaynus(2);
+ 100   2      SCLK=0;
+ 101   2      delaynus(2);
+ 102   2      }
+ 103   1      return date;
+ 104   1      }
+ 105          unsigned char ReadSet1302(unsigned char cmd)//¸ù¾ÝÃüÁî¶ÁÈ¡1302 ÏàÓ¦µÄÖµ
+ 106          {
+ 107   1      unsigned char date;
+ 108   1      REST=0;
+ 109   1      SCLK=0;
+ 110   1      REST=1;
+ 111   1      Write1302(cmd);
+ 112   1      delaynus(2);
+ 113   1      date=Read1302();
+ 114   1      SCLK=1;
+ 115   1      REST=0;
+ 116   1      return date;
+ 117   1      }
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 3   
+
+ 118          void IntDS1302(void) //DS1302 ³õÊ¼»¯
+ 119          {
+ 120   1      unsigned char flag;
+ 121   1      flag= ReadSet1302(0x81);
+ 122   1      if(flag&0x80) { //ÅÐ¶ÏÊ±ÖÓÐ¾Æ¬ÊÇ·ñ¹Ø±Õ
+ 123   2      WriteSet1302(0x8E,0x00); //¸ù¾ÝÐ´×´Ì¬¼Ä´æÆ÷ÃüÁî×Ö£¬Ð´Èë²»±£»¤Ö¸Áî
+ 124   2      WriteSet1302(0x80,((0/10)<<4|(0%10))); //¸ù¾ÝÐ´Ãë¼Ä´æÆ÷ÃüÁî×Ö£¬Ð´ÈëÃëµÄ³õÊ¼Öµ
+ 125   2      WriteSet1302(0x82,((0/10)<<4|(0%10))); //¸ù¾ÝÐ´·Ö¼Ä´æÆ÷ÃüÁî×Ö£¬Ð´Èë·ÖµÄ³õÊ¼Öµ
+ 126   2      WriteSet1302(0x84,((0/10)<<4|(0%10))); //¸ù¾ÝÐ´Ð¡Ê±¼Ä´æÆ÷ÃüÁî×Ö£¬Ð´ÈëÐ¡Ê±µÄ³õÊ¼Öµ
+ 127   2      WriteSet1302(0x86,((0/10)<<4|(0%10))); //¸ù¾ÝÐ´ÈÕ¼Ä´æÆ÷ÃüÁî×Ö£¬Ð´ÈëÈÕµÄ³õÊ¼Öµ
+ 128   2      WriteSet1302(0x88,((0/10)<<4|(0%10))); //¸ù¾ÝÐ´ÔÂ¼Ä´æÆ÷ÃüÁî×Ö£¬Ð´ÈëÔÂµÄ³õÊ¼Öµ
+ 129   2      WriteSet1302(0x8c,((10/10)<<4|(10%10))); //¸ù¾ÝÐ´Äê¼Ä´æÆ÷ÃüÁî×Ö£¬Ð´ÈëÄêµÄ³õÊ¼Öµ
+ 130   2      WriteSet1302(0x90,0xa5); //´ò¿ª³äµç¹¦ÄÜÑ¡Ôñ2K µç×è³äµç·½Ê½
+ 131   2      WriteSet1302(0x8E,0x80); //¸ù¾ÝÐ´×´Ì¬¼Ä´æÆ÷ÃüÁî×Ö£¬Ð´Èë±£»¤Ö¸Áî
+ 132   2      }
+ 133   1      }
+ 134          /***************Òº¾§ÏÔÊ¾Ä£¿é*****************/
+ 135          sbit RS=P2^5;
+ 136          sbit RW=P2^6;
+ 137          sbit E=P2^7;
+ 138          sbit BF=P0^7;
+ 139          /*Òº¾§Ã¦¼ì²â*/
+ 140          bit BusyTest(void)
+ 141          {
+ 142   1      bit result;
+ 143   1      RS=0;
+ 144   1      RW=1;
+ 145   1      E=1;
+ 146   1      _nop_();
+ 147   1      _nop_();
+ 148   1      _nop_();
+ 149   1      result=BF;
+ 150   1      _nop_();
+ 151   1      _nop_();
+ 152   1      _nop_();
+ 153   1      E=0;
+ 154   1      return result;
+ 155   1      }
+ 156          /*Ð´Ö¸Áî*/
+ 157          void Write_com(unsigned char command)
+ 158          {
+ 159   1      while(BusyTest()!=0);
+ 160   1      RS=0;
+ 161   1      RW=0;
+ 162   1      E=0;
+ 163   1      _nop_();
+ 164   1      _nop_();
+ 165   1      _nop_();
+ 166   1      P0=command;
+ 167   1      _nop_();
+ 168   1      _nop_();
+ 169   1      _nop_();
+ 170   1      E=1;
+ 171   1      _nop_();
+ 172   1      _nop_();
+ 173   1      _nop_();
+ 174   1      E=0;
+ 175   1      }
+ 176          /*Ð´µØÖ·*/
+ 177          void Write_Address(unsigned char address)
+ 178          {
+ 179   1      Write_com(address|0x80);
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 4   
+
+ 180   1      delay1ms(1);
+ 181   1      }
+ 182          /*Ð´Êý¾Ý*/
+ 183          void Write_Date(unsigned char date)
+ 184          {
+ 185   1      RS=1;
+ 186   1      RW=0;
+ 187   1      E=0;
+ 188   1      _nop_();
+ 189   1      _nop_();
+ 190   1      _nop_();
+ 191   1      P0=date;
+ 192   1      _nop_();
+ 193   1      _nop_();
+ 194   1      _nop_();
+ 195   1      E=1;
+ 196   1      _nop_();
+ 197   1      _nop_();
+ 198   1      _nop_();
+ 199   1      E=0;
+ 200   1      delay1ms(1);
+ 201   1      }
+ 202          /*³õÊ¼»¯*/
+ 203          void Lcd_Int(void)
+ 204          {
+ 205   1      Write_com(0x38);
+ 206   1      delay1ms(1);
+ 207   1      Write_com(0x38);
+ 208   1      delay1ms(1);
+ 209   1      Write_com(0x06);
+ 210   1      delay1ms(1);
+ 211   1      Write_com(0x0c);
+ 212   1      delay1ms(1);
+ 213   1      Write_com(0x01);
+ 214   1      }
+ 215          void displaymainpart(void)//ÏÔÊ¾Òº¾§Ö÷Òª²¿·Ö£¨²»±ä»¯²¿·Ö£©
+ 216          {
+ 217   1      Write_Address(0x01);
+ 218   1      delay1ms(1);
+ 219   1      Write_Date('D');
+ 220   1      Write_Date('A');
+ 221   1      Write_Date('T');
+ 222   1      Write_Date('E');
+ 223   1      Write_Date(':');
+ 224   1      delay1ms(1);
+ 225   1      Write_Address(0x0A);
+ 226   1      delay1ms(1);
+ 227   1      Write_Date('-');
+ 228   1      Write_Address(0x0D);
+ 229   1      Write_Date('-');
+ 230   1      Write_Address(0x42);
+ 231   1      Write_Date('T');
+ 232   1      Write_Date('I');
+ 233   1      Write_Date('M');
+ 234   1      Write_Date('E');
+ 235   1      Write_Date(':');
+ 236   1      Write_Address(0x4A);
+ 237   1      Write_Date('-');
+ 238   1      Write_Address(0x4D);
+ 239   1      Write_Date('-');
+ 240   1      Write_Address(0x06);
+ 241   1      Write_Date('2');
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 5   
+
+ 242   1      Write_Date('0');
+ 243   1      }
+ 244          void display_Second(unsigned char second) //ÔÚÒº¾§ÉÏÏÔÊ¾Ãë
+ 245          {
+ 246   1      unsigned char i,j;
+ 247   1      i=second/10;
+ 248   1      j=second%10;
+ 249   1      Write_Address(0x4E);
+ 250   1      Write_Date(digit[i]);
+ 251   1      Write_Date(digit[j]);
+ 252   1      delay1ms(1);
+ 253   1      }
+ 254          void display_Minute(unsigned char minute) //ÔÚÒº¾§ÉÏÏÔÊ¾·Ö
+ 255          {
+ 256   1      unsigned char i,j;
+ 257   1      i=minute/10;
+ 258   1      j=minute%10;
+ 259   1      Write_Address(0x4B);
+ 260   1      Write_Date(digit[i]);
+ 261   1      Write_Date(digit[j]);
+ 262   1      delay1ms(1);
+ 263   1      }
+ 264          void display_Hour(unsigned char hour) //ÔÚÒº¾§ÉÏÏÔÊ¾Ê±
+ 265          {
+ 266   1      unsigned char i,j;
+ 267   1      i=hour/10;
+ 268   1      j=hour%10;
+ 269   1      Write_Address(0x48);
+ 270   1      Write_Date(digit[i]);
+ 271   1      Write_Date(digit[j]);
+ 272   1      delay1ms(1);
+ 273   1      }
+ 274          void display_Day(unsigned char day) //ÔÚÒº¾§ÉÏÏÔÊ¾ÈÕ
+ 275          {
+ 276   1      unsigned char i,j;
+ 277   1      i=day/10;
+ 278   1      j=day%10;
+ 279   1      Write_Address(0x0E);
+ 280   1      Write_Date(digit[i]);
+ 281   1      Write_Date(digit[j]);
+ 282   1      delay1ms(1);
+ 283   1      }
+ 284          void display_Month(unsigned char month) //ÔÚÒº¾§ÉÏÏÔÊ¾ÔÂ
+ 285          {
+ 286   1      unsigned char i,j;
+ 287   1      i=month/10;
+ 288   1      j=month%10;
+ 289   1      Write_Address(0x0B);
+ 290   1      Write_Date(digit[i]);
+ 291   1      Write_Date(digit[j]);
+ 292   1      delay1ms(1);
+ 293   1      }
+ 294          void display_Year(unsigned char year) //ÔÚÒº¾§ÉÏÏÔÊ¾Äê
+ 295          {
+ 296   1      unsigned char i,j;
+ 297   1      i=year/10;
+ 298   1      j=year%10;
+ 299   1      Write_Address(0x08);
+ 300   1      Write_Date(digit[i]);
+ 301   1      Write_Date(digit[j]);
+ 302   1      delay1ms(1);
+ 303   1      }
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 6   
+
+ 304          void display_houra(unsigned char x) //ÄÖÖÓÐ¡Ê±²¿·ÖÏÔÊ¾
+ 305          {
+ 306   1      unsigned char i,j;
+ 307   1      i=x/10;
+ 308   1      j=x%10;
+ 309   1      Write_Address(0x44);
+ 310   1      Write_Date(digit[i]);
+ 311   1      Write_Date(digit[j]);
+ 312   1      }
+ 313          void display_minutea(unsigned char x)//ÄÖÖÓ·ÖÖÓ²¿·ÖÏÔÊ¾
+ 314          {
+ 315   1      unsigned char i,j;
+ 316   1      i=x/10;
+ 317   1      j=x%10;
+ 318   1      Write_Address(0x47);
+ 319   1      Write_Date(digit[i]);
+ 320   1      Write_Date(digit[j]);
+ 321   1      }
+ 322          void display_Time(void) //ÏÔÊ¾ÊµÊ±Ê±¼ä
+ 323          {
+ 324   1      unsigned char value,day,month,year;
+ 325   1      Write_com(0x0c);
+ 326   1      value=ReadSet1302(0x81);
+ 327   1      seconds=(((value&0x70)>>4)*10+(value&0x0f));
+ 328   1      display_Second(seconds);
+ 329   1      value=ReadSet1302(0x83);
+ 330   1      minutes=(((value&0x70)>>4)*10+(value&0x0f));
+ 331   1      display_Minute(minutes);
+ 332   1      value=ReadSet1302(0x85);
+ 333   1      hours=(((value&0x70)>>4)*10+(value&0x0f));
+ 334   1      display_Hour(hours);
+ 335   1      value=ReadSet1302(0x87);
+ 336   1      day=(((value&0x70)>>4)*10+(value&0x0f));
+ 337   1      display_Day(day);
+ 338   1      value=ReadSet1302(0x89);
+ 339   1      month=(((value&0x70)>>4)*10+(value&0x0f));
+ 340   1      display_Month(month);
+ 341   1      value=ReadSet1302(0x8D);
+ 342   1      year=(((value&0xf0)>>4)*10+(value&0x0f));
+ 343   1      display_Year(year);
+ 344   1      }
+ 345          void displaystar(void) //ÏÔÊ¾»¶Ó­½çÃæ
+ 346          {
+ 347   1      unsigned char i,j;
+ 348   1      Write_Address(0x0f);
+ 349   1      while(displaywelcome[i]!='\0')
+ 350   1      {
+ 351   2      Write_Date(displaywelcome[i]);
+ 352   2      i++;
+ 353   2      delay1ms(1);
+ 354   2      }
+ 355   1      i=0;
+ 356   1      Write_Address(0x4f);
+ 357   1      while(displaywish[i]!='\0')
+ 358   1      {
+ 359   2      Write_Date(displaywish[i]);
+ 360   2      i++;
+ 361   2      delay1ms(1);
+ 362   2      }
+ 363   1      j=40;
+ 364   1      while(j--)
+ 365   1      {
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 7   
+
+ 366   2      Write_com(0x18);//Ñ­»·×óÒÆ
+ 367   2      delay1ms(700);
+ 368   2      }
+ 369   1      Write_com(0x01);
+ 370   1      delay1ms(10);
+ 371   1      }
+ 372          void gbdisplay(unsigned char address) //Ê±¼äµ÷ÕûÊ±¹â±êÉÁË¸
+ 373          {
+ 374   1      Write_Address(address);
+ 375   1      delay1ms(5);
+ 376   1      Write_com(0x0f);
+ 377   1      delay1ms(5);
+ 378   1      }
+ 379          void displaymaxt(unsigned char x) //ÏÔÊ¾×î´óÎÂ¶È
+ 380          {
+ 381   1      unsigned char i,j,k;
+ 382   1      Write_com(0x0c);
+ 383   1      delay1ms(2);
+ 384   1      Write_Address(0x44);
+ 385   1      i=x/100;
+ 386   1      j=x/10;
+ 387   1      k=x%10;
+ 388   1      Write_Date(digit[i]);
+ 389   1      Write_Date(digit[j]);
+ 390   1      Write_Date(digit[k]);
+ 391   1      }
+ 392          /*****************Ê±¼äµ÷Õû²¿·Ö*********************/
+ 393          void hourset(void) //µ÷Ê±
+ 394          {
+ 395   1      unsigned char timevalue,hour;
+ 396   1      delay1ms(500); //·ÀÖ¹¶à´Î´¥·¢
+ 397   1      WriteSet1302(0x8e,0x00);//½«Ð´±£»¤È¥µô£¬È·±£ÄÜÕý³£½«µ÷ÕûºóµÄÊýÖµÐ´ÈëDS1302
+ 398   1      timevalue=ReadSet1302(0x85); //¶ÁÈ¡´ËÊ±µÄÊýÖµ
+ 399   1      hour=(((timevalue&0x70)>>4)*10+(timevalue&0x0f));
+ 400   1      while(1)
+ 401   1      {
+ 402   2      if(ADD==0)
+ 403   2      {
+ 404   3      delay1ms(50);
+ 405   3      if(ADD==0)
+ 406   3      {
+ 407   4      hour++;
+ 408   4      delay1ms(300);
+ 409   4      while(ADD==0);
+ 410   4      }
+ 411   3      }
+ 412   2      if(RED==0)
+ 413   2      {
+ 414   3      delay1ms(50);
+ 415   3      if(RED==0)
+ 416   3      {
+ 417   4      hour--;
+ 418   4      delay1ms(300);
+ 419   4      if(hour==0) hour=23;
+ 420   4      while(RED==0);
+ 421   4      }
+ 422   3      }
+ 423   2      timevalue=(((hour)/10)<<4|(hour%10));
+ 424   2      WriteSet1302(0x84,timevalue);
+ 425   2      delay1ms(1);
+ 426   2      display_Hour(hour);
+ 427   2      Write_Address(0x49);
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 8   
+
+ 428   2      delay1ms(5);
+ 429   2      if(hour>=24) hour=0;
+ 430   2      delay1ms(5);
+ 431   2      if(CANL==0)
+ 432   2      {
+ 433   3      mode=0;
+ 434   3      Write_com(0x0c);
+ 435   3      break;
+ 436   3      }
+ 437   2      if(SET==0) break;
+ 438   2      }
+ 439   1      WriteSet1302(0x8e,0x80);
+ 440   1      }
+ 441          void minuteset(void) //µ÷·Ö
+ 442          {
+ 443   1      unsigned char timevalue,minute;
+ 444   1      delay1ms(500);
+ 445   1      WriteSet1302(0x8e,0x00);
+ 446   1      timevalue=ReadSet1302(0x83);
+ 447   1      minute=(((timevalue&0x70)>>4)*10+(timevalue&0x0f));
+ 448   1      while(1)
+ 449   1      {
+ 450   2      if(ADD==0)
+ 451   2      {
+ 452   3      delay1ms(10);
+ 453   3      if(ADD==0)
+ 454   3      {
+ 455   4      minute++;
+ 456   4      if(minute>=60) timevalue=0;
+ 457   4      while(ADD==0);
+ 458   4      }
+ 459   3      }
+ 460   2      if(RED==0)
+ 461   2      {
+ 462   3      delay1ms(10);
+ 463   3      if(RED==0)
+ 464   3      {
+ 465   4      minute--;
+ 466   4      delay1ms(300);
+ 467   4      if(minute==0) minute=59;
+ 468   4      while(RED==0);
+ 469   4      }
+ 470   3      }
+ 471   2      timevalue=((minute/10)<<4|(minute%10));
+ 472   2      WriteSet1302(0x82,timevalue);
+ 473   2      delay1ms(1);
+ 474   2      display_Minute(minute);
+ 475   2      Write_Address(0x4c);
+ 476   2      delay1ms(5);
+ 477   2      if(minute>=60) minute=0;
+ 478   2      delay1ms(5);
+ 479   2      if(CANL==0)
+ 480   2      {
+ 481   3      mode=0;
+ 482   3      Write_com(0x0c);
+ 483   3      break;
+ 484   3      }
+ 485   2      if(SET==0) break;
+ 486   2      }
+ 487   1      WriteSet1302(0x8e,0x80);
+ 488   1      }
+ 489          void secondset(void) //Ãë¹éÁã
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 9   
+
+ 490          {
+ 491   1      unsigned char second;
+ 492   1      delay1ms(500);
+ 493   1      WriteSet1302(0x8e,0x00);
+ 494   1      while(1)
+ 495   1      {
+ 496   2      if(ADD==0)
+ 497   2      {
+ 498   3      delay1ms(10);
+ 499   3      if(ADD==0)
+ 500   3      {
+ 501   4      second=0;
+ 502   4      WriteSet1302(0x80,0x00);
+ 503   4      while(ADD==0);
+ 504   4      }
+ 505   3      }
+ 506   2      delay1ms(1);
+ 507   2      display_Second(second);
+ 508   2      Write_Address(0x4f);
+ 509   2      delay1ms(5);
+ 510   2      if(CANL==0)
+ 511   2      {
+ 512   3      mode=0;
+ 513   3      Write_com(0x0c);
+ 514   3      break;
+ 515   3      }
+ 516   2      if(SET==0) break;
+ 517   2      }
+ 518   1      WriteSet1302(0x8e,0x80);
+ 519   1      }
+ 520          void yearset(void) //µ÷Äê
+ 521          {
+ 522   1      unsigned char datevalue,year;
+ 523   1      delay1ms(500);
+ 524   1      WriteSet1302(0x8e,0x00);
+ 525   1      datevalue=ReadSet1302(0x8d);
+ 526   1      year=(((datevalue&0x70)>>4)*10+(datevalue&0x0f));
+ 527   1      while(1)
+ 528   1      {
+ 529   2      if(ADD==0)
+ 530   2      {
+ 531   3      delay1ms(10);
+ 532   3      if(ADD==0)
+ 533   3      {
+ 534   4      year++;
+ 535   4      while(ADD==0);
+ 536   4      }
+ 537   3      }
+ 538   2      if(RED==0)
+ 539   2      {
+ 540   3      delay1ms(10);
+ 541   3      if(RED==0)
+ 542   3      {
+ 543   4      year--;
+ 544   4      delay1ms(300);
+ 545   4      while(RED==0);
+ 546   4      }
+ 547   3      }
+ 548   2      datevalue=((year/10)<<4|(year%10));
+ 549   2      WriteSet1302(0x8c,datevalue);
+ 550   2      delay1ms(5);
+ 551   2      display_Year(year);
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 10  
+
+ 552   2      delay1ms(5);
+ 553   2      Write_Address(0x09);
+ 554   2      delay1ms(5);
+ 555   2      if(CANL==0)
+ 556   2      {
+ 557   3      mode=0;
+ 558   3      Write_com(0x0c);
+ 559   3      break;
+ 560   3      }
+ 561   2      if(SET==0) break;
+ 562   2      }
+ 563   1      WriteSet1302(0x8e,0x80);
+ 564   1      }
+ 565          void monthset(void) //µ÷ÔÂ
+ 566          {
+ 567   1      unsigned char datevalue,month;
+ 568   1      
+ 569   1      delay1ms(500);
+ 570   1      WriteSet1302(0x8e,0x00);
+ 571   1      datevalue=ReadSet1302(0x89);
+ 572   1      month=(((datevalue&0x70)>>4)*10+(datevalue&0x0f));
+ 573   1      while(1)
+ 574   1      {
+ 575   2      if(ADD==0)
+ 576   2      {
+ 577   3      delay1ms(10);
+ 578   3      if(ADD==0)
+ 579   3      {
+ 580   4      month++;
+ 581   4      if(month>12) month=1;
+ 582   4      while(ADD==0);
+ 583   4      }
+ 584   3      }
+ 585   2      if(RED==0)
+ 586   2      {
+ 587   3      delay1ms(10);
+ 588   3      if(RED==0)
+ 589   3      {
+ 590   4      month--;
+ 591   4      delay1ms(300);
+ 592   4      if(month==0) month=12;
+ 593   4      while(RED==0);
+ 594   4      }
+ 595   3      }
+ 596   2      datevalue=((month/10)<<4|(month%10));
+ 597   2      WriteSet1302(0x88,datevalue);
+ 598   2      delay1ms(1);
+ 599   2      display_Month(month);
+ 600   2      Write_Address(0x0c);
+ 601   2      delay1ms(5);
+ 602   2      if(CANL==0)
+ 603   2      {
+ 604   3      mode=0;
+ 605   3      Write_com(0x0c);
+ 606   3      break;
+ 607   3      }
+ 608   2      if(SET==0) break;
+ 609   2      }
+ 610   1      WriteSet1302(0x8e,0x80);
+ 611   1      }
+ 612          void dayset(void) //µ÷ÈÕ
+ 613          {
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 11  
+
+ 614   1      unsigned char datevalue,day;
+ 615   1      delay1ms(500);
+ 616   1      WriteSet1302(0x8e,0x00);
+ 617   1      datevalue=ReadSet1302(0x87);
+ 618   1      day=(((datevalue&0x70)>>4)*10+(datevalue&0x0f));
+ 619   1      while(1)
+ 620   1      {
+ 621   2      if(ADD==0)
+ 622   2      {
+ 623   3      delay1ms(10);
+ 624   3      if(ADD==0)
+ 625   3      {
+ 626   4      day++;
+ 627   4      if(day>31) day=1;
+ 628   4      while(ADD==0);
+ 629   4      }
+ 630   3      }
+ 631   2      if(RED==0)
+ 632   2      {
+ 633   3      delay1ms(10);
+ 634   3      if(RED==0)
+ 635   3      {
+ 636   4      day--;
+ 637   4      delay1ms(300);
+ 638   4      if(day==0) day=31;
+ 639   4      while(RED==0);
+ 640   4      }
+ 641   3      }
+ 642   2      datevalue=((day/10)<<4|(day%10));
+ 643   2      WriteSet1302(0x86,datevalue);
+ 644   2      delay1ms(1);
+ 645   2      display_Day(day);
+ 646   2      Write_Address(0x0f);
+ 647   2      delay1ms(5);
+ 648   2      if(CANL==0)
+ 649   2      {
+ 650   3      mode=0;
+ 651   3      Write_com(0x0c);
+ 652   3      break;
+ 653   3      }
+ 654   2      if(SET==0) break;
+ 655   2      }
+ 656   1      WriteSet1302(0x8e,0x80);
+ 657   1      }
+ 658          void alarmhourset(void) //ÄÖÖÓÐ¡Ê±µ÷Õû
+ 659          {
+ 660   1      unsigned char value;
+ 661   1      value=houra;
+ 662   1      while(1)
+ 663   1      {
+ 664   2      if(ADD==0)
+ 665   2      {
+ 666   3      delay1ms(20);
+ 667   3      if(ADD==0)
+ 668   3      {
+ 669   4      Write_com(0x0c);
+ 670   4      delay1ms(5);
+ 671   4      value++;
+ 672   4      if(value>23) value=0;
+ 673   4      while(ADD==0);
+ 674   4      }
+ 675   3      }
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 12  
+
+ 676   2      if(RED==0)
+ 677   2      {
+ 678   3      delay1ms(20);
+ 679   3      if(RED==0)
+ 680   3      {
+ 681   4      value--;
+ 682   4      if(value==0) value=23;
+ 683   4      while(RED==0);
+ 684   4      }
+ 685   3      }
+ 686   2      houra=value;
+ 687   2      display_houra(houra);
+ 688   2      gbdisplay(0x45);
+ 689   2      if(CANL==0)
+ 690   2      {
+ 691   3      delay1ms(500);
+ 692   3      break;
+ 693   3      }
+ 694   2      }
+ 695   1      }
+ 696          void alarmminuteset(void) //ÄÖÖÓ·ÖÖÓµ÷Õû
+ 697          {
+ 698   1      while(1)
+ 699   1      {
+ 700   2      if(ADD==0)
+ 701   2      {
+ 702   3      delay1ms(20);
+ 703   3      if(ADD==0)
+ 704   3      {
+ 705   4      minutea++;
+ 706   4      if(minutea>59) minutea=0;
+ 707   4      while(ADD==0) ;
+ 708   4      }
+ 709   3      }
+ 710   2      if(RED==0)
+ 711   2      {
+ 712   3      delay1ms(20);
+ 713   3      if(RED==0)
+ 714   3      {
+ 715   4      minutea--;
+ 716   4      if(minutea==0) minutea=59;
+ 717   4      while(RED==0) ;
+ 718   4      }
+ 719   3      }
+ 720   2      display_minutea(minutea);
+ 721   2      gbdisplay(0x48);
+ 722   2      if(CANL==0)
+ 723   2      {
+ 724   3      delay1ms(500);
+ 725   3      break;
+ 726   3      }
+ 727   2      }
+ 728   1      }
+ 729          void TimeSet(void) //Ê±¼äµ÷Õûº¯Êý
+ 730          {
+ 731   1      display_Time();
+ 732   1      if(SET==0)
+ 733   1      {
+ 734   2      delay1ms(10);
+ 735   2      if(SET==0)
+ 736   2      {
+ 737   3      mode++;
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 13  
+
+ 738   3      delay1ms(20);
+ 739   3      switch(mode)
+ 740   3      {
+ 741   4      case(1):{gbdisplay(0x48);hourset(); delay1ms(500);} break;
+ 742   4      case(2):{gbdisplay(0x4c);minuteset();delay1ms(500);} break;
+ 743   4      case(3):{gbdisplay(0x4f);secondset();delay1ms(500);} break;
+ 744   4      case(4):{gbdisplay(0x09);yearset();delay1ms(500);} break;
+ 745   4      case(5):{gbdisplay(0x0c);monthset();delay1ms(500);} break;
+ 746   4      case(6):{gbdisplay(0x0f);dayset();delay1ms(500);} break;
+ 747   4      }
+ 748   3      if(mode==7) mode=0;
+ 749   3      }
+ 750   2      }
+ 751   1      }
+ 752          /***************ÏÔÊ¾ÎÂ¶ÈÄ£¿é********************/
+ 753          unsigned char code displayexplain[]={"Digit thermometer"};
+ 754          unsigned char code displayerror[]={"DS18B20 ERROR"};
+ 755          unsigned char code displayerror1[]={"PLEASE CHECK "};
+ 756          unsigned char code displaypart1[]={"WenDu:"};
+ 757          unsigned char code displaypart2[]={"Cent"};
+ 758          unsigned char flag;
+ 759          /**********************²Ù×÷DS18B20 Ä£¿é***************************/
+ 760          sbit DQ=P3^3;
+ 761          unsigned char time;
+ 762          /**********************DS18B20 ³õÊ¼»¯****************************/
+ 763          bit IntDS18B20(void)
+ 764          {
+ 765   1      bit temp;
+ 766   1      DQ=1;
+ 767   1      for(time=0;time<2;time++);
+ 768   1      DQ=0;
+ 769   1      for(time=0;time<200;time++);
+ 770   1      DQ=1;
+ 771   1      for(time=0;time<10;time++);
+ 772   1      temp=DQ;
+ 773   1      for(time=0;time<200;time++);
+ 774   1      return temp;
+ 775   1      }
+ 776          /**************************¶ÁDS18B20**********************/
+ 777          unsigned char ReadDS18B20(void)
+ 778          {
+ 779   1      unsigned char i;
+ 780   1      unsigned char dat;
+ 781   1      for(i=0;i<8;i++)
+ 782   1      {
+ 783   2      DQ=1;
+ 784   2      _nop_();
+ 785   2      DQ=0;
+ 786   2      _nop_();
+ 787   2      DQ=1;
+ 788   2      for(time=0;time<2;time++);
+ 789   2      dat>>=1;
+ 790   2      if(DQ==1)
+ 791   2      dat=dat|0x80;
+ 792   2      else
+ 793   2      dat=dat|0x00;
+ 794   2      for(time=0;time<10;time++);
+ 795   2      }
+ 796   1      return dat;
+ 797   1      }
+ 798          /*********************ÏòDS18B20 Ð´Êý¾Ý**************************/
+ 799          void WriteDS18B20(unsigned char date)
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 14  
+
+ 800          {
+ 801   1      unsigned char i;
+ 802   1      for(i=0;i<8;i++)
+ 803   1      {
+ 804   2      DQ=1;
+ 805   2      _nop_();
+ 806   2      DQ=0;
+ 807   2      DQ=date&0x01;
+ 808   2      for(time=0;time<10;time++);
+ 809   2      DQ=1;
+ 810   2      for(time=0;time<1;time++);
+ 811   2      date>>=1;
+ 812   2      }
+ 813   1      for(time=0;time<4;time++);
+ 814   1      }
+ 815          /*******************Îª¶ÁÈ¡ÎÂ¶È×öºÃ×¼±¸************************/
+ 816          void ReadyreadDS18B20(void)
+ 817          {
+ 818   1      IntDS18B20();
+ 819   1      WriteDS18B20(0XCC);
+ 820   1      WriteDS18B20(0X44);
+ 821   1      delay1ms(200);
+ 822   1      IntDS18B20();
+ 823   1      WriteDS18B20(0XCC);
+ 824   1      WriteDS18B20(0XBE);
+ 825   1      }
+ 826          /*************ÔÚ1602 Òº¾§ÉÏÏÔÊ¾Ïà¹ØÐÅÏ¢Ä£¿é**********************/
+ 827          /****************µ±Î´¼ì²âµ½DS18B20 Ê±ÏÔÊ¾ÐÅÏ¢Ä£¿é****************/
+ 828          void Display_Error(void)
+ 829          {
+ 830   1      unsigned char i=0;
+ 831   1      Write_Address(0x00);
+ 832   1      while(displayerror[i]!='\0')
+ 833   1      {
+ 834   2      Write_Date(displayerror[i]);
+ 835   2      i++;
+ 836   2      delay1ms(100);
+ 837   2      }
+ 838   1      delay1ms(5);
+ 839   1      i=0;
+ 840   1      Write_Address(0x40);
+ 841   1      while(displayerror1[i]!='\0')
+ 842   1      {
+ 843   2      Write_Date(displayerror1[i]);
+ 844   2      i++;
+ 845   2      delay1ms(100);
+ 846   2      }
+ 847   1      delay1ms(3000) ;
+ 848   1      }
+ 849          /*************ÎÂ¶ÈÏÔÊ¾Ä£¿é****************/
+ 850          void Display_Explain(void)
+ 851          {
+ 852   1      unsigned char i=0;
+ 853   1      Write_Address(0x00);
+ 854   1      delay1ms(5);
+ 855   1      while(displayexplain[i]!='\0')
+ 856   1      {
+ 857   2      Write_Date(displayexplain[i]);
+ 858   2      i++;
+ 859   2      delay1ms(5);
+ 860   2      }
+ 861   1      i=0;
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 15  
+
+ 862   1      Write_Address(0x40);
+ 863   1      while(displaypart1[i]!='\0')
+ 864   1      {
+ 865   2      Write_Date(displaypart1[i]);
+ 866   2      i++;
+ 867   2      delay1ms(5);
+ 868   2      }
+ 869   1      i=0;
+ 870   1      Write_Address(0x4C);
+ 871   1      while(displaypart2[i]!='\0')
+ 872   1      {
+ 873   2      Write_Date(displaypart2[i]);
+ 874   2      i++;
+ 875   2      delay1ms(5);
+ 876   2      }
+ 877   1      Write_Address(0x49);
+ 878   1      Write_Date('.');
+ 879   1      delay1ms(5);
+ 880   1      }
+ 881          /*********************ÏÔÊ¾ÎÂ¶ÈÕûÊý²¿·Ö*************************/
+ 882          void Display_Integer(unsigned char x)
+ 883          {
+ 884   1      unsigned char i,j,k;
+ 885   1      i=x/100;
+ 886   1      j=x%100/10;
+ 887   1      k=x%10;
+ 888   1      Write_Address(0x46);
+ 889   1      if(flag==1) Write_Date('-');
+ 890   1      Write_Date(digit[i]);
+ 891   1      Write_Date(digit[j]);
+ 892   1      Write_Date(digit[k]);
+ 893   1      delay1ms(50) ;
+ 894   1      }
+ 895          /************ÏÔÊ¾ÎÂ¶ÈÐ¡Êý²¿·Ö*********************/
+ 896          void Display_Decimal(unsigned char x)
+ 897          {
+ 898   1      Write_Address(0x4A);
+ 899   1      delay1ms(5);
+ 900   1      Write_Date(digit[x]);
+ 901   1      delay1ms(50);
+ 902   1      }
+ 903          void displayovert(void)
+ 904          {
+ 905   1      unsigned char i;
+ 906   1      Write_com(0x01);
+ 907   1      delay1ms(10);
+ 908   1      Write_Address(0x03);
+ 909   1      delay1ms(10);
+ 910   1      Write_Date('W');
+ 911   1      Write_Date('A');
+ 912   1      Write_Date('R');
+ 913   1      Write_Date('N');
+ 914   1      Write_Date('I');
+ 915   1      Write_Date('N');
+ 916   1      Write_Date('G');
+ 917   1      Write_Date('!');
+ 918   1      Write_Address(0x40);
+ 919   1      while(overtemperature[i]!='\0')
+ 920   1      {
+ 921   2      Write_Date(overtemperature[i]);
+ 922   2      i++;
+ 923   2      delay1ms(10);
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 16  
+
+ 924   2      }
+ 925   1      }
+ 926          /*******************ÎÂ¶ÈÖ÷º¯Êý********************/
+ 927          void Temperature(void)
+ 928          {
+ 929   1      unsigned char i;
+ 930   1      delay1ms(5);
+ 931   1      if(IntDS18B20()!=0) Display_Error();
+ 932   1      else
+ 933   1      {
+ 934   2      delay1ms(1);
+ 935   2      Write_com(0x01);
+ 936   2      delay1ms(5);
+ 937   2      Display_Explain();
+ 938   2      for(length=50;length>0;length--)
+ 939   2      {
+ 940   3      for(i=0;i<6;i++)
+ 941   3      {
+ 942   4      flag=0;
+ 943   4      ReadyreadDS18B20();
+ 944   4      TL=ReadDS18B20();
+ 945   4      TH=ReadDS18B20();
+ 946   4      if((TH&0XF8)!=0X00)
+ 947   4      {
+ 948   5      flag=1;
+ 949   5      TL=~TL;
+ 950   5      TH=~TH;
+ 951   5      TL+=1;
+ 952   5      if(TL>255) TH+=1;
+ 953   5      TN=TH*16+TL/16;
+ 954   5      TD=(TL%16)*10/16;
+ 955   5      }
+ 956   4      TN=TH*16+TL/16;
+ 957   4      TD=(TL%16)*10/16;
+ 958   4      Display_Integer(TN);
+ 959   4      Display_Decimal(TD);
+ 960   4      delay1ms(10);
+ 961   4      }
+ 962   3      if(tempswitch==1)
+ 963   3      {
+ 964   4      if(TN>=Maxtemp)
+ 965   4      {
+ 966   5      Write_Address(0x03);
+ 967   5      delay1ms(5);
+ 968   5      displayovert();
+ 969   5      while(1)
+ 970   5      {
+ 971   6      baojing(1);
+ 972   6      if(CANL==0)
+ 973   6      {
+ 974   7      Write_com(0x01);
+ 975   7      delay1ms(5);
+ 976   7      break;
+ 977   7      }
+ 978   6      }
+ 979   5      }
+ 980   4      }
+ 981   3      if(CANL==0) break;
+ 982   3      }
+ 983   2      }
+ 984   1      }
+ 985          void tempset(void)
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 17  
+
+ 986          {
+ 987   1      if(ADD==0)
+ 988   1      {
+ 989   2      delay1ms(10);
+ 990   2      if(ADD==0)
+ 991   2      {
+ 992   3      Maxtemp++;
+ 993   3      while(ADD==0);
+ 994   3      }
+ 995   2      }
+ 996   1      if(RED==0)
+ 997   1      {
+ 998   2      delay1ms(10);
+ 999   2      if(RED==0)
+1000   2      {
+1001   3      Maxtemp--;
+1002   3      while(RED==0);
+1003   3      }
+1004   2      }
+1005   1      }
+1006          void Maxtempset(void) //¸ßÎÂ±¨¾¯ÉèÖÃ
+1007          {
+1008   1      Write_com(0x01);
+1009   1      delay1ms(10);
+1010   1      Write_Address(0x03);
+1011   1      delay1ms(10);
+1012   1      Write_Date('T');
+1013   1      Write_Date('E');
+1014   1      Write_Date('M');
+1015   1      Write_Date('P');
+1016   1      Write_Address(0x09);
+1017   1      Write_Date('S');
+1018   1      Write_Date('E');
+1019   1      Write_Date('T');
+1020   1      Write_Address(0x40);
+1021   1      Write_Date('M');
+1022   1      Write_Date('A');
+1023   1      Write_Date('X');
+1024   1      Write_Date(':');
+1025   1      while(1)
+1026   1      {
+1027   2      if(SET==0)
+1028   2      {
+1029   3      delay1ms(20);
+1030   3      if(SET==0)
+1031   3      {
+1032   4      Write_Address(0x4e);
+1033   4      Write_com(0x0f);
+1034   4      while(1)
+1035   4      {
+1036   5      if(ADD==0)
+1037   5      {
+1038   6      delay1ms(20);
+1039   6      if(ADD==0)
+1040   6      {
+1041   7      Write_Address(0x4b);
+1042   7      delay1ms(5);
+1043   7      Write_Date('O');
+1044   7      Write_Date('N');
+1045   7      Write_Date(' ');
+1046   7      tempswitch=1;
+1047   7      }
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 18  
+
+1048   6      }
+1049   5      if(RED==0)
+1050   5      {
+1051   6      delay1ms(20);
+1052   6      if(RED==0)
+1053   6      {
+1054   7      Write_Address(0x4b);
+1055   7      Write_Date('O');
+1056   7      Write_Date('F');
+1057   7      Write_Date('F');
+1058   7      tempswitch=0;
+1059   7      }
+1060   6      }
+1061   5      if(CANL==0)
+1062   5      {
+1063   6      delay1ms(500);
+1064   6      break;
+1065   6      }
+1066   5      }
+1067   4      }
+1068   3      }
+1069   2      if(tempswitch==1)
+1070   2      {
+1071   3      Write_Address(0x4b);
+1072   3      Write_Date('O');
+1073   3      Write_Date('N');
+1074   3      Write_Date(' ');
+1075   3      tempset();
+1076   3      displaymaxt(Maxtemp);
+1077   3      if(CANL==0)
+1078   3      {
+1079   4      Write_com(0x01);
+1080   4      displaymainpart();
+1081   4      break;
+1082   4      }
+1083   3      }
+1084   2      if(tempswitch==0)
+1085   2      {
+1086   3      Write_com(0x0c);
+1087   3      Write_Address(0x4b);
+1088   3      Write_Date('O');
+1089   3      Write_Date('F');
+1090   3      Write_Date('F');
+1091   3      }
+1092   2      if(CANL==0)
+1093   2      {
+1094   3      Write_com(0x01);
+1095   3      displaymainpart();
+1096   3      break;
+1097   3      }
+1098   2      }
+1099   1      }
+1100          void alarmswitchset(void)
+1101          {
+1102   1      while(1)
+1103   1      {
+1104   2      if(ADD==0)
+1105   2      {
+1106   3      delay1ms(100);
+1107   3      if(ADD==0)
+1108   3      {
+1109   4      alarmmode=1;
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 19  
+
+1110   4      Write_Address(0x4c);
+1111   4      Write_Date('O');
+1112   4      Write_Date('N');
+1113   4      Write_Date(' ');
+1114   4      }
+1115   3      }
+1116   2      if(RED==0)
+1117   2      {
+1118   3      alarmmode=0;
+1119   3      Write_Address(0x4c);
+1120   3      Write_Date('O');
+1121   3      Write_Date('F');
+1122   3      Write_Date('F');
+1123   3      }
+1124   2      if(CANL==0)
+1125   2      {
+1126   3      delay1ms(500);
+1127   3      break;
+1128   3      }
+1129   2      }
+1130   1      }
+1131          /**************** ÉèÖÃÄ£¿é******************/
+1132          void Set(void)
+1133          {
+1134   1      if(SET==0)
+1135   1      {
+1136   2      delay1ms(10);
+1137   2      if(SET==0)
+1138   2      {
+1139   3      
+1140   3      Write_Address(0x40);
+1141   3      Write_Date('T');
+1142   3      Write_com(0x0f);
+1143   3      delay1ms(1000);
+1144   3      Write_com(0x0c);
+1145   3      while(1)
+1146   3      {
+1147   4      TimeSet();
+1148   4      if(ADD==0)
+1149   4      {
+1150   5      delay1ms(20);
+1151   5      if(ADD==0)
+1152   5      {
+1153   6      Write_com(0x01);
+1154   6      Write_Address(0x00);
+1155   6      delay1ms(5);
+1156   6      Write_Date('S');
+1157   6      delay1ms(10);
+1158   6      Maxtempset();
+1159   6      }
+1160   5      }
+1161   4      if(RED==0)
+1162   4      {
+1163   5      delay1ms(20);
+1164   5      if(RED==0)
+1165   5      {
+1166   6      Write_com(0x01);
+1167   6      delay1ms(5);
+1168   6      Write_Address(0x02);
+1169   6      Write_Date('A');
+1170   6      Write_Date('L');
+1171   6      Write_Date('A');
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 20  
+
+1172   6      Write_Date('R');
+1173   6      Write_Date('M');
+1174   6      Write_Address(0x09);
+1175   6      Write_Date('S');
+1176   6      Write_Date('E');
+1177   6      Write_Date('T');
+1178   6      Write_Address(0x46);
+1179   6      Write_Date('-');
+1180   6      display_houra(houra);
+1181   6      display_minutea(minutea);
+1182   6      if(alarmmode==1)
+1183   6      {
+1184   7      Write_Address(0x4c);
+1185   7      Write_Date('O');
+1186   7      Write_Date('N');
+1187   7      Write_Date(' ');
+1188   7      }
+1189   6      if(alarmmode==0)
+1190   6      {
+1191   7      Write_Address(0x4c);
+1192   7      Write_Date('O');
+1193   7      Write_Date('F');
+1194   7      Write_Date('F');
+1195   7      }
+1196   6      while(1)
+1197   6      {
+1198   7      if(SET==0)
+1199   7      {
+1200   8      delay1ms(100);
+1201   8      if(SET==0)
+1202   8      {
+1203   9      amode++;
+1204   9      switch(amode)
+1205   9      {
+1206  10      case(1):{gbdisplay(0x45);alarmhourset();Write_com(0x0c);delay1ms(500);} break;
+1207  10      case(2):{gbdisplay(0x48);alarmminuteset();Write_com(0x0c);delay1ms(500);} break;
+1208  10      case(3):{gbdisplay(0x4c);alarmswitchset();Write_com(0x0c);delay1ms(500);} break;
+1209  10      }
+1210   9      if(amode==4) amode=0;
+1211   9      }
+1212   8      }
+1213   7      if(CANL==0)
+1214   7      {
+1215   8      Write_com(0x01);
+1216   8      delay1ms(5);
+1217   8      displaymainpart();
+1218   8      break;
+1219   8      }
+1220   7      }
+1221   6      }
+1222   5      }
+1223   4      if(CANL==0)
+1224   4      {
+1225   5      Write_Address(0x40);
+1226   5      Write_Date(' ');
+1227   5      Write_com(0x0c);
+1228   5      break;
+1229   5      }
+1230   4      }
+1231   3      }
+1232   2      }
+1233   1      }
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 21  
+
+1234          /***************Ö÷º¯Êý**********************/
+1235          void main()
+1236          {
+1237   1      IE=0X82; //´ò¿ª¶¨Ê±ÖÐ¶Ï
+1238   1      TMOD=0X01; //Ñ¡Ôñ¶¨Ê±Æ÷0 ¹¤×÷ÔÚ·½Ê½1
+1239   1      TR0=0; //Æô¶¯¶¨Ê±Æ÷0
+1240   1      IntDS1302(); //³õÊ¼»¯DS1302
+1241   1      delay1ms(1);
+1242   1      Lcd_Int(); //1602 Òº¾§³õÊ¼»¯
+1243   1      delay1ms(2);
+1244   1      displaystar(); //ÏÔÊ¾»¶Ó­½çÃæ
+1245   1      displaymainpart(); //ÏÔÊ¾Ö÷Òª²¿·Ö£¨²»±ä»¯£©
+1246   1      while(1)
+1247   1      {
+1248   2      display_Time( );
+1249   2      Set( );
+1250   2      if(ADD==0)
+1251   2      {
+1252   3      Write_com(0x01);
+1253   3      delay1ms(5);
+1254   3      Temperature();
+1255   3      Write_com(0x01);
+1256   3      displaymainpart();
+1257   3      }
+1258   2      if((hours==houra)&&(minutes==minutea)&&(seconds==0))
+1259   2      {
+1260   3      if(alarmmode==1)
+1261   3      {
+1262   4      Write_com(0x01);
+1263   4      delay1ms(5);
+1264   4      Write_Address(0x03);
+1265   4      Write_Date('T');
+1266   4      Write_Date('I');
+1267   4      Write_Date('M');
+1268   4      Write_Date('E');
+1269   4      Write_Address(0x08);
+1270   4      Write_Date('U');
+1271   4      Write_Date('P');
+1272   4      Write_Date('!');
+1273   4      delay1ms(5);
+1274   4      while(1)
+1275   4      {
+1276   5      baojing(1);
+1277   5      if(CANL==0)
+1278   5      {
+1279   6      Write_com(0x01);
+1280   6      delay1ms(5);
+1281   6      displaymainpart();
+1282   6      break;
+1283   6      }
+1284   5      }
+1285   4      }
+1286   3      }
+1287   2      }
+1288   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   3946    ----
+   CONSTANT SIZE    =    132    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+C51 COMPILER V9.01   ¶à¹¦Ä_µç×Ó_Ó                                                          03/26/2020 14:04:11 PAGE 22  
+
+   DATA SIZE        =     17      26
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       2
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

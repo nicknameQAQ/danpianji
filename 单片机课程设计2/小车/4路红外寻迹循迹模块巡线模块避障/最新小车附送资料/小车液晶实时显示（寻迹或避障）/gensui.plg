@@ -1,0 +1,284 @@
+<html>
+<body>
+<pre>
+<h1>礦ision2 Build Log</h1>
+<h2>Project:</h2>
+E:\taobao\机器人控制板\程序列表\小车液晶实时显示（寻迹或避障）\5110xianshi.uv2
+Project File Date:  04/29/2010
+
+<h2>Output:</h2>
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+GEN.C(383): error C202: 'k': undefined identifier
+GEN.C(389): error C202: 'lj': undefined identifier
+GEN.C(390): error C202: 'k': undefined identifier
+GEN.C(394): error C202: 'P10': undefined identifier
+GEN.C(395): error C202: 'P11': undefined identifier
+GEN.C(396): error C202: 'P12': undefined identifier
+GEN.C(397): error C202: 'P13': undefined identifier
+GEN.C(402): error C202: 'P10': undefined identifier
+GEN.C(403): error C202: 'P11': undefined identifier
+GEN.C(414): error C202: 'k': undefined identifier
+GEN.C(419): error C202: 'P12': undefined identifier
+GEN.C(420): error C202: 'P13': undefined identifier
+GEN.C(426): error C141: syntax error near ';'
+GEN.C(429): error C202: 'k': undefined identifier
+GEN.C(434): error C202: 'P10': undefined identifier
+GEN.C(435): error C202: 'P11': undefined identifier
+GEN.C(436): error C202: 'P12': undefined identifier
+GEN.C(437): error C202: 'P13': undefined identifier
+GEN.C(446): error C202: 'k': undefined identifier
+Target not created
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+GEN.C(384): error C202: 'k': undefined identifier
+GEN.C(390): error C202: 'lj': undefined identifier
+GEN.C(391): error C202: 'k': undefined identifier
+GEN.C(395): error C202: 'P10': undefined identifier
+GEN.C(396): error C202: 'P11': undefined identifier
+GEN.C(397): error C202: 'P12': undefined identifier
+GEN.C(398): error C202: 'P13': undefined identifier
+GEN.C(403): error C202: 'P10': undefined identifier
+GEN.C(404): error C202: 'P11': undefined identifier
+GEN.C(415): error C202: 'k': undefined identifier
+GEN.C(420): error C202: 'P12': undefined identifier
+GEN.C(421): error C202: 'P13': undefined identifier
+GEN.C(427): error C141: syntax error near ';'
+GEN.C(430): error C202: 'k': undefined identifier
+GEN.C(435): error C202: 'P10': undefined identifier
+GEN.C(436): error C202: 'P11': undefined identifier
+GEN.C(437): error C202: 'P12': undefined identifier
+GEN.C(438): error C202: 'P13': undefined identifier
+GEN.C(447): error C202: 'k': undefined identifier
+Target not created
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+GEN.C(390): error C202: 'lj': undefined identifier
+GEN.C(395): error C202: 'P10': undefined identifier
+GEN.C(396): error C202: 'P11': undefined identifier
+GEN.C(397): error C202: 'P12': undefined identifier
+GEN.C(398): error C202: 'P13': undefined identifier
+GEN.C(403): error C202: 'P10': undefined identifier
+GEN.C(404): error C202: 'P11': undefined identifier
+GEN.C(420): error C202: 'P12': undefined identifier
+GEN.C(421): error C202: 'P13': undefined identifier
+GEN.C(427): error C141: syntax error near ';'
+GEN.C(435): error C202: 'P10': undefined identifier
+GEN.C(436): error C202: 'P11': undefined identifier
+GEN.C(437): error C202: 'P12': undefined identifier
+GEN.C(438): error C202: 'P13': undefined identifier
+Target not created
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+GEN.C(390): error C202: 'lj': undefined identifier
+GEN.C(395): error C202: 'P10': undefined identifier
+GEN.C(396): error C202: 'P11': undefined identifier
+GEN.C(397): error C202: 'P12': undefined identifier
+GEN.C(398): error C202: 'P13': undefined identifier
+GEN.C(403): error C202: 'P10': undefined identifier
+GEN.C(404): error C202: 'P11': undefined identifier
+GEN.C(420): error C202: 'P12': undefined identifier
+GEN.C(421): error C202: 'P13': undefined identifier
+GEN.C(435): error C202: 'P10': undefined identifier
+GEN.C(436): error C202: 'P11': undefined identifier
+GEN.C(437): error C202: 'P12': undefined identifier
+GEN.C(438): error C202: 'P13': undefined identifier
+Target not created
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+GEN.C(396): error C202: 'P10': undefined identifier
+GEN.C(397): error C202: 'P11': undefined identifier
+GEN.C(398): error C202: 'P12': undefined identifier
+GEN.C(399): error C202: 'P13': undefined identifier
+GEN.C(404): error C202: 'P10': undefined identifier
+GEN.C(405): error C202: 'P11': undefined identifier
+GEN.C(421): error C202: 'P12': undefined identifier
+GEN.C(422): error C202: 'P13': undefined identifier
+GEN.C(436): error C202: 'P10': undefined identifier
+GEN.C(437): error C202: 'P11': undefined identifier
+GEN.C(438): error C202: 'P12': undefined identifier
+GEN.C(439): error C202: 'P13': undefined identifier
+Target not created
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+GEN.C(396): error C202: 'P10': undefined identifier
+GEN.C(397): error C202: 'P11': undefined identifier
+GEN.C(398): error C202: 'P12': undefined identifier
+GEN.C(399): error C202: 'P13': undefined identifier
+GEN.C(404): error C202: 'P10': undefined identifier
+GEN.C(405): error C202: 'P11': undefined identifier
+GEN.C(421): error C202: 'P12': undefined identifier
+GEN.C(422): error C202: 'P13': undefined identifier
+GEN.C(436): error C202: 'P10': undefined identifier
+GEN.C(437): error C202: 'P11': undefined identifier
+GEN.C(438): error C202: 'P12': undefined identifier
+GEN.C(439): error C202: 'P13': undefined identifier
+Target not created
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+GEN.C(396): error C202: 'P10': undefined identifier
+GEN.C(397): error C202: 'P11': undefined identifier
+GEN.C(398): error C202: 'P12': undefined identifier
+GEN.C(399): error C202: 'P13': undefined identifier
+GEN.C(404): error C202: 'P10': undefined identifier
+GEN.C(405): error C202: 'P11': undefined identifier
+GEN.C(421): error C202: 'P12': undefined identifier
+GEN.C(422): error C202: 'P13': undefined identifier
+GEN.C(436): error C202: 'P10': undefined identifier
+GEN.C(437): error C202: 'P11': undefined identifier
+GEN.C(438): error C202: 'P12': undefined identifier
+GEN.C(439): error C202: 'P13': undefined identifier
+Target not created
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+GEN.C(404): error C202: 'P10': undefined identifier
+GEN.C(405): error C202: 'P11': undefined identifier
+GEN.C(421): error C202: 'P12': undefined identifier
+GEN.C(422): error C202: 'P13': undefined identifier
+GEN.C(436): error C202: 'P10': undefined identifier
+GEN.C(437): error C202: 'P11': undefined identifier
+GEN.C(438): error C202: 'P12': undefined identifier
+GEN.C(439): error C202: 'P13': undefined identifier
+Target not created
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_LCD_WRITE_HANZI?GEN
+Program Size: data=9.0 xdata=0 code=1433
+creating hex file from "gensui"...
+"gensui" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+linking...
+Program Size: data=9.0 xdata=0 code=1588
+creating hex file from "gensui"...
+"gensui" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+linking...
+Program Size: data=9.0 xdata=0 code=1589
+creating hex file from "gensui"...
+"gensui" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+linking...
+Program Size: data=9.0 xdata=0 code=1589
+creating hex file from "gensui"...
+"gensui" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+linking...
+Program Size: data=9.0 xdata=0 code=1589
+creating hex file from "gensui"...
+"gensui" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_LCD_WRITE_SHU?GEN
+Program Size: data=9.0 xdata=0 code=1474
+creating hex file from "gensui"...
+"gensui" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_LCD_WRITE_SHU?GEN
+Program Size: data=9.0 xdata=0 code=1474
+creating hex file from "gensui"...
+"gensui" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+linking...
+Program Size: data=9.0 xdata=0 code=1433
+creating hex file from "gensui"...
+"gensui" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_LCD_WRITE_SHU?GEN
+Program Size: data=9.0 xdata=0 code=1433
+creating hex file from "gensui"...
+"gensui" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_LCD_WRITE_SHU?GEN
+Program Size: data=9.0 xdata=0 code=1689
+creating hex file from "gensui"...
+"gensui" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_LCD_WRITE_SHU?GEN
+Program Size: data=9.0 xdata=0 code=1721
+creating hex file from "gensui"...
+"gensui" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_LCD_WRITE_SHU?GEN
+Program Size: data=9.0 xdata=0 code=1719
+creating hex file from "gensui"...
+"gensui" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_LCD_WRITE_SHU?GEN
+Program Size: data=9.0 xdata=0 code=1844
+creating hex file from "gensui"...
+"gensui" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_LCD_WRITE_SHU?GEN
+Program Size: data=11.0 xdata=0 code=1955
+creating hex file from "gensui"...
+"gensui" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_LCD_WRITE_SHU?GEN
+Program Size: data=11.0 xdata=0 code=2018
+creating hex file from "gensui"...
+"gensui" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling gen.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_LCD_WRITE_SHU?GEN
+Program Size: data=11.0 xdata=0 code=2018
+creating hex file from "gensui"...
+"gensui" - 0 Error(s), 1 Warning(s).

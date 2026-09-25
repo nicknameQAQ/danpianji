@@ -1,0 +1,679 @@
+C51 COMPILER V8.02   DIANZICHENG1                                                          03/16/2009 18:22:23 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE DIANZICHENG1
+OBJECT MODULE PLACED IN dianzicheng1.OBJ
+COMPILER INVOKED BY: D:\Program Files\keil802\C51\BIN\C51.EXE dianzicheng1.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include<reg51.h>
+   2          #include<intrins.h>
+   3          #include <absacc.h>
+   4          #include <math.h>
+   5          
+   6          #define uchar unsigned char
+   7          #define uint   unsigned int
+   8          #define BUSY  0x80          //常量定义
+   9          #define DATAPORT P0
+  10          
+  11          
+  12          //ADC0832的引脚
+  13          sbit ADCS =P3^5;  //ADC0832 chip seclect
+  14          sbit ADDI =P3^7;  //ADC0832 k in
+  15          sbit ADDO =P3^7;  //ADC0832 k out
+  16          sbit ADCLK =P3^6;  //ADC0832 clock signal
+  17          
+  18          sbit LCM_RS=P2^0;
+  19          sbit LCM_RW=P2^1;
+  20          sbit LCM_EN=P2^2;
+  21          
+  22          uchar ad_data,key;
+  23          uchar rrr=0xff;
+  24          uchar alldata[12]={0};
+  25          uchar love[14];
+  26          uchar exit=0,yes=0,kind=0,fu=0,pfu=0,position1=0,position2=0;
+  27          unsigned long  data1=0,data2=0,data3=0,ddata=0;    //采样值存储
+  28          sbit Alarm_led_red =P3^0;                         //超过重量表量程最大值红色led报警定义
+  29          sbit Alarm_led_green=P3^1;                        //低于零表量程最小值绿色led报警定义
+  30          //adc采样值存储单元
+  31          char press_data;                                  //标度变换存储单元
+  32          unsigned char ad_alarm;                           //报警值存储单元
+  33          unsigned char press_ge=0;                        //显示值百位
+  34          unsigned char press_shifen=0;                      //显示值十位
+  35          unsigned char press_baifen=0;                       //显示值个位
+  36          unsigned char press_qianfen=0;                      //显示值十分位
+  37          
+  38          uchar code str0[]={"Weight:  .   Kg "};
+  39          uchar code str2[]={"Price: "};
+  40          uchar code str3[]={"Total:          "};
+  41          void delay(uint);
+  42          void lcd_wait(void);
+  43          void delay_LCM(uint);                                               //LCD延时子程序
+  44          void initLCM( void);                                                    //LCD初始化子程序
+  45          void lcd_wait(void);                                                    //LCD检测忙子程序
+  46          void WriteCommandLCM(uchar WCLCM,uchar BusyC);      //写指令到ICM子函数
+  47          void WriteDataLCM(uchar WDLCM);                     //写数据到LCM子函数
+  48          void DisplayOneChar(uchar X,uchar Y,uchar DData);        //显示指定坐标的一个字符子函数
+  49          void DisplayListChar(uchar X,uchar Y,uchar code *DData); //显示指定坐标的一串字符子函数
+  50          void error(void);
+  51          unsigned long shi(uchar k);
+  52          void out(void);                     
+  53          uchar keyscan(void);                   
+  54          void display(void); 
+  55          void  display(uchar); 
+C51 COMPILER V8.02   DIANZICHENG1                                                          03/16/2009 18:22:23 PAGE 2   
+
+  56          void  keydisplay(uchar);
+  57          void  prodis(void);        
+  58          void  clear(void);
+  59          void  datapc(void);
+  60          void remove0(void);
+  61          void  data3dis(void);                                       //系统显示子函数
+  62          uchar Adc0832(unsigned char channel);                                                                                                                   
+  63          void alarm(void);
+  64          void data_pro(void);
+  65          
+  66          
+  67          /**********main funcation************/
+  68          
+  69          void main(void)
+  70          { 
+  71   1          delay(500);                      //系统延时500ms启动
+  72   1              ad_data=0;                       //采样值存储单元初始化为0
+  73   1              initLCM( );
+  74   1              
+  75   1              WriteCommandLCM(0x01,1);                    //清显示屏
+  76   1          DisplayListChar(0,0,str0);
+  77   1               WriteCommandLCM(0x01,0); 
+  78   1              DisplayListChar(0,1,str2);
+  79   1       
+  80   1              while(1)
+  81   1          {
+  82   2                 ad_data =Adc0832(0);    //采样值存储单元初始化为0
+  83   2                 alarm();
+  84   2             data_pro();
+  85   2                 display();
+  86   2                 key=keyscan();
+  87   2                 delay(5);
+  88   2                 if(exit==1)
+  89   2                        keydisplay(key);       
+  90   2               }
+  91   1      
+  92   1       }
+  93          /*********延时K*1ms,12.000Mhz**********/
+  94          
+  95          void delay(uint k)
+  96          {
+  97   1          uint i,j;
+  98   1          for(i=0;i<k;i++)
+  99   1           for(j=0;j<60;j++);
+ 100   1            
+ 101   1      }   
+ 102          /**********写指令到ICM子函数************/
+ 103          
+ 104          void WriteCommandLCM(uchar WCLCM,uchar BusyC)
+ 105          {
+ 106   1          if(BusyC)
+ 107   1              lcd_wait();
+ 108   1              DATAPORT=WCLCM;
+ 109   1          LCM_RS=0;                   // 选中指令寄存器
+ 110   1          LCM_RW=0;                   // 写模式       
+ 111   1          LCM_EN=1;    
+ 112   1              _nop_();   
+ 113   1              _nop_();
+ 114   1              _nop_(); 
+ 115   1          LCM_EN=0;
+ 116   1         
+ 117   1      }
+C51 COMPILER V8.02   DIANZICHENG1                                                          03/16/2009 18:22:23 PAGE 3   
+
+ 118          
+ 119          /**********写数据到LCM子函数************/
+ 120          
+ 121          void WriteDataLCM(uchar WDLCM)
+ 122          { 
+ 123   1          lcd_wait( );             //检测忙信号    
+ 124   1              DATAPORT=WDLCM;
+ 125   1          LCM_RS=1;                // 选中数据寄存器
+ 126   1          LCM_RW=0;                    // 写模式
+ 127   1          LCM_EN=1;
+ 128   1          _nop_();
+ 129   1              _nop_();
+ 130   1              _nop_();
+ 131   1          LCM_EN=0;
+ 132   1      }
+ 133          
+ 134          /***********lcm内部等待函数*************/
+ 135          
+ 136          void lcd_wait(void)
+ 137          {
+ 138   1          DATAPORT=0xff;           //读LCD前若单片机输出低电平,而读出LCD为高电平,则冲突,Proteus仿真会有显示逻辑黄色
+ 139   1              LCM_EN=1;
+ 140   1          LCM_RS=0;   
+ 141   1          LCM_RW=1;   
+ 142   1          _nop_();
+ 143   1          _nop_();
+ 144   1              _nop_();
+ 145   1          while(DATAPORT&BUSY)  
+ 146   1              {  LCM_EN=0;
+ 147   2                 _nop_();
+ 148   2                 _nop_();
+ 149   2                 LCM_EN=1;
+ 150   2                 _nop_();
+ 151   2                 _nop_();
+ 152   2                 }     
+ 153   1              LCM_EN=0;       
+ 154   1              
+ 155   1      }
+ 156          
+ 157          /**********LCM初始化子函数***********/
+ 158          
+ 159          void initLCM( )
+ 160          {   
+ 161   1              DATAPORT=0;     
+ 162   1              delay(15);
+ 163   1              WriteCommandLCM(0x38,0);    //三次显示模式设置，不检测忙信号
+ 164   1          delay(5); 
+ 165   1          WriteCommandLCM(0x38,0);
+ 166   1          delay(5); 
+ 167   1          WriteCommandLCM(0x38,0);
+ 168   1          delay(5); 
+ 169   1      
+ 170   1          WriteCommandLCM(0x38,1);    //8bit数据传送，2行显示，5*7字型，检测忙信号
+ 171   1          WriteCommandLCM(0x08,1);    //关闭显示，检测忙信号
+ 172   1          WriteCommandLCM(0x01,1);    //清屏，检测忙信号
+ 173   1          WriteCommandLCM(0x06,1);    //显示光标右移设置，检测忙信号
+ 174   1          WriteCommandLCM(0x0c,1);    //显示屏打开，光标不显示，不闪烁，检测忙信号
+ 175   1      }
+ 176          
+ 177          /****显示指定坐标的一个字符子函数****/
+ 178          
+ 179          void DisplayOneChar(uchar X,uchar Y,uchar DData)
+C51 COMPILER V8.02   DIANZICHENG1                                                          03/16/2009 18:22:23 PAGE 4   
+
+ 180          
+ 181          {
+ 182   1          Y&=0x01;
+ 183   1          X&=0x0f;
+ 184   1          if(Y)X|=0x40;               //若y为1（显示第二行），地址码+0X40
+ 185   1          X|=0x80;                    //指令码为地址码+0X80
+ 186   1          WriteCommandLCM(X,1);
+ 187   1          WriteDataLCM(DData);
+ 188   1      }
+ 189          
+ 190          /*******显示指定坐标的一串字符子函数*****/
+ 191           
+ 192          void DisplayListChar(uchar X,uchar Y,uchar code *DData)
+ 193            {
+ 194   1          uchar ListLength=0;
+ 195   1          Y&=0x01;
+ 196   1          X&=0x0f;
+ 197   1          while(X<16)
+ 198   1          {
+ 199   2              DisplayOneChar(X,Y,DData[ListLength]);
+ 200   2              ListLength++;
+ 201   2              X++;
+ 202   2          }
+ 203   1        }
+ 204          void error(void)
+ 205          {
+ 206   1        uchar derror[8]={'E','R','R','O','R','!','!','!'};
+ 207   1        uchar k;
+ 208   1        for(k=0;k<=7;k++)
+ 209   1        {
+ 210   2         WriteCommandLCM(0xc8+k,0);
+ 211   2         WriteDataLCM(derror[k]);
+ 212   2         DisplayOneChar(7,1,derror[k]);
+ 213   2         delay(5);
+ 214   2        }
+ 215   1      }
+ 216          
+ 217          void out(void)
+ 218          {
+ 219   1         uchar k;
+ 220   1         uchar dout[12]={'O','U','T',' ','O','F',' ','R','A','N','G','E'};
+ 221   1         for(k=0;k<=11;k++)
+ 222   1        {
+ 223   2         WriteCommandLCM(0xc4+k,0);
+ 224   2         WriteDataLCM(dout[k]);
+ 225   2         DisplayOneChar(7,1,dout[k]);
+ 226   2         delay(5);
+ 227   2        }
+ 228   1      }
+ 229          
+ 230          unsigned long shi(uchar n)
+ 231          {
+ 232   1         int m=1;
+ 233   1         while(n!=0)
+ 234   1          {
+ 235   2           m=m*10;
+ 236   2           n--;
+ 237   2          }
+ 238   1       return(m);
+ 239   1      }
+ 240          
+ 241               /*键盘扫描子程序*/
+C51 COMPILER V8.02   DIANZICHENG1                                                          03/16/2009 18:22:23 PAGE 5   
+
+ 242          uchar keyscan()
+ 243          {
+ 244   1        uchar i=0,j=0;
+ 245   1        P1=0xf0;
+ 246   1        if(((~P1) & 0xf0)!=0)
+ 247   1         {
+ 248   2           delay(10);
+ 249   2           if(((~P1) & 0xf0)!=0)
+ 250   2            {
+ 251   3              exit=1;
+ 252   3              P1=0xfe;
+ 253   3              while(((~P1) & 0x0f)!=0) 
+ 254   3              {
+ 255   4                if(((~P1) & 0xf0)!=0) 
+ 256   4                {
+ 257   5                    switch((~P1) & 0xf0)
+ 258   5                {
+ 259   6                case 0x10:
+ 260   6                j=0;break;
+ 261   6                case 0x20:
+ 262   6                j=1;break;
+ 263   6                case 0x40:
+ 264   6                j=2;break;
+ 265   6                case 0x80:
+ 266   6                j=3;break;
+ 267   6                }
+ 268   5                      
+ 269   5              return(4*i+j);
+ 270   5            }
+ 271   4            else
+ 272   4            {  
+ 273   5             P1=P1<<1;
+ 274   5             i++;
+ 275   5            }
+ 276   4         }
+ 277   3        }
+ 278   2      }
+ 279   1      exit=0;
+ 280   1      return(key);
+ 281   1      }
+ 282           /*****************系统显示子函数*****************/
+ 283          
+ 284          void display(void)
+ 285          {
+ 286   1              WriteCommandLCM(0x0c,1);                                //显示屏打开，光标不显示，不闪烁，检测忙信号    
+ 287   1              DisplayListChar(0,0,str0);      
+ 288   1              DisplayListChar(0,1,str2);      
+ 289   1      
+ 290   1      
+ 291   1              DisplayOneChar(8,0,press_ge+0x30);
+ 292   1              DisplayOneChar(10,0,press_shifen+0x30);
+ 293   1              DisplayOneChar(11,0,press_baifen+0x30);
+ 294   1          DisplayOneChar(12,0,press_qianfen+0x30);
+ 295   1              delay(1000);                               //稳定显示
+ 296   1      }
+ 297          /**********************************键盘显示子函数**********************************/
+ 298          void keydisplay(uchar C)
+ 299          {
+ 300   1        WriteCommandLCM(0x0c,1); 
+ 301   1        DisplayListChar(0,1,str2);
+ 302   1       switch(C)
+ 303   1       {
+C51 COMPILER V8.02   DIANZICHENG1                                                          03/16/2009 18:22:23 PAGE 6   
+
+ 304   2               case 0:clear();
+ 305   2                      break;
+ 306   2               case 1:prodis();
+ 307   2                      alldata[rrr]=0;
+ 308   2                      WriteDataLCM('0');
+ 309   2                      break;
+ 310   2               case 2:prodis();
+ 311   2                      WriteDataLCM('=');       
+ 312   2                      kind=kind+10;
+ 313   2                      position2=rrr;
+ 314   2                      datapc();
+ 315   2                      remove0();
+ 316   2                      data3dis();
+ 317   2                      break;
+ 318   2               case 3:prodis();
+ 319   2                      kind=kind+1;             //加法运算， kind=1
+ 320   2                      position1=rrr;
+ 321   2                      WriteDataLCM('+');
+ 322   2                      break;
+ 323   2               case 4:prodis();
+ 324   2                      alldata[rrr]=1;
+ 325   2                      WriteDataLCM('1');
+ 326   2                      break;
+ 327   2               case 5:prodis();
+ 328   2                      alldata[rrr]=2;
+ 329   2                      WriteDataLCM('2');
+ 330   2                      break;
+ 331   2               case 6:prodis();
+ 332   2                      alldata[rrr]=3;
+ 333   2                      WriteDataLCM('3');
+ 334   2                      break;
+ 335   2               case 7:prodis();
+ 336   2                      kind=kind+5;             //减法运算， kind=5
+ 337   2                      position1=rrr;
+ 338   2                      WriteDataLCM('-');
+ 339   2                      break;
+ 340   2               case 8:prodis();
+ 341   2                      alldata[rrr]=4;
+ 342   2                      WriteDataLCM('4');
+ 343   2                      break;
+ 344   2               case 9:prodis();
+ 345   2                      alldata[rrr]=5;
+ 346   2                      WriteDataLCM('5');
+ 347   2                      break;
+ 348   2               case 10:prodis();
+ 349   2                       alldata[rrr]=6;
+ 350   2                       WriteDataLCM('6');
+ 351   2                      break;
+ 352   2               case 11:prodis();
+ 353   2                       kind=kind+25;             //乘法运算， kind=25
+ 354   2                       position1=rrr;
+ 355   2                       WriteDataLCM('*');
+ 356   2                       break;
+ 357   2               case 12:prodis();
+ 358   2                       alldata[rrr]=7;
+ 359   2                       WriteDataLCM('7');
+ 360   2                       break;
+ 361   2               case 13:prodis();
+ 362   2                       alldata[rrr]=8;
+ 363   2                       WriteDataLCM('8');
+ 364   2                       break;
+ 365   2               case 14:prodis();
+C51 COMPILER V8.02   DIANZICHENG1                                                          03/16/2009 18:22:23 PAGE 7   
+
+ 366   2                       alldata[rrr]=9;
+ 367   2                       WriteDataLCM('9'); 
+ 368   2                       break;
+ 369   2               case 15:prodis();
+ 370   2                       kind=kind+125;              //除法运算， kind=125
+ 371   2                       position1=rrr;
+ 372   2                       WriteDataLCM('/');   
+ 373   2                       break;
+ 374   2               default:
+ 375   2               break;
+ 376   2               }
+ 377   1          }
+ 378          
+ 379          void datapc(void)
+ 380          {
+ 381   1        uchar k;
+ 382   1        if((position1==0) || (position2==(position1+1)))
+ 383   1             yes=1;
+ 384   1        else
+ 385   1         {
+ 386   2          for(k=0;k<position1;k++)
+ 387   2          {
+ 388   3            ddata=shi(position1-1-k);
+ 389   3            data1=data1+(alldata[k])*ddata;  
+ 390   3          }
+ 391   2          for(k=position1+1;k<position2;k++)
+ 392   2          {
+ 393   3             ddata=shi(position2-1-k);
+ 394   3             data2=data2+(alldata[k])*ddata;  
+ 395   3          }
+ 396   2        if((data1 > 50000) || (data2 > 50000))
+ 397   2               {yes=2;}
+ 398   2        else
+ 399   2          {
+ 400   3            switch (kind)
+ 401   3              {
+ 402   4               case 11:data3=data1+data2;yes=0;
+ 403   4                               break;
+ 404   4               case 15: if(data1<data2)
+ 405   4                       {
+ 406   5                                         ddata=data1;
+ 407   5                                         data1=data2;
+ 408   5                                         data2=ddata;
+ 409   5                                         fu=1;
+ 410   5                                        }
+ 411   4                           data3=data1-data2;yes=0;
+ 412   4                                        break;
+ 413   4               case 35:data3=data1*data2;yes=0;
+ 414   4                                break;
+ 415   4               case 135:data3=data1/data2;yes=0;
+ 416   4                                break;
+ 417   4               default:yes=1;
+ 418   4              }
+ 419   3          }
+ 420   2      }
+ 421   1      if(yes==0)
+ 422   1       {
+ 423   2         love[0]=data3 / 1000000000;
+ 424   2         love[1]=data3 / 100000000-love[0]*10;
+ 425   2         love[2]=data3 / 10000000-love[0]*100-love[1]*10;
+ 426   2         love[3]=data3 / 1000000-love[0]*1000-love[1]*100-love[2]*10;
+ 427   2         love[4]=data3 / 100000-love[0]*10000-love[1]*1000-love[2]*100-love[3]*10;
+C51 COMPILER V8.02   DIANZICHENG1                                                          03/16/2009 18:22:23 PAGE 8   
+
+ 428   2         love[5]=data3 / 10000-love[0]*100000-love[1]*10000-love[2]*1000-love[3]*100-love[4]*10;
+ 429   2         love[6]=(data3 % 10000)/1000;
+ 430   2         love[7]=(data3 % 1000)/100;
+ 431   2         love[8]=(data3 % 100)/10;
+ 432   2         love[9]= data3 % 10;
+ 433   2       }
+ 434   1      if(kind==135)
+ 435   1       {
+ 436   2         love[10]=0xfe;
+ 437   2         love[11]=((data1 % data2)*10)/data2;
+ 438   2         love[12]=((((data1 % data2)*10)%data2)*10)/data2;
+ 439   2         love[13]=((((((data1 % data2)*10)%data2)*10)%data2)*10)/data2;
+ 440   2        }
+ 441   1      }
+ 442          
+ 443          void remove0(void)
+ 444          {
+ 445   1        uchar k=0;
+ 446   1        while((love[k]==0) && (k<=8))
+ 447   1         {
+ 448   2          love[k]=0xf0;
+ 449   2          k++;
+ 450   2          }
+ 451   1        pfu=k;
+ 452   1      }
+ 453          
+ 454          void data3dis(void)
+ 455          {
+ 456   1        uchar k;
+ 457   1        if(yes==0)
+ 458   1         {
+ 459   2           if(kind==135)
+ 460   2            {
+ 461   3             for(k=0;k<=13;k++)
+ 462   3             {
+ 463   4              WriteCommandLCM(0xc2+k,1);
+ 464   4              WriteDataLCM(love[k]+0x30);
+ 465   4              }
+ 466   3             }
+ 467   2        else
+ 468   2         {
+ 469   3          for(k=0;k<=9;k++)
+ 470   3          {
+ 471   4            WriteCommandLCM(0xc6+k,1);
+ 472   4            WriteDataLCM(love[k]+0x30);
+ 473   4          }
+ 474   3        if(fu==1)
+ 475   3          {
+ 476   4          WriteCommandLCM(0xc5+pfu,1);
+ 477   4          WriteDataLCM('-');
+ 478   4          }
+ 479   3         }
+ 480   2      }
+ 481   1        else  
+ 482   1        if(yes==1)
+ 483   1           error();
+ 484   1        else   
+ 485   1           if(yes==2)
+ 486   1            out();
+ 487   1      } 
+ 488          
+ 489          void clear(void)
+C51 COMPILER V8.02   DIANZICHENG1                                                          03/16/2009 18:22:23 PAGE 9   
+
+ 490          {
+ 491   1         uchar k;
+ 492   1         while(((~P1) & 0xf0)!=0);
+ 493   1         for(k=7;k<=15;k++)
+ 494   1          {
+ 495   2           WriteCommandLCM(k+0x80+0x40,1);
+ 496   2           WriteDataLCM(' ');
+ 497   2          }
+ 498   1         for(k=7;k<=15;k++)
+ 499   1         {
+ 500   2         WriteCommandLCM(k+0xc0,1);
+ 501   2         WriteDataLCM(' ');
+ 502   2         }
+ 503   1         rrr=0xff;
+ 504   1         kind=yes=position1=position2=0;                  //清运算类型标志
+ 505   1         fu=pfu=0;
+ 506   1         data1=data2=0;                                   //清数据
+ 507   1         data3=0;
+ 508   1      }
+ 509          
+ 510          void prodis(void)
+ 511          {
+ 512   1        rrr=6;
+ 513   1        rrr++;
+ 514   1        if(rrr==15)
+ 515   1         {rrr=7;}
+ 516   1        WriteCommandLCM(rrr+0x80+0x40,1);
+ 517   1        while(((~P1) & 0xf0)!=0);
+ 518   1      }
+ 519          /************
+ 520          读ADC0832函数
+ 521          ************/
+ 522          
+ 523          //采集并返回
+ 524          uchar Adc0832(unsigned char channel)     //AD转换，返回结果
+ 525          {
+ 526   1          uchar i=0;
+ 527   1          uchar j;
+ 528   1          uint dat=0;
+ 529   1          uchar ndat=0;
+ 530   1      
+ 531   1          if(channel==0)channel=2;
+ 532   1          if(channel==1)channel=3;
+ 533   1          ADDI=1;
+ 534   1          _nop_();
+ 535   1          _nop_();
+ 536   1          ADCS=0;//拉低CS端
+ 537   1          _nop_();
+ 538   1          _nop_();
+ 539   1          ADCLK=1;//拉高CLK端
+ 540   1          _nop_();
+ 541   1          _nop_();
+ 542   1          ADCLK=0;//拉低CLK端,形成下降沿1
+ 543   1          _nop_();
+ 544   1          _nop_();
+ 545   1          ADCLK=1;//拉高CLK端
+ 546   1          ADDI=channel&0x1;
+ 547   1          _nop_();
+ 548   1          _nop_();
+ 549   1          ADCLK=0;//拉低CLK端,形成下降沿2
+ 550   1          _nop_();
+ 551   1          _nop_();
+C51 COMPILER V8.02   DIANZICHENG1                                                          03/16/2009 18:22:23 PAGE 10  
+
+ 552   1          ADCLK=1;//拉高CLK端
+ 553   1          ADDI=(channel>>1)&0x1;
+ 554   1          _nop_();
+ 555   1          _nop_();
+ 556   1          ADCLK=0;//拉低CLK端,形成下降沿3
+ 557   1          ADDI=1;//控制命令结束 
+ 558   1          _nop_();
+ 559   1          _nop_();
+ 560   1          dat=0;
+ 561   1          for(i=0;i<8;i++)
+ 562   1          {
+ 563   2              dat|=ADDO;//收数据
+ 564   2              ADCLK=1;
+ 565   2              _nop_();
+ 566   2              _nop_();
+ 567   2              ADCLK=0;//形成一次时钟脉冲
+ 568   2              _nop_();
+ 569   2              _nop_();
+ 570   2              dat<<=1;
+ 571   2              if(i==7)dat|=ADDO;
+ 572   2          }  
+ 573   1          for(i=0;i<8;i++)
+ 574   1          {
+ 575   2              j=0;
+ 576   2              j=j|ADDO;//收数据
+ 577   2              ADCLK=1;
+ 578   2              _nop_();
+ 579   2              _nop_();
+ 580   2              ADCLK=0;//形成一次时钟脉冲
+ 581   2              _nop_();
+ 582   2              _nop_();
+ 583   2              j=j<<7;
+ 584   2              ndat=ndat|j;
+ 585   2              if(i<7)ndat>>=1;
+ 586   2          }
+ 587   1          ADCS=1;//拉低CS端
+ 588   1          ADCLK=0;//拉低CLK端
+ 589   1          ADDO=1;//拉高数据端,回到初始状态
+ 590   1          dat<<=8;
+ 591   1          dat|=ndat;
+ 592   1          return(dat);            //return ad k
+ 593   1      }
+ 594          
+ 595          
+ 596          void data_pro(void)
+ 597          {
+ 598   1            unsigned int temp;
+ 599   1            float  press;                       
+ 600   1            if(0<ad_data<256)                                //当压力值介于0到5之间时，遵循线性变换
+ 601   1                      {                           
+ 602   2                          int vary=ad_data;                                                           
+ 603   2                              press=(0.0195312*vary);
+ 604   2                              temp=(int)(press*1000);                 //放大1000倍，便于后面的计算
+ 605   2                                                                                              
+ 606   2                          press_ge=temp/1000;                               //取压力值百位
+ 607   2                              press_shifen=(temp%1000)/100;                   //取压力值十位
+ 608   2                              press_baifen=((temp%1000)%100)/10;              //取压力值个位
+ 609   2                              press_qianfen=((temp%1000)%100)%10;                     //取压力值十分位
+ 610   2      
+ 611   2                         }        
+ 612   1                               
+ 613   1      }
+C51 COMPILER V8.02   DIANZICHENG1                                                          03/16/2009 18:22:23 PAGE 11  
+
+ 614          /*****************报警子函数*******************/
+ 615          
+ 616          void alarm(void)
+ 617          {
+ 618   1               if(ad_data>=256)                           //如果当前压力值大于115kpa，
+ 619   1      
+ 620   1                {  Alarm_led_red=0; }                 //则启动red led报警
+ 621   1              
+ 622   1                else
+ 623   1                   {    Alarm_led_red=1; }                    //关闭red led 报警
+ 624   1                         
+ 625   1              
+ 626   1                if(ad_data<=0)                                                        //如果当前压力值小于16kpa
+ 627   1      
+ 628   1                   {  Alarm_led_green=0;  }               //则启动green led报警
+ 629   1      
+ 630   1            else
+ 631   1                   {   Alarm_led_green=1; }                           //关闭green  led 报警
+ 632   1               
+ 633   1      }
+ 634          
+ 635          
+ 636          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2724    ----
+   CONSTANT SIZE    =     62    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     58      42
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,6 @@
+"STARTUP.obj",
+"main.obj",
+".\pwm.obj",
+".\xunji.obj" 
+TO "Ñ­¼£" 
+RAMSIZE(256) 

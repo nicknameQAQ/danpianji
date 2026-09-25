@@ -1,0 +1,189 @@
+C51 COMPILER V9.00   11                                                                    01/14/2018 13:19:04 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE 11
+OBJECT MODULE PLACED IN 11.OBJ
+COMPILER INVOKED BY: D:\Program Files\keil\C51\BIN\C51.EXE 11.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include <reg52.h>               //调用单片机头文件
+   2          #define uchar unsigned char  //无符号字符型 宏定义      变量范围0~255
+   3          #define uint  unsigned int       //无符号整型 宏定义    变量范围0~65535
+   4          
+   5          #define key_io P1
+   6          uchar key_can;
+   7          
+   8          //   红外热释电平时为0  有输出为1
+   9          
+  10          sbit beep = P2^3;          //蜂鸣器定义
+  11          sbit red  = P2^2;          //红色发光二极管定义
+  12          sbit green = P2^1;         //绿色发光二极管定义
+  13          sbit yellow = P2^0;        //黄色发光二极管定义
+  14          sbit hw    = P1^3;         //红外热释传感器定义
+  15          bit flag_300ms = 0;
+  16          
+  17          /****************独立按键处理函数************************/         
+  18          void key()
+  19          {
+  20   1              static uchar key_new = 0,key_old = 0,key_value = 0;
+  21   1              if(key_new == 0)                 //按键松开
+  22   1              {
+  23   2                      if((key_io & 0x07) == 0x07)
+  24   2                              key_value ++;
+  25   2                      else 
+  26   2                              key_value = 0;
+  27   2                      if(key_value >= 5)       //按键松开松手检测
+  28   2                      {
+  29   3                              key_value = 0;
+  30   3                              key_new = 1;    //按键松开后进入等待按键状态
+  31   3                      }
+  32   2              }
+  33   1              else 
+  34   1              {
+  35   2                      if((key_io & 0x07) != 0x07)      //按键按下
+  36   2                              key_value ++;
+  37   2                      else 
+  38   2                              key_value =0;
+  39   2                      if(key_value >= 5)      //按键按下消抖
+  40   2                      {
+  41   3                              key_value = 0;
+  42   3                              key_new = 0;       //按键松开后进入等待松开按键状态
+  43   3                      }
+  44   2              }
+  45   1              key_can = 20;
+  46   1              if((key_new == 0) && (key_old == 1))
+  47   1              {
+  48   2                      switch(key_io & 0x07)
+  49   2                      {
+  50   3                              case 0x06: key_can = 1; break;    //得到按键值 
+  51   3                              case 0x05: key_can = 2; break;    //得到按键值 
+  52   3                              case 0x03: key_can = 3; break;    //得到按键值 
+  53   3                      }
+  54   2              }                        
+  55   1              key_old = key_new;       
+C51 COMPILER V9.00   11                                                                    01/14/2018 13:19:04 PAGE 2   
+
+  56   1      }
+  57          
+  58          /*************定时器0初始化程序***************/
+  59          void time_init()          
+  60          {
+  61   1              EA   = 1;                 //开总中断
+  62   1              TMOD = 0X01;      //定时器0工作方式1
+  63   1              ET0  = 1;                 //开定时器0中断 
+  64   1              TR0  = 1;                 //允许定时器0定时
+  65   1      }
+  66          
+  67          uchar flag_alarm ;     //报警标志位
+  68          uchar flag_bufang ;    //布防标志位
+  69          uchar flag_bufang_en ; //布防标志位使能
+  70          uint  flag_value;      //用做定时器的变量
+  71          
+  72          /******************红外报警处理**********************/     
+  73          void hongwai_dis()
+  74          {
+  75   1              if(flag_alarm == 1)        //报警
+  76   1              {
+  77   2                      red = ~red;                //红灯报警
+  78   2                      beep = ~beep;      //蜂鸣器报警
+  79   2              }       
+  80   1              if(flag_bufang_en == 1) //准备开始布防
+  81   1              {
+  82   2                      green = ~green;    //绿灯闪
+  83   2                              
+  84   2              }  
+  85   1              if(flag_bufang == 1)   //确认布防
+  86   1              {
+  87   2                      green = 0;         //如果延时布防成功 绿灯长亮
+  88   2                      if(hw == 1)            //红外有输出
+  89   2                      {
+  90   3                              flag_alarm = 1; 
+  91   3                      }
+  92   2              }
+  93   1      
+  94   1      }
+  95          
+  96          /******************对应不同按键处理**********************/         
+  97          void key_with()
+  98          {
+  99   1              if(key_can == 1)         //按键紧急报警
+ 100   1              {
+ 101   2                      flag_alarm = 1;  //报警标志位 ;                 
+ 102   2              }
+ 103   1              if(key_can == 2)     //布防按键
+ 104   1              {
+ 105   2                      flag_bufang_en = 1;             
+ 106   2              }
+ 107   1              if(key_can == 3)         //取消报警  把变量清零
+ 108   1              {
+ 109   2                      flag_alarm = 0;   
+ 110   2                      flag_bufang = 0; 
+ 111   2                      flag_bufang_en = 0;     
+ 112   2                      flag_value = 0; 
+ 113   2                      P2 = 0xff;      
+ 114   2              }                       
+ 115   1      }
+ 116          
+ 117          
+C51 COMPILER V9.00   11                                                                    01/14/2018 13:19:04 PAGE 3   
+
+ 118          
+ 119          
+ 120          
+ 121          /******************主程序**********************/           
+ 122          void main()
+ 123          {
+ 124   1              time_init();
+ 125   1              while(1)
+ 126   1              {
+ 127   2                      key();            
+ 128   2                      yellow = ~hw;    //红外热释电指示灯 有输出就亮黄灯
+ 129   2                      if(key_can < 10)
+ 130   2                      {
+ 131   3                              key_with();      //按键设置函数
+ 132   3                      }
+ 133   2                      if(flag_300ms == 1)
+ 134   2                      {
+ 135   3                              flag_300ms = 0;
+ 136   3                              hongwai_dis();     //红外报警函数
+ 137   3                      }       
+ 138   2              }
+ 139   1      }
+ 140          
+ 141          /*************定时器0中断服务程序***************/
+ 142          void time0_int() interrupt 1
+ 143          {       
+ 144   1              static uint value;
+ 145   1              TH0 = 0x3c;
+ 146   1              TL0 = 0xb0;     // 50ms   
+ 147   1              value ++;
+ 148   1              if(value % 6 == 0)
+ 149   1              {
+ 150   2                      flag_300ms = 1;
+ 151   2              }
+ 152   1              if(flag_bufang_en == 1)
+ 153   1              {
+ 154   2                      flag_value ++;
+ 155   2                      if(flag_value >= 600)  //30秒
+ 156   2                      {
+ 157   3                              flag_bufang = 1;
+ 158   3                              flag_bufang_en = 0;
+ 159   3                              flag_value = 0; 
+ 160   3                      }
+ 161   2              }
+ 162   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    312    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     11    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

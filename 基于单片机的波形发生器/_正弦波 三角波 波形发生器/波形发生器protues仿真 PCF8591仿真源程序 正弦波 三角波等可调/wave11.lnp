@@ -1,7 +1,0 @@
-"DA×ª»».obj",
-"delay.obj",
-"keyscan.obj",
-"PCF8591.obj",
-"wave.obj" 
-TO "wave11" 
-RAMSIZE(256) 

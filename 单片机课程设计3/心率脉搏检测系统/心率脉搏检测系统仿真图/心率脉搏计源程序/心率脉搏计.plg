@@ -1,0 +1,21 @@
+<html>
+<body>
+<pre>
+<h1>礦ision Build Log</h1>
+<h2>Project:</h2>
+F:\2013 2014年准备工作\陈老师资料发送\2014年下半年产品更新\新建文件夹\心率计51-1602发送资料\心率脉搏检测系统仿真图\心率脉搏计源程序\心率脉搏计.uvproj
+Project File Date:  12/04/2014
+
+<h2>Output:</h2>
+Build target 'Target 1'
+compiling 心率脉搏计源程序.c...
+linking...
+Program Size: data=25.0 xdata=0 code=1967
+creating hex file from "心率脉搏计"...
+"心率脉搏计" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling 心率脉搏计源程序.c...
+linking...
+Program Size: data=25.0 xdata=0 code=1967
+creating hex file from "心率脉搏计"...
+"心率脉搏计" - 0 Error(s), 0 Warning(s).

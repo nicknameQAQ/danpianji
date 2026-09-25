@@ -1,0 +1,141 @@
+C51 COMPILER V7.06   EEPROM                       09/11/2014 20:19:53 PAGE 1   
+
+
+C51 COMPILER V7.06, COMPILATION OF MODULE EEPROM
+OBJECT MODULE PLACED IN EEPROM.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE c\EEPROM.c DEBUG OBJECTEXTEND PRIN
+                    -T(.\lst\EEPROM.lst) PAGEWIDTH(79) PAGELENGTH(66) OBJECT(EEPROM.obj)
+
+stmt level    source
+
+   1          #include "STC12C5A60S2.h"
+   2          #include <intrins.h>
+   3          /*************************************************
+   4          Name:       IAPIdle
+   5          Function:   Disable IAP Function
+   6          Parameter:  None
+   7          Return:     None
+   8          Note:       Make MCU in a Safe State
+   9          *************************************************/
+  10          void IAPIdle(void)
+  11          {
+  12   1              IAP_CONTR = 0x00;
+  13   1              IAP_CMD   = 0x00;
+  14   1              IAP_TRIG  = 0x00;
+  15   1              IAP_ADDRH = 0x80;
+  16   1              IAP_ADDRL = 0x00;
+  17   1      }
+  18          
+  19          /*************************************************
+  20          Name:       IAPReadByte
+  21          Function:   Read a Byte from IAP Area
+  22          Parameter:  addr
+  23          Return:     dat
+  24          Note:       
+  25          *************************************************/
+  26          unsigned char IAPReadByte(unsigned int addr)
+  27          {
+  28   1              unsigned char dat;
+  29   1              IAP_CONTR = 0x80;
+  30   1              IAP_CMD   = 1;
+  31   1              IAP_ADDRL = addr;
+  32   1              IAP_ADDRH = addr>>8;
+  33   1              IAP_TRIG  = 0x5a;
+  34   1              IAP_TRIG  = 0xa5;
+  35   1              _nop_();
+  36   1              dat = IAP_DATA;
+  37   1              IAPIdle();
+  38   1              return dat;
+  39   1      }
+  40          
+  41          /*************************************************
+  42          Name:       IAPWriteByte
+  43          Function:   Write a Byte to IAP Area
+  44          Parameter:  addr, dat
+  45          Return:     None
+  46          Note:       
+  47          *************************************************/
+  48          void IAPWriteByte(unsigned int addr, unsigned char dat)
+  49          {
+  50   1              IAP_CONTR = 0x80;
+  51   1              IAP_CMD   = 2;
+  52   1              IAP_ADDRL = addr;
+  53   1              IAP_ADDRH = addr>>8;
+  54   1              IAP_DATA  = dat;
+  55   1              IAP_TRIG  = 0x5a;
+  56   1              IAP_TRIG  = 0xa5;
+C51 COMPILER V7.06   EEPROM                       09/11/2014 20:19:53 PAGE 2   
+
+  57   1              _nop_();
+  58   1              IAPIdle();
+  59   1      }
+  60          
+  61          /*************************************************
+  62          Name:       IAPEraseSector
+  63          Function:   Erase a Sector Area
+  64          Parameter:  addr
+  65          Return:     None
+  66          Note:       
+  67          *************************************************/
+  68          void IAPEraseSector(unsigned int addr)
+  69          {
+  70   1              IAP_CONTR = 0x80;
+  71   1              IAP_CMD   = 3;
+  72   1              IAP_ADDRL = addr;
+  73   1              IAP_ADDRH = addr>>8;
+  74   1              IAP_TRIG  = 0x5a;
+  75   1              IAP_TRIG  = 0xa5;
+  76   1              _nop_();
+  77   1              IAPIdle();
+  78   1      }
+  79          
+  80          /*************************************************
+  81          Name:       IAPWriteData
+  82          Function:   Write Data to IAP Area
+  83          Parameter:  addr, dat
+  84          Return:     None
+  85          Note:       
+  86          *************************************************/
+  87          void IAPWriteData(unsigned int addr, unsigned char length, unsign
+             -ed char *p)
+  88          {
+  89   1          unsigned char i;
+  90   1              IAPEraseSector(addr);
+  91   1          for(i = 0; i < length; i++)
+  92   1          {
+  93   2              IAPWriteByte((addr+i), *(p + i));
+  94   2          }
+  95   1      }
+  96          
+  97          /*************************************************
+  98          Name:       IAPReadData
+  99          Function:   Read Data from IAP Area
+ 100          Parameter:  addr, dat
+ 101          Return:     None
+ 102          Note:       
+ 103          *************************************************/
+ 104          void IAPReadData(unsigned int addr, unsigned char length, unsigne
+             -d char *p)
+ 105          {
+ 106   1          unsigned char i;
+ 107   1          for(i = 0; i < length; i++)
+ 108   1          {
+ 109   2              *(p + i) = IAPReadByte(addr+i);
+ 110   2          }
+ 111   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    182    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+C51 COMPILER V7.06   EEPROM                       09/11/2014 20:19:53 PAGE 3   
+
+   DATA SIZE        =   ----      11
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

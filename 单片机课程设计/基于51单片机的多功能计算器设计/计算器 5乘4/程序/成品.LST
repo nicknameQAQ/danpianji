@@ -1,0 +1,502 @@
+C51 COMPILER V8.08   成品                                                                  04/18/2011 23:02:21 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE 成品
+OBJECT MODULE PLACED IN 成品.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 成品.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include <REGX51.H>
+   2          #include<intrins.h>
+   3          #include<stdio.h>
+   4          #include<string.h>
+   5          #include<math.h>
+   6          sbit RS = P2^5; 
+   7          sbit RW = P2^6; 
+   8          sbit E  = P2^7; 
+   9          
+  10          #define Data  P0//数据端口
+  11          //全局变量
+  12          float num1;//第一操作数num1     （初始为零）
+  13          float num2;//第二操作数num2     （初始为零）
+  14          char yun_flag='+';//运算符号 yun_flag    （默认为+ ）
+  15          char key_last;//上次按键状态标志 key_last
+  16          char sqrt_flag;//开方键按下标志   sqrt_flag
+  17          unsigned long pos_flag=1;//小数位权pos_flag      (默认为1)
+  18          char neg_flag;//正负标志 neg_flag
+  19          char data c_num1[15]=" ";//c_num1 字符型第一操作数 (数组不定义大小与其他变量冲突)
+  20          char data c_num2[15]=" ";//c_num2 字符型第二操作数
+  21          char error;//运算法则错误；
+  22          char len;//小数点后位数
+  23          /*                    微秒延时函数                                */
+  24          /******************************************************************/
+  25          void DelayUs(unsigned char us)//delay us
+  26          {
+  27   1       unsigned char uscnt;
+  28   1       uscnt=us>>1;        /*12MHz频率*/
+  29   1       while(--uscnt);
+  30   1      }
+  31          /******************************************************************/
+  32          /*                    毫秒函数声明                                */
+  33          /******************************************************************/
+  34          void DelayMs(unsigned char ms)
+  35          {
+  36   1       while(--ms)
+  37   1         {
+  38   2           DelayUs(250);
+  39   2           DelayUs(250);
+  40   2               DelayUs(250);
+  41   2               DelayUs(250);
+  42   2         }
+  43   1      }
+  44          /******************************************************************/
+  45          /*                   写入命令函数                                 */
+  46          /******************************************************************/
+  47          void WriteCommand(unsigned char c)
+  48          {
+  49   1       DelayMs(5);//操作前短暂延时，保证信号稳定
+  50   1       E=0;
+  51   1       RS=0;
+  52   1       RW=0;
+  53   1       _nop_();
+  54   1       E=1;
+  55   1       Data=c;
+C51 COMPILER V8.08   成品                                                                  04/18/2011 23:02:21 PAGE 2   
+
+  56   1       E=0;
+  57   1      }
+  58          /******************************************************************/
+  59          /*                   写入数据函数                                 */
+  60          /******************************************************************/
+  61          void WriteData(unsigned char c)
+  62          {
+  63   1       DelayMs(5);  //操作前短暂延时，保证信号稳定
+  64   1       E=0;
+  65   1       RS=1;
+  66   1       RW=0;
+  67   1       _nop_();
+  68   1       E=1;
+  69   1       Data=c;
+  70   1       E=0;
+  71   1       RS=0;
+  72   1      }
+  73          /******************************************************************/
+  74          /*                   写入字节函数                                 */
+  75          /******************************************************************/
+  76          void ShowChar(unsigned char pos,unsigned char c)
+  77          {
+  78   1       unsigned char p;
+  79   1       if (pos>=0x10)
+  80   1          p=pos+0xb0; //是第二行则命令代码高4位为0xc
+  81   1       else 
+  82   1          p=pos+0x80; //是第二行则命令代码高4位为0x8
+  83   1       WriteCommand (p);//写命令
+  84   1       WriteData (c);   //写数据
+  85   1      }
+  86          /******************************************************************/
+  87          /*                   写入字符串函数                               */
+  88          /******************************************************************/
+  89          void ShowString (unsigned char line,char *ptr)
+  90          {
+  91   1       unsigned char l,i;
+  92   1       l=line<<4;
+  93   1       for (i=0;*(ptr+i)!='\0';i++)
+  94   1        ShowChar (l++,*(ptr+i));//循环显示16个字符
+  95   1      }
+  96          /******************************************************************/
+  97          /*                   初始化函数                                   */
+  98          /******************************************************************/
+  99          void InitLcd()
+ 100          {
+ 101   1       DelayMs(15);
+ 102   1       WriteCommand(0x38); //display mode
+ 103   1       WriteCommand(0x38); //display mode
+ 104   1       WriteCommand(0x38); //display mode
+ 105   1       WriteCommand(0x06); //显示光标移动位置
+ 106   1       WriteCommand(0x0c); //显示开及光标设置
+ 107   1       WriteCommand(0x01); //显示清屏
+ 108   1      
+ 109   1      }
+ 110          /*************按键扫描****************************/
+ 111          char scan()
+ 112          {
+ 113   1      
+ 114   1        char h_data,l_data,i,key_num;
+ 115   1        P2=P2&0XE0;//P2低5位送0
+ 116   1        P1=P1|0X0F;//P1低4位送1
+ 117   1        while((P1|0xf0)==0xff)//判断P1低4位是否全为1
+C51 COMPILER V8.08   成品                                                                  04/18/2011 23:02:21 PAGE 3   
+
+ 118   1        {
+ 119   2         while((P1|0xf0)==0xff);
+ 120   2         DelayMs(10);//延时10ms
+ 121   2        }
+ 122   1         l_data=~(P1|0xf0);//记入列标志
+ 123   1         P2=P2|0X1F;//P2低五位送1
+ 124   1         P1=P1&0XF0;//P1低四位送0
+ 125   1         h_data=~(P2|0xe0);//记入行标志
+ 126   1         for(i=0;i<=4;i++)//计算行号(0~4)
+ 127   1               {
+ 128   2                 if(h_data==1)break;
+ 129   2                 h_data=h_data>>1;
+ 130   2               }
+ 131   1       h_data=i;//行号
+ 132   1        for(i=1;i<=4;i++)//计算列号(1~4)
+ 133   1              {
+ 134   2                if(l_data==1)break;
+ 135   2                l_data=l_data>>1;
+ 136   2              }
+ 137   1       l_data=i;//列号
+ 138   1         key_num=h_data*4+l_data;     
+ 139   1       
+ 140   1        P2=P2&0XE0;//P2低5位送0
+ 141   1        P1=P1|0X0F;//P1低4位送1
+ 142   1        while((P1|0xf0)!=0xff)//判断P1低4位是否全为1
+ 143   1        {
+ 144   2         while((P1|0xf0)!=0xff);
+ 145   2         DelayMs(10);//延时10ms
+ 146   2        }
+ 147   1        return key_num;
+ 148   1      }
+ 149          void float_to_char(float a,char* p)
+ 150          {
+ 151   1        char i,flag,length;
+ 152   1        flag=0;
+ 153   1        sprintf(p,"%f",a);
+ 154   1        length=strlen (p);
+ 155   1        for(i=0;i<length;i++)
+ 156   1        {
+ 157   2          if(*(p+i)=='.')flag=1;
+ 158   2        }
+ 159   1        if(flag==1)
+ 160   1        for(i=length-1;i>=0;i--)
+ 161   1        {
+ 162   2          if(*(p+i)=='.'){*(p+i)='\0';break;}
+ 163   2          if(*(p+i)!='0'){*(p+i+1)='\0';break;}
+ 164   2        }
+ 165   1      }
+ 166          /**********************更新液晶*************************/
+ 167          void refresh()//更新液晶
+ 168          {
+ 169   1        char length,i,j;
+ 170   1        char dot;
+ 171   1        dot=0;
+ 172   1              
+ 173   1        float_to_char(num2,c_num2);//num2转为字符型
+ 174   1        length=strlen(c_num2);
+ 175   1        for(i=0,j=0;i<length;i++)     
+ 176   1        {
+ 177   2          if(c_num2[i]=='.')
+ 178   2              dot=1;
+ 179   2              if(dot==1)
+C51 COMPILER V8.08   成品                                                                  04/18/2011 23:02:21 PAGE 4   
+
+ 180   2          j++;
+ 181   2        } 
+ 182   1        if(j<len)
+ 183   1        {
+ 184   2                if(dot==1)
+ 185   2                {     
+ 186   3                  for(i=length;i<(length+len-j);i++)
+ 187   3                       {
+ 188   4                         c_num2[i]='0';
+ 189   4              
+ 190   4                       }
+ 191   3                       c_num2[i]='\0';
+ 192   3                }
+ 193   2                else
+ 194   2                      {
+ 195   3                        
+ 196   3                        c_num2[length]='.';
+ 197   3                        if(len-j>1)
+ 198   3                        {
+ 199   4                          for(i=length+1;i<(length+len-j);i++)
+ 200   4                               c_num2[i]='0';
+ 201   4                        }
+ 202   3                        c_num2[length+len-j]='\0';
+ 203   3                      }  
+ 204   2        }
+ 205   1      
+ 206   1        if(neg_flag==1)//'+/-'按下首位加‘-’
+ 207   1         {
+ 208   2            length=strlen(c_num2);//计算c_num2长度      
+ 209   2                          for(i=length-1;i>=0;i--)
+ 210   2                        {
+ 211   3                              c_num2[i+1]=c_num2[i];
+ 212   3                        }
+ 213   2                        c_num2[length+1]='\0';
+ 214   2                        c_num2[0]='-';
+ 215   2         }
+ 216   1         
+ 217   1         if(sqrt_flag==1)
+ 218   1              {
+ 219   2            length=strlen(c_num2);//计算c_num2长度
+ 220   2                for(i=length-1;i>=0;i--)
+ 221   2                {
+ 222   3                      c_num2[i+1]=c_num2[i];
+ 223   3                }
+ 224   2                c_num2[length+1]='\0';
+ 225   2                c_num2[0]=0xe8;//字符根号
+ 226   2         }
+ 227   1         
+ 228   1         
+ 229   1         if(error==0)
+ 230   1         {
+ 231   2                 float_to_char(num1,c_num1);//num1转为字符型
+ 232   2                 WriteCommand(0x01); //显示清屏 
+ 233   2                 ShowString(0,c_num1);
+ 234   2                 ShowString(1,c_num2);  
+ 235   2                 ShowChar(15,yun_flag);
+ 236   2         }else
+ 237   1         { 
+ 238   2             WriteCommand(0x01); //显示清屏 
+ 239   2                 ShowString(0,"error!!!");
+ 240   2         }
+ 241   1      }
+C51 COMPILER V8.08   成品                                                                  04/18/2011 23:02:21 PAGE 5   
+
+ 242          //键值处理
+ 243          void operation1(char keynum)//按下 ’+、-、*、/处理
+ 244          {
+ 245   1        if(key_last==1)//上次按键为 数字、小数点、+/-、sqrt
+ 246   1         {
+ 247   2           if(neg_flag==1)num2=-num2;//'+/-'按下
+ 248   2               if(sqrt_flag==1)//sqrt按下
+ 249   2               {
+ 250   3               if(num2>=0)
+ 251   3               num2=sqrt(num2);
+ 252   3               else
+ 253   3               error=1;
+ 254   3               }
+ 255   2               if(yun_flag=='+')num1=num1+num2; //按下的是‘+’
+ 256   2               if(yun_flag=='-')num1=num1-num2;//按下的是‘-’
+ 257   2               if(yun_flag=='*')num1=num1*num2;//按下的是‘*’
+ 258   2               if(yun_flag=='/')//按下的是‘/’
+ 259   2               {
+ 260   3                 if(num2!=0)
+ 261   3                 num1=num1/num2;
+ 262   3                 else
+ 263   3                 error=1;
+ 264   3               }
+ 265   2               num2=0;//num2清零
+ 266   2               sqrt_flag=0;//sqrt_flag清零
+ 267   2           neg_flag=0;//neg_flag清零
+ 268   2               pos_flag=1;//pos_flag回1
+ 269   2         }
+ 270   1         if(keynum==4)yun_flag='+';//yun_flag更新
+ 271   1         if(keynum==8)yun_flag='-';
+ 272   1         if(keynum==12)yun_flag='*';
+ 273   1         if(keynum==16)yun_flag='/';
+ 274   1         len=0;
+ 275   1         key_last=0;//key_last更新   
+ 276   1         refresh();
+ 277   1      }
+ 278          //////////////////////////////////////////////////////
+ 279          void operation2(char keynum)//输入数字
+ 280          {
+ 281   1        float Data1;
+ 282   1         
+ 283   1        if(keynum==1)Data1=7;//分析输入数字
+ 284   1        if(keynum==2)Data1=8;
+ 285   1        if(keynum==3)Data1=9;
+ 286   1        if(keynum==5)Data1=4;
+ 287   1        if(keynum==6)Data1=5;
+ 288   1        if(keynum==7)Data1=6;
+ 289   1        if(keynum==9)Data1=1;
+ 290   1        if(keynum==10)Data1=2;
+ 291   1        if(keynum==11)Data1=3;
+ 292   1        if(keynum==13)Data1=0; 
+ 293   1        if(pos_flag==1)//更新num2
+ 294   1        num2=num2*10+Data1;
+ 295   1        else
+ 296   1        {         
+ 297   2          num2=num2+(Data1/pos_flag);
+ 298   2              pos_flag=pos_flag*10;
+ 299   2              len++;
+ 300   2        }
+ 301   1        key_last=1;//更新key_last     
+ 302   1        refresh();
+ 303   1      }
+C51 COMPILER V8.08   成品                                                                  04/18/2011 23:02:21 PAGE 6   
+
+ 304          ////////////////////////////////////////////////////////////
+ 305          void operation3()//输入小数点
+ 306          {
+ 307   1        if(pos_flag==1)//首次出现小数点
+ 308   1        {
+ 309   2         pos_flag=pos_flag*10;//小数位权*10
+ 310   2         len++;
+ 311   2        }
+ 312   1        key_last=1;//更新key_last 
+ 313   1        refresh();//更新液晶
+ 314   1      }
+ 315          /////////////////////////////////////////////////////
+ 316          void operation4()//输入'='
+ 317          {
+ 318   1           if(neg_flag==1)num2=-num2;//'+/-'按下
+ 319   1               if(sqrt_flag==1)//sqrt按下
+ 320   1               {
+ 321   2               if(num2>=0)
+ 322   2               num2=sqrt(num2);
+ 323   2               else
+ 324   2               error=1;
+ 325   2               }
+ 326   1               if(yun_flag=='+')num1=num1+num2; //按下的是‘+’
+ 327   1               if(yun_flag=='-')num1=num1-num2;//按下的是‘-’
+ 328   1               if(yun_flag=='*')num1=num1*num2;//按下的是‘*’
+ 329   1               if(yun_flag=='/')//按下的是‘/’
+ 330   1               {
+ 331   2                 if(num2!=0)
+ 332   2                 num1=num1/num2;
+ 333   2                 else
+ 334   2                 error=1;
+ 335   2               }
+ 336   1               num2=0;//num2清零
+ 337   1               sqrt_flag=0;//sqrt_flag清零
+ 338   1           neg_flag=0;//neg_flag清零
+ 339   1               pos_flag=1;//pos_flag回1
+ 340   1           yun_flag='+';//yun_flag更新
+ 341   1               len=0;
+ 342   1         key_last=0;//key_last更新   
+ 343   1         refresh();
+ 344   1      }
+ 345          ////////////////////////////////////////////////////
+ 346          void operation5()//输入clear all
+ 347          {
+ 348   1      
+ 349   1         num1=0;// num1清零
+ 350   1         num2=0;//num2清零
+ 351   1         sqrt_flag=0;//清sqrt_flag
+ 352   1         neg_flag=0;// 清neg_flag
+ 353   1         pos_flag=1;// Pos_flag=1
+ 354   1         yun_flag='+';// yun_flag(为'+')
+ 355   1         error=0;//清error
+ 356   1         len=0;
+ 357   1         key_last=0;//更新key_flag
+ 358   1         refresh();//更新液晶
+ 359   1      }
+ 360          ///////////////////////////////////////////////////////
+ 361          void operation6()//输入'C'
+ 362          {
+ 363   1       num2=0;//num2清零
+ 364   1       sqrt_flag=0;//清sqrt_flag
+ 365   1       neg_flag=0;//清neg_flag
+C51 COMPILER V8.08   成品                                                                  04/18/2011 23:02:21 PAGE 7   
+
+ 366   1       pos_flag=1;//pos_flag=1
+ 367   1       len=0;
+ 368   1       key_last=0;//key_last
+ 369   1       refresh();//更新液晶 
+ 370   1      }
+ 371          ////////////////////////////////////////////////////////////
+ 372          void operation7()//输入'+/-'
+ 373          {
+ 374   1        if(neg_flag==0)//neg_flag反转
+ 375   1        neg_flag=1;
+ 376   1        else neg_flag=0;
+ 377   1        key_last=1;//key_last
+ 378   1        refresh();// 更新液晶
+ 379   1      }
+ 380          /////////////////////////////////////////////////////////////
+ 381          void operation8()//输入'sqrt'
+ 382          {
+ 383   1       if(sqrt_flag==0)//sqrt_flag反转
+ 384   1        sqrt_flag=1;
+ 385   1       else sqrt_flag=0;
+ 386   1       key_last=1;//更新key_last
+ 387   1       refresh();//更新液晶
+ 388   1      }
+ 389          //键值分析
+ 390          void key(char keynum)
+ 391          {
+ 392   1        switch(keynum)
+ 393   1        {
+ 394   2          case 4 :
+ 395   2              case 8 :
+ 396   2              case 12:
+ 397   2              case 16://+、-、*、/
+ 398   2                      {
+ 399   3                               if(error==0)
+ 400   3                       operation1(keynum);
+ 401   3                       break;}
+ 402   2                              
+ 403   2              case 1  : //数字7
+ 404   2              case 2  : //数字8
+ 405   2              case 3  : //数字9
+ 406   2              case 5  : //数字4
+ 407   2              case 6  : //数字5
+ 408   2              case 7  : //数字6
+ 409   2              case 9  : //数字1
+ 410   2              case 10 : //数字2
+ 411   2              case 11 : //数字3
+ 412   2              case 13 : //数字0
+ 413   2                       {
+ 414   3                               if(error==0)
+ 415   3                               operation2(keynum);
+ 416   3                               break;}
+ 417   2                               
+ 418   2              case 14 ://小数点                 
+ 419   2                               {
+ 420   3                                 if(error==0)
+ 421   3                                 operation3();
+ 422   3                                 break;}
+ 423   2                               
+ 424   2              case 15 :// '='   
+ 425   2                               {
+ 426   3                                 if(error==0)
+ 427   3                                 operation4();
+C51 COMPILER V8.08   成品                                                                  04/18/2011 23:02:21 PAGE 8   
+
+ 428   3                                 break;}
+ 429   2                               
+ 430   2              case 17 :// clear all  
+ 431   2                               {
+ 432   3                                 operation5();
+ 433   3                                 break;}
+ 434   2      
+ 435   2              case 18 :// 'C'  
+ 436   2                               {
+ 437   3                                 if(error==0)
+ 438   3                                 operation6();
+ 439   3                                 break;}
+ 440   2              case 19 :// '+/-'  
+ 441   2                               {
+ 442   3                                 if(error==0)
+ 443   3                                 operation7();
+ 444   3                                 break;}
+ 445   2              case 20 ://sqrt
+ 446   2                               {
+ 447   3                                 if(error==0)
+ 448   3                                 operation8();
+ 449   3                                 break;}                                 
+ 450   2                                                                       
+ 451   2        }       
+ 452   1      }
+ 453          main()
+ 454          {
+ 455   1       
+ 456   1       InitLcd();         //初始化LCD
+ 457   1      DelayMs(15);       //延时保证信号稳定
+ 458   1      refresh();
+ 459   1       
+ 460   1              //延时保证信号稳定
+ 461   1      while(1)
+ 462   1      {
+ 463   2       key(scan());
+ 464   2      }
+ 465   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1961    ----
+   CONSTANT SIZE    =     12    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     48      16
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

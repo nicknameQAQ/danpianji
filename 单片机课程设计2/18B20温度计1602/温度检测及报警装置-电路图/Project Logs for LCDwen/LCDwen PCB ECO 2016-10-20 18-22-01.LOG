@@ -1,0 +1,11 @@
+Removed Pin From Net: NetName=VCC Pin=K1-1
+Removed Pin From Net: NetName=VCC Pin=K1-1
+Change Component Designator: OldDesignator=K1 NewDesignator=K5
+Added Pin To Net: NetName=GND Pin=K1-1
+Added Pin To Net: NetName=GND Pin=K1-1
+Added Pin To Net: NetName=VCC Pin=K5-1
+Added Pin To Net: NetName=VCC Pin=K5-1
+Added Pin To Net: NetName=Net89C52_9 Pin=K5-2
+Added Pin To Net: NetName=Net89C52_9 Pin=K5-2
+Added Member To Class: ClassName=LCDwen Member=Component K5 *
+Added Room: Name=LCDwen

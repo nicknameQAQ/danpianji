@@ -1,0 +1,157 @@
+Added Component: Designator=10k(蓝白电位器)
+Added Component: Designator=89C52(AT89C52)
+Added Component: Designator=8550(三极管PNP)
+Added Component: Designator=bu(buzzer)
+Added Component: Designator=C1(电容。)
+Added Component: Designator=C2(电容。)
+Added Component: Designator=Cap1(电容)
+Added Component: Designator=K1(开关)
+Added Component: Designator=K1(开关)
+Added Component: Designator=K2(开关)
+Added Component: Designator=K3(开关)
+Added Component: Designator=K4(开关)
+Added Component: Designator=lcd(lcd1602)
+Added Component: Designator=OSC1(晶震)
+Added Component: Designator=P1(HDR1X4)
+Added Component: Designator=P2(HDR1X4)
+Added Component: Designator=PL1(HDR1X3)
+Added Component: Designator=PR1(排阻)
+Added Component: Designator=R1(电阻)
+Added Component: Designator=R2(电阻)
+Added Component: Designator=R9(电阻)
+Added Component: Designator=Rb(电阻)
+Added Pin To Net: NetName=25 Pin=89C52-26
+Added Pin To Net: NetName=25 Pin=lcd-6
+Added Net: Name=25
+Added Pin To Net: NetName=26 Pin=89C52-27
+Added Pin To Net: NetName=26 Pin=lcd-5
+Added Net: Name=26
+Added Pin To Net: NetName=27 Pin=89C52-28
+Added Pin To Net: NetName=27 Pin=lcd-4
+Added Net: Name=27
+Added Pin To Net: NetName=A Pin=89C52-39
+Added Pin To Net: NetName=A Pin=lcd-7
+Added Pin To Net: NetName=A Pin=PR1-2
+Added Net: Name=A
+Added Pin To Net: NetName=B Pin=10k-2
+Added Pin To Net: NetName=B Pin=89C52-38
+Added Pin To Net: NetName=B Pin=lcd-3
+Added Pin To Net: NetName=B Pin=lcd-8
+Added Pin To Net: NetName=B Pin=PR1-3
+Added Net: Name=B
+Added Pin To Net: NetName=C Pin=89C52-37
+Added Pin To Net: NetName=C Pin=lcd-9
+Added Pin To Net: NetName=C Pin=PR1-4
+Added Net: Name=C
+Added Pin To Net: NetName=D Pin=89C52-36
+Added Pin To Net: NetName=D Pin=lcd-10
+Added Pin To Net: NetName=D Pin=PR1-5
+Added Net: Name=D
+Added Pin To Net: NetName=E Pin=89C52-35
+Added Pin To Net: NetName=E Pin=lcd-11
+Added Pin To Net: NetName=E Pin=PR1-6
+Added Net: Name=E
+Added Pin To Net: NetName=F Pin=89C52-34
+Added Pin To Net: NetName=F Pin=lcd-12
+Added Pin To Net: NetName=F Pin=PR1-7
+Added Net: Name=F
+Added Pin To Net: NetName=GND Pin=10k-1
+Added Pin To Net: NetName=GND Pin=89C52-20
+Added Pin To Net: NetName=GND Pin=8550-3
+Added Pin To Net: NetName=GND Pin=K1-1
+Added Pin To Net: NetName=GND Pin=K1-1
+Added Pin To Net: NetName=GND Pin=K2-1
+Added Pin To Net: NetName=GND Pin=K2-1
+Added Pin To Net: NetName=GND Pin=K3-1
+Added Pin To Net: NetName=GND Pin=K3-1
+Added Pin To Net: NetName=GND Pin=K4-1
+Added Pin To Net: NetName=GND Pin=K4-1
+Added Pin To Net: NetName=GND Pin=lcd-1
+Added Pin To Net: NetName=GND Pin=lcd-16
+Added Pin To Net: NetName=GND Pin=P1-1
+Added Pin To Net: NetName=GND Pin=P2-4
+Added Pin To Net: NetName=GND Pin=PL1-1
+Added Net: Name=GND
+Added Pin To Net: NetName=G Pin=89C52-33
+Added Pin To Net: NetName=G Pin=lcd-13
+Added Pin To Net: NetName=G Pin=PR1-8
+Added Net: Name=G
+Added Pin To Net: NetName=H Pin=89C52-32
+Added Pin To Net: NetName=H Pin=lcd-14
+Added Pin To Net: NetName=H Pin=PR1-9
+Added Net: Name=H
+Added Pin To Net: NetName=Net89C52_9 Pin=89C52-9
+Added Pin To Net: NetName=Net89C52_9 Pin=Cap1-2
+Added Pin To Net: NetName=Net89C52_9 Pin=K1-2
+Added Pin To Net: NetName=Net89C52_9 Pin=K1-2
+Added Pin To Net: NetName=Net89C52_9 Pin=R1-2
+Added Net: Name=Net89C52_9
+Added Pin To Net: NetName=Net89C52_18 Pin=89C52-18
+Added Pin To Net: NetName=Net89C52_18 Pin=C2-2
+Added Pin To Net: NetName=Net89C52_18 Pin=OSC1-2
+Added Net: Name=Net89C52_18
+Added Pin To Net: NetName=Net89C52_19 Pin=89C52-19
+Added Pin To Net: NetName=Net89C52_19 Pin=C1-2
+Added Pin To Net: NetName=Net89C52_19 Pin=OSC1-1
+Added Net: Name=Net89C52_19
+Added Pin To Net: NetName=Net8550_1 Pin=8550-1
+Added Pin To Net: NetName=Net8550_1 Pin=bu-2
+Added Net: Name=Net8550_1
+Added Pin To Net: NetName=Net8550_2 Pin=8550-2
+Added Pin To Net: NetName=Net8550_2 Pin=R9-2
+Added Net: Name=Net8550_2
+Added Pin To Net: NetName=NetC1_1 Pin=C1-1
+Added Pin To Net: NetName=NetC1_1 Pin=C2-1
+Added Pin To Net: NetName=NetC1_1 Pin=R1-1
+Added Net: Name=NetC1_1
+Added Pin To Net: NetName=Netlcd_15 Pin=lcd-15
+Added Pin To Net: NetName=Netlcd_15 Pin=Rb-1
+Added Net: Name=Netlcd_15
+Added Pin To Net: NetName=P10 Pin=89C52-1
+Added Pin To Net: NetName=P10 Pin=K1-2
+Added Pin To Net: NetName=P10 Pin=K1-2
+Added Net: Name=P10
+Added Pin To Net: NetName=P11 Pin=89C52-2
+Added Pin To Net: NetName=P11 Pin=K2-2
+Added Pin To Net: NetName=P11 Pin=K2-2
+Added Net: Name=P11
+Added Pin To Net: NetName=P12 Pin=89C52-3
+Added Pin To Net: NetName=P12 Pin=K3-2
+Added Pin To Net: NetName=P12 Pin=K3-2
+Added Net: Name=P12
+Added Pin To Net: NetName=P13 Pin=89C52-4
+Added Pin To Net: NetName=P13 Pin=K4-2
+Added Pin To Net: NetName=P13 Pin=K4-2
+Added Net: Name=P13
+Added Pin To Net: NetName=P20 Pin=89C52-21
+Added Pin To Net: NetName=P20 Pin=PL1-2
+Added Pin To Net: NetName=P20 Pin=R2-2
+Added Net: Name=P20
+Added Pin To Net: NetName=P21 Pin=89C52-22
+Added Pin To Net: NetName=P21 Pin=R9-1
+Added Net: Name=P21
+Added Pin To Net: NetName=R Pin=89C52-10
+Added Pin To Net: NetName=R Pin=P1-3
+Added Pin To Net: NetName=R Pin=P2-2
+Added Net: Name=R
+Added Pin To Net: NetName=T Pin=89C52-11
+Added Pin To Net: NetName=T Pin=P1-2
+Added Pin To Net: NetName=T Pin=P2-3
+Added Net: Name=T
+Added Pin To Net: NetName=VCC Pin=10k-3
+Added Pin To Net: NetName=VCC Pin=89C52-31
+Added Pin To Net: NetName=VCC Pin=89C52-40
+Added Pin To Net: NetName=VCC Pin=bu-1
+Added Pin To Net: NetName=VCC Pin=Cap1-1
+Added Pin To Net: NetName=VCC Pin=K1-1
+Added Pin To Net: NetName=VCC Pin=K1-1
+Added Pin To Net: NetName=VCC Pin=lcd-2
+Added Pin To Net: NetName=VCC Pin=P1-4
+Added Pin To Net: NetName=VCC Pin=P2-1
+Added Pin To Net: NetName=VCC Pin=PL1-3
+Added Pin To Net: NetName=VCC Pin=PR1-1
+Added Pin To Net: NetName=VCC Pin=R2-1
+Added Pin To Net: NetName=VCC Pin=Rb-2
+Added Net: Name=VCC
+Added Class: Name=LCDwen
+Added Room: Name=LCDwen

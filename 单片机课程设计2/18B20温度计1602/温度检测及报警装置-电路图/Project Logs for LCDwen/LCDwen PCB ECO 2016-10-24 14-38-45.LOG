@@ -1,0 +1,28 @@
+Removed Pin From Net: NetName=VCC Pin=mic-6
+Change Component DesignItemId : Designator=bu Old DesignItemId= New DesignItemId=buzzer
+Change Component DesignItemId : Designator=lcd Old DesignItemId= New DesignItemId=lcd1602
+Change Component DesignItemId : Designator=mic Old DesignItemId= New DesignItemId=micro
+Change Component DesignItemId : Designator=8550 Old DesignItemId= New DesignItemId=PNP
+Change Component DesignItemId : Designator=89C52 Old DesignItemId= New DesignItemId=STC89C52
+Change Component DesignItemId : Designator=K1 Old DesignItemId= New DesignItemId=开关
+Change Component DesignItemId : Designator=K2 Old DesignItemId= New DesignItemId=开关
+Change Component DesignItemId : Designator=K3 Old DesignItemId= New DesignItemId=开关
+Change Component DesignItemId : Designator=K4 Old DesignItemId= New DesignItemId=开关
+Change Component DesignItemId : Designator=K5 Old DesignItemId= New DesignItemId=开关
+Change Component DesignItemId : Designator=PR1 Old DesignItemId= New DesignItemId=排阻
+Change Component DesignItemId : Designator=OSC1 Old DesignItemId= New DesignItemId=晶震
+Change Component DesignItemId : Designator=C1 Old DesignItemId= New DesignItemId=电容
+Change Component DesignItemId : Designator=C2 Old DesignItemId= New DesignItemId=电容
+Change Component DesignItemId : Designator=Cap1 Old DesignItemId= New DesignItemId=电解电容
+Change Component DesignItemId : Designator=R1 Old DesignItemId= New DesignItemId=电阻
+Change Component DesignItemId : Designator=R2 Old DesignItemId= New DesignItemId=电阻
+Change Component DesignItemId : Designator=R9 Old DesignItemId= New DesignItemId=电阻
+Change Component DesignItemId : Designator=Rb Old DesignItemId= New DesignItemId=电阻
+Change Component DesignItemId : Designator=10k Old DesignItemId= New DesignItemId=蓝白电位器
+Added Component: Designator=k(拨动开关)
+Added Pin To Net: NetName=VCC Pin=k-1
+Added Pin To Net: NetName=Netk_2 Pin=k-2
+Added Pin To Net: NetName=Netk_2 Pin=mic-6
+Added Net: Name=Netk_2
+Added Member To Class: ClassName=LCDwen Member=Component k 拨动开关
+Added Room: Name=LCDwen

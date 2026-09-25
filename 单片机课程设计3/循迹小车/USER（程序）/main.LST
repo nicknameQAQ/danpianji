@@ -1,0 +1,104 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              06/17/2020 11:27:24 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: D:\keil5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\USER;..\HARDWARE) DEBUG OBJECTEX
+                    -TEND TABS(2)
+
+line level    source
+
+   1          #include<reg52.h>
+   2          #include"1602.h"
+   3          #include"pwm.h"
+   4          #include"xunji.h"
+   5          
+   6          sbit POWER=P3^5;
+   7          sbit Key1=P3^3;
+   8          
+   9          
+  10          const uchar tab[]={0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90,}; //段码
+  11          
+  12          void delay()
+  13            {
+  14   1        uchar j;
+  15   1        for(j=250;j>0;j--);
+  16   1        }
+  17          
+  18          
+  19          void keypros()  //独立按键进行显示模式切换
+  20          {
+  21   1        if(Key1==0)     //检测按键K1是否按下
+  22   1        { 
+  23   2          delay();   //消除抖动 一般大约10ms
+  24   2          if(Key1==0)  //再次判断按键是否按下
+  25   2          {
+  26   3            type++;   //led状态取反
+  27   3          }
+  28   2          while(!Key1);  //检测按键是否松开
+  29   2        }   
+  30   1        if(type>1)
+  31   1        {
+  32   2        type=0;
+  33   2        }
+  34   1      }
+  35          
+  36          void jishu()
+  37          {
+  38   1      switch(byte)
+  39   1      {
+  40   2        case 1: nums=nums+1; break;
+  41   2        
+  42   2        case 0:  break;
+  43   2        break;
+  44   2      }
+  45   1      
+  46   1      }
+  47          
+  48          
+  49          
+  50          
+  51          
+  52          
+  53          void main (void)
+  54          { 
+C51 COMPILER V9.60.0.0   MAIN                                                              06/17/2020 11:27:24 PAGE 2   
+
+  55   1        nums=5;
+  56   1        type=0;
+  57   1        Timer0Init();//初始化
+  58   1        Timer1Init();
+  59   1        
+  60   1      
+  61   1        while(1)
+  62   1        {
+  63   2          xunji(800);//寻迹
+  64   2          
+  65   2          keypros();//切换
+  66   2          
+  67   2          P2=0x00;//显示
+  68   2          P2=nums;
+  69   2          
+  70   2          jishu();
+  71   2          if(nums>9)
+  72   2          {
+  73   3          nums=0;
+  74   3          }
+  75   2          
+  76   2        }
+  77   1          
+  78   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     98    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     10    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,4 +1,0 @@
-Change Component Footprint: Designator=C4 Old Footprint=D50V10UF New Footprint=RAD-0.3
-Change Component Footprint: Designator=C3 Old Footprint=SIP2 New Footprint=RAD-0.3
-Added Pin To Net: NetName=RST Pin=C2-2
-Added Pin To Net: NetName=RST Pin=R2-2

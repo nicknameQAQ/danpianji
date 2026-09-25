@@ -1,0 +1,1110 @@
+C51 COMPILER V9.50a   ZZZ                                                                  04/26/2019 15:19:14 PAGE 1   
+
+
+C51 COMPILER V9.50a, COMPILATION OF MODULE ZZZ
+OBJECT MODULE PLACED IN zzz.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE zzz.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+*** WARNING C500 IN LINE 1 OF zzz.c: LICENSE ERROR (R207: REGISTRY READ ERROR)
+
+   1          #include<reg52.h>
+   2          #include<intrins.h>
+   3          #define uchar unsigned char
+   4          #define uint unsigned int
+   5          sbit DSPORT=P3^7;
+   6          void Delay1ms(uint );
+   7          uchar Ds18b20Init();
+   8          void Ds18b20WriteByte(uchar com);
+   9          uchar Ds18b20ReadByte();
+  10          void  Ds18b20ChangTemp();
+  11          void  Ds18b20ReadTempCom();
+  12          int Ds18b20ReadTemp();
+  13          #define LCD1602_DATAPINS P2
+  14          sbit lcde=P1^4;
+  15          sbit w=P1^5;
+  16          sbit rs=P1^6;
+  17          void Lcd1602_Delay1ms(uint c);   //误差 0us
+  18          void LcdWriteCom(uchar com);   
+  19          void LcdWriteData(uchar dat);
+  20          void wendu(); 
+  21          void LcdInit();
+  22          void LcdDisplay(int);
+  23          void init_jsq();
+  24          void init_sz();
+  25          void write_data(uchar date);
+  26          void delay(uint z);
+  27          void write_com(uchar com);
+  28          void write_sfm(uchar add,uchar date);
+  29          
+  30          
+  31          sbit k1=P3^3;
+  32          sbit k2=P3^4;
+  33          sbit k3=P3^5;
+  34          uchar num,count,k1num,miao1,miao2,ki;
+  35          char miao,fen,shi;
+  36          uchar code table2[]=" 2018-12-10 SAT" ;
+  37          uchar code table21[]=" 00:00:00";
+  38          
+  39          
+  40          char i,j,temp,num_1;
+  41          long a,a1,a2,b,b1,b2,c,c1,c2;//a，第一个数 b第二个数  c第三个数
+  42          uchar flag1,fuhao; //flag1表示是否有符号按下，fuhao表示按下哪个符号
+  43          uchar code table[]={
+  44                    1,2,3,0,
+  45                    4,5,6,0,
+  46                    7,8,9,0,
+  47                    0,0,0,0,
+  48                    };
+  49          uchar code table1[]={
+  50                     1,2,3,0x2f-0x30,
+  51                     4,5,6,0x2a-0x30,
+  52                     7,8,9,0x2d-0x30,
+  53                     0x01-0x30,0,0x3d-0x30,0x2b-0x30,         
+  54                    };
+C51 COMPILER V9.50a   ZZZ                                                                  04/26/2019 15:19:14 PAGE 2   
+
+  55          void jisuanqi();
+  56          void shizhong();
+  57          sbit ky1=P3^2;
+  58          sbit d1=P0^0;
+  59          sbit d2=P0^1;
+  60          sbit d3=P0^2;
+  61          void main()
+  62          {
+  63   1      
+  64   1        
+  65   1          i=50;
+  66   1          ki=0;
+  67   1        while(1)
+  68   1        {
+  69   2          if(ky1==0)
+  70   2          {
+  71   3            while(ky1==0);
+  72   3            ki++;
+  73   3          }
+  74   2              
+  75   2          if(ki>5)
+  76   2          {
+  77   3            ki=0;
+  78   3          }
+  79   2          
+  80   2      ///////////温度//////////////////   
+  81   2          if(ki==0)
+  82   2          {
+  83   3            LcdInit();
+  84   3            LcdWriteCom(0x88);  //写地址 80表示初始地址
+  85   3            LcdWriteData('C'); 
+  86   3            if(ki==0)
+  87   3            {
+  88   4              ki++;
+  89   4            }
+  90   3          }
+  91   2          
+  92   2          if(ki==1)
+  93   2            {
+  94   3              d1=0;
+  95   3              d2=1;
+  96   3              d3=1;
+  97   3              wendu();
+  98   3            }
+  99   2            
+ 100   2            
+ 101   2      ////////////计算器////////////////
+ 102   2          if(ki==2)
+ 103   2          {
+ 104   3            init_jsq();
+ 105   3            if(ki==2)
+ 106   3            {
+ 107   4              ki++;
+ 108   4            }
+ 109   3          } 
+ 110   2            if(ki==3)
+ 111   2            {
+ 112   3              d1=1;
+ 113   3              d2=0;
+ 114   3              d3=1;
+ 115   3              jisuanqi();   
+ 116   3            }
+C51 COMPILER V9.50a   ZZZ                                                                  04/26/2019 15:19:14 PAGE 3   
+
+ 117   2            
+ 118   2      //////////时钟////////////////
+ 119   2          if(ki==4)
+ 120   2          {
+ 121   3            init_sz(); //初始化
+ 122   3            for(num=0;num<16;num++)
+ 123   3            {
+ 124   4              write_data(table2[num]);
+ 125   4              delay(5);
+ 126   4            }
+ 127   3      
+ 128   3            write_com(0x80+0x40); //开始时第二行显s
+ 129   3            for(num=0;num<10;num++)
+ 130   3            {
+ 131   4              write_data(table21[num]);
+ 132   4              delay(5);
+ 133   4            }
+ 134   3            if(ki==4)
+ 135   3            {
+ 136   4              ki++;
+ 137   4            }
+ 138   3            
+ 139   3            write_sfm(2,shi);
+ 140   3            write_sfm(5,fen);
+ 141   3            write_sfm(8,miao);
+ 142   3          }
+ 143   2          
+ 144   2            if(ki==5)
+ 145   2            {
+ 146   3              d1=1;
+ 147   3              d2=1;
+ 148   3              d3=0;
+ 149   3              shizhong();
+ 150   3            }
+ 151   2      
+ 152   2        }
+ 153   1      }
+ 154          
+ 155          void wendu()
+ 156          {
+ 157   1          LcdDisplay(Ds18b20ReadTemp());
+ 158   1      }
+ 159          void LcdDisplay(int temp)    //lcd显示
+ 160          {
+ 161   1          
+ 162   1        unsigned char datas[] = {0, 0, 0, 0, 0}; //定义数组
+ 163   1        float tp;  
+ 164   1        if(temp< 0)       //当温度值为负数
+ 165   1          {
+ 166   2            LcdWriteCom(0x80);    //写地址 80表示初始地址
+ 167   2            LcdWriteData('-');      //显示负
+ 168   2          temp=temp-1;
+ 169   2          temp=~temp;
+ 170   2          tp=temp;
+ 171   2          temp=tp*0.0625*100+0.5; 
+ 172   2          }
+ 173   1        else
+ 174   1          {     
+ 175   2            LcdWriteCom(0x80);    //写地址 80表示初始地址
+ 176   2            LcdWriteData('+');    //显示正
+ 177   2          tp=temp;//因为数据处理有小数点所以将温度赋给一个浮点型变量
+ 178   2          temp=tp*0.0625*100+0.5; 
+C51 COMPILER V9.50a   ZZZ                                                                  04/26/2019 15:19:14 PAGE 4   
+
+ 179   2        }
+ 180   1        datas[0] = temp / 10000;
+ 181   1        datas[1] = temp % 10000 / 1000;
+ 182   1        datas[2] = temp % 1000 / 100;
+ 183   1        datas[3] = temp % 100 / 10;
+ 184   1        datas[4] = temp % 10;
+ 185   1       
+ 186   1        LcdWriteCom(0x82);      //写地址 80表示初始地址
+ 187   1        LcdWriteData('0'+datas[0]); //百位 
+ 188   1        
+ 189   1        LcdWriteCom(0x83);     //写地址 80表示初始地址
+ 190   1        LcdWriteData('0'+datas[1]); //十位
+ 191   1      
+ 192   1        LcdWriteCom(0x84);    //写地址 80表示初始地址
+ 193   1        LcdWriteData('0'+datas[2]); //个位 
+ 194   1      
+ 195   1        LcdWriteCom(0x85);    //写地址 80表示初始地址
+ 196   1        LcdWriteData('.');    //显示 ‘.’
+ 197   1      
+ 198   1        LcdWriteCom(0x86);     //写地址 80表示初始地址
+ 199   1        LcdWriteData('0'+datas[3]); //显示小数点  
+ 200   1      
+ 201   1        LcdWriteCom(0x87);     //写地址 80表示初始地址
+ 202   1        LcdWriteData('0'+datas[4]); //显示小数点  
+ 203   1      }
+ 204            
+ 205          void Delay1ms(uint y)
+ 206          {
+ 207   1        uint x;
+ 208   1        for( ; y>0; y--)
+ 209   1        {
+ 210   2          for(x=110; x>0; x--);
+ 211   2        }
+ 212   1      }
+ 213          uchar Ds18b20Init()
+ 214          {
+ 215   1        uchar i;
+ 216   1        DSPORT = 0;      //将总线拉低480us~960us
+ 217   1        i = 70; 
+ 218   1        while(i--);//延时642us
+ 219   1        DSPORT = 1;     //然后拉高总线，如果DS18B20做出反应会将在15us~60us后总线拉低
+ 220   1        i = 0;
+ 221   1        while(DSPORT) //等待DS18B20拉低总线
+ 222   1        {
+ 223   2          i++;
+ 224   2          if(i>5)//等待>5MS
+ 225   2          {
+ 226   3            return 0;//初始化失败
+ 227   3          }
+ 228   2          Delay1ms(1);  
+ 229   2        }
+ 230   1        return 1;//初始化成功
+ 231   1      }
+ 232          
+ 233          void Ds18b20WriteByte(uchar dat)
+ 234          {
+ 235   1        uint i, j;
+ 236   1      
+ 237   1        for(j=0; j<8; j++)
+ 238   1        {
+ 239   2          DSPORT = 0;         //每写入一位数据之前先把总线拉低1us
+ 240   2          i++;
+C51 COMPILER V9.50a   ZZZ                                                                  04/26/2019 15:19:14 PAGE 5   
+
+ 241   2          DSPORT = dat & 0x01;  //然后写入一个数据，从最低位开始
+ 242   2          i=6;
+ 243   2          while(i--); //延时68us，持续时间最少60us
+ 244   2          DSPORT = 1; //然后释放总线，至少1us给总线恢复时间才能接着写入第二个数值
+ 245   2          dat >>= 1;
+ 246   2        }
+ 247   1      }
+ 248          uchar Ds18b20ReadByte()
+ 249          {
+ 250   1        uchar byte, bi;
+ 251   1        uint i, j;  
+ 252   1        for(j=8; j>0; j--)
+ 253   1        {
+ 254   2          DSPORT = 0;//先将总线拉低1us
+ 255   2          i++;
+ 256   2          DSPORT = 1;//然后释放总线
+ 257   2          i++;
+ 258   2          i++;//延时6us等待数据稳定
+ 259   2          bi = DSPORT;   //读取数据，从最低位开始读取
+ 260   2          byte = (byte >> 1) | (bi << 7);             
+ 261   2          i = 4;    //读取完之后等待48us再接着读取下一个数
+ 262   2          while(i--);
+ 263   2        }       
+ 264   1        return byte;
+ 265   1      }
+ 266          void  Ds18b20ChangTemp()
+ 267          {
+ 268   1        Ds18b20Init();
+ 269   1        Delay1ms(1);
+ 270   1        Ds18b20WriteByte(0xcc);   //跳过ROM操作命令    
+ 271   1        Ds18b20WriteByte(0x44);     //温度转换命令
+ 272   1      //  Delay1ms(100);  //等待转换成功，而如果你是一直刷着的话，就不用这个延时了
+ 273   1         
+ 274   1      }
+ 275          void  Ds18b20ReadTempCom()
+ 276          { 
+ 277   1      
+ 278   1        Ds18b20Init();
+ 279   1        Delay1ms(1);
+ 280   1        Ds18b20WriteByte(0xcc);  //跳过ROM操作命令
+ 281   1        Ds18b20WriteByte(0xbe);  //发送读取温度命令
+ 282   1      }
+ 283          int Ds18b20ReadTemp()
+ 284          {
+ 285   1        int temp = 0;
+ 286   1        uchar tmh, tml;
+ 287   1        Ds18b20ChangTemp();       //先写入转换命令
+ 288   1        Ds18b20ReadTempCom();     //然后等待转换完后发送读取温度命令
+ 289   1        tml = Ds18b20ReadByte();    //读取温度值共16位，先读低字节
+ 290   1        tmh = Ds18b20ReadByte();    //再读高字节
+ 291   1        temp = tmh;
+ 292   1        temp <<= 8;
+ 293   1        temp |= tml;
+ 294   1        return temp;
+ 295   1      }
+ 296          void Lcd1602_Delay1ms(uint c)   //误差 0us
+ 297          {
+ 298   1          uchar a,b;
+ 299   1        for (; c>0; c--)
+ 300   1        {
+ 301   2           for (b=199;b>0;b--)
+ 302   2           {
+C51 COMPILER V9.50a   ZZZ                                                                  04/26/2019 15:19:14 PAGE 6   
+
+ 303   3              for(a=1;a>0;a--);
+ 304   3           }      
+ 305   2        }
+ 306   1            
+ 307   1      }
+ 308          #ifndef   LCD1602_4PINS  //当没有定义这个LCD1602_4PINS时
+ 309          void LcdWriteCom(uchar com)   //写入命令
+ 310          {
+ 311   1        lcde = 0;     //使能
+ 312   1        rs = 0;    //选择发送命令
+ 313   1        w = 0;     //选择写入
+ 314   1        
+ 315   1        LCD1602_DATAPINS = com;     //放入命令
+ 316   1        Lcd1602_Delay1ms(1);    //等待数据稳定
+ 317   1      
+ 318   1        lcde = 1;           //写入时序
+ 319   1        Lcd1602_Delay1ms(5);    //保持时间
+ 320   1        lcde = 0;
+ 321   1      }
+ 322          #else 
+              void LcdWriteCom(uchar com)   //写入命令
+              {
+                lcde = 0;  //使能清零
+                rs = 0;  //选择写入命令
+                w = 0;   //选择写入
+              
+                LCD1602_DATAPINS = com; //由于4位的接线是接到P0口的高四位，所以传送高四位不用改
+                Lcd1602_Delay1ms(1);
+              
+                lcde = 1;  //写入时序
+                Lcd1602_Delay1ms(5);
+                lcde = 0;
+              
+              //  Lcd1602_Delay1ms(1);
+                LCD1602_DATAPINS = com << 4; //发送低四位
+                Lcd1602_Delay1ms(1);
+              
+                lcde = 1;  //写入时序
+                Lcd1602_Delay1ms(5);
+                lcde = 0;
+              }
+              #endif
+ 345          #ifndef   LCD1602_4PINS      
+ 346          void LcdWriteData(uchar dat)      //写入数据
+ 347          {
+ 348   1        lcde = 0; //使能清零
+ 349   1        rs = 1; //选择输入数据
+ 350   1        w = 0;  //选择写入
+ 351   1      
+ 352   1        LCD1602_DATAPINS = dat; //写入数据
+ 353   1        Lcd1602_Delay1ms(1);
+ 354   1      
+ 355   1        lcde = 1;   //写入时序
+ 356   1        Lcd1602_Delay1ms(5);   //保持时间
+ 357   1        lcde = 0;
+ 358   1      }
+ 359          #else
+              void LcdWriteData(uchar dat)      //写入数据
+              {
+                lcde = 0;   //使能清零
+                rs = 1;   //选择写入数据
+                w = 0;    //选择写入
+C51 COMPILER V9.50a   ZZZ                                                                  04/26/2019 15:19:14 PAGE 7   
+
+              
+                LCD1602_DATAPINS = dat; //由于4位的接线是接到P0口的高四位，所以传送高四位不用改
+                Lcd1602_Delay1ms(1);
+              
+                lcde = 1;   //写入时序
+                Lcd1602_Delay1ms(5);
+                lcde = 0;
+              
+                LCD1602_DATAPINS = dat << 4; //写入低四位
+                Lcd1602_Delay1ms(1);
+              
+                lcde = 1;   //写入时序
+                Lcd1602_Delay1ms(5);
+                lcde = 0;
+              }
+              #endif
+ 381          #ifndef   LCD1602_4PINS
+ 382          void LcdInit()              //LCD初始化子程序
+ 383          {
+ 384   1        LcdWriteCom(0x38);  //开显示
+ 385   1        Lcd1602_Delay1ms(1);
+ 386   1        LcdWriteCom(0x0c);  //开显示不显示光标
+ 387   1        Lcd1602_Delay1ms(1);
+ 388   1        LcdWriteCom(0x06);  //写一个指针加1
+ 389   1        Lcd1602_Delay1ms(1);
+ 390   1        LcdWriteCom(0x01);  //清屏
+ 391   1        Lcd1602_Delay1ms(1);
+ 392   1        LcdWriteCom(0x80);  //设置数据指针起点
+ 393   1        Lcd1602_Delay1ms(1);
+ 394   1      }
+ 395          #else
+              void LcdInit()              //LCD初始化子程序
+              {
+                LcdWriteCom(0x32);   //将8位总线转为4位总线
+                Lcd1602_Delay1ms(1);
+                LcdWriteCom(0x28);   //在四位线下的初始化
+                Lcd1602_Delay1ms(1);
+                LcdWriteCom(0x0c);  //开显示不显示光标
+                Lcd1602_Delay1ms(1);
+                LcdWriteCom(0x06);  //写一个指针加1
+                Lcd1602_Delay1ms(1);
+                LcdWriteCom(0x01);  //清屏
+                Lcd1602_Delay1ms(1);
+                LcdWriteCom(0x80);  //设置数据指针起点
+              
+              }
+              #endif
+ 412          void delay_jsq(uchar z)
+ 413          {
+ 414   1        uchar y;
+ 415   1        for(z;z>0;z--)
+ 416   1          for(y=110;y>0;y--);
+ 417   1      }
+ 418          void delay_jsq1(uchar a)
+ 419          {
+ 420   1        uchar i;
+ 421   1      
+ 422   1        while(a--)
+ 423   1        {
+ 424   2          for(i=0;i<250;i++)
+ 425   2          {
+ 426   3            _nop_();//延迟一周期
+C51 COMPILER V9.50a   ZZZ                                                                  04/26/2019 15:19:14 PAGE 8   
+
+ 427   3            _nop_();
+ 428   3            _nop_();
+ 429   3            _nop_();
+ 430   3      
+ 431   3          }
+ 432   2        } 
+ 433   1      }
+ 434          void lcd_mang() // 判忙
+ 435          {
+ 436   1        rs=0;
+ 437   1        w=1;
+ 438   1        lcde=1;
+ 439   1        _nop_();
+ 440   1        _nop_();
+ 441   1        _nop_();
+ 442   1        _nop_();
+ 443   1        while(P2&0x80);
+ 444   1        lcde=0;
+ 445   1      
+ 446   1      }
+ 447          void writelcd(uchar cmd,uchar i)// rs=0，写命令 rs=1,写数据
+ 448          {
+ 449   1        lcd_mang();
+ 450   1        rs=i;
+ 451   1        w=0;
+ 452   1        lcde=0;
+ 453   1        _nop_();
+ 454   1        _nop_();  
+ 455   1        P2=cmd;
+ 456   1        _nop_();
+ 457   1        _nop_();
+ 458   1        lcde=1;
+ 459   1        _nop_();
+ 460   1        _nop_();
+ 461   1        _nop_();
+ 462   1        _nop_();
+ 463   1        lcde=0;
+ 464   1      }
+ 465          void init_jsq()
+ 466          {
+ 467   1        writelcd(0x38,0);
+ 468   1        delay_jsq1(1);
+ 469   1        writelcd(0x0c,0);
+ 470   1        delay_jsq1(1);
+ 471   1        writelcd(0x06,0);
+ 472   1        delay_jsq1(1);
+ 473   1        writelcd(0x01,0);
+ 474   1        delay_jsq1(1);
+ 475   1        num_1=0;
+ 476   1        i=0;
+ 477   1        j=0;
+ 478   1        a=0;
+ 479   1        b=0;
+ 480   1        c=0;
+ 481   1        flag1=0;
+ 482   1        fuhao=0;
+ 483   1      }
+ 484          void keyscan_4_4()
+ 485          {
+ 486   1        uchar i;
+ 487   1        P2=0x7f;
+ 488   1      if(P2!=0x7f)
+C51 COMPILER V9.50a   ZZZ                                                                  04/26/2019 15:19:14 PAGE 9   
+
+ 489   1        {
+ 490   2          delay_jsq(5);
+ 491   2          if(P2!=0x7f)
+ 492   2          {
+ 493   3            temp=P2&0x0f;
+ 494   3            switch(temp)
+ 495   3            {
+ 496   4              case 0x07:num=0;break;
+ 497   4              case 0x0b:num=1;break;
+ 498   4              case 0x0d:num=2;break;
+ 499   4              case 0x0e:num=3;break;
+ 500   4            }
+ 501   3            while(P2!=0x7f);
+ 502   3            if(j!=0)
+ 503   3            {
+ 504   4              writelcd(0x01,0);
+ 505   4              delay_jsq1(1);
+ 506   4              j=0;
+ 507   4      
+ 508   4            }
+ 509   3            if(num==0||num==1||num==2)
+ 510   3            {
+ 511   4              if(flag1==0)
+ 512   4              {
+ 513   5                a=a*10+table[num];
+ 514   5              }
+ 515   4              else
+ 516   4              {
+ 517   5                b=b*10+table[num];
+ 518   5              }
+ 519   4            }
+ 520   3            else if(num==3)
+ 521   3            {
+ 522   4              flag1=1;
+ 523   4              fuhao=4;
+ 524   4            }
+ 525   3            i=table1[num];
+ 526   3            writelcd(0x30+i,1);
+ 527   3          }
+ 528   2        }
+ 529   1        P2=0xbf;
+ 530   1        if(P2!=0xbf)
+ 531   1        {
+ 532   2          delay_jsq(5);
+ 533   2          if(P2!=0xbf)
+ 534   2          {
+ 535   3            if(P2!=0xbf)
+ 536   3            {
+ 537   4              temp=P2&0x0f;
+ 538   4              switch(temp)
+ 539   4              {
+ 540   5                case 0x07:num=4;break;
+ 541   5                case 0x0b:num=5;break;
+ 542   5                case 0x0d:num=6;break;
+ 543   5                case 0x0e:num=7;break;
+ 544   5              }
+ 545   4            } 
+ 546   3            while(P2!=0xbf);
+ 547   3            if(j!=0)
+ 548   3            {
+ 549   4              writelcd(0x01,0);
+ 550   4              delay_jsq1(1);
+C51 COMPILER V9.50a   ZZZ                                                                  04/26/2019 15:19:14 PAGE 10  
+
+ 551   4              j=0;
+ 552   4        
+ 553   4            }
+ 554   3            if(num==4||num==5||num==6&&num!=7)
+ 555   3            {
+ 556   4              if(flag1==0)
+ 557   4              {
+ 558   5                a=a*10+table[num];
+ 559   5              }
+ 560   4              else
+ 561   4              {
+ 562   5                b=b*10+table[num];
+ 563   5              }
+ 564   4            }
+ 565   3            else
+ 566   3            {
+ 567   4              flag1=1;
+ 568   4              fuhao=3;
+ 569   4            }
+ 570   3            i=table1[num];
+ 571   3            writelcd(0x30+i,1);
+ 572   3          }
+ 573   2        }
+ 574   1        P2=0xdf;
+ 575   1        if(P2!=0xdf)
+ 576   1      
+ 577   1        {
+ 578   2          delay_jsq(5);
+ 579   2          if(P2!=0xdf)
+ 580   2          {
+ 581   3            if(P2!=0xdf)
+ 582   3            {
+ 583   4              temp=P2&0x0f;
+ 584   4              switch(temp)
+ 585   4              {
+ 586   5                case 0x07:num=8;break;
+ 587   5                case 0x0b:num=9;break;
+ 588   5                case 0x0d:num=10;break;
+ 589   5                case 0x0e:num=11;break;
+ 590   5              }
+ 591   4            }
+ 592   3            while(P2!=0xdf);
+ 593   3            if(j!=0)
+ 594   3            {
+ 595   4              writelcd(0x01,0);
+ 596   4              delay_jsq1(1);
+ 597   4              j=0;
+ 598   4        
+ 599   4            }
+ 600   3            if(num==8||num==9||num==10)
+ 601   3            {
+ 602   4                if(flag1==0)
+ 603   4                {
+ 604   5                  a=a*10+table[num];
+ 605   5                }
+ 606   4                else
+ 607   4                {
+ 608   5                  b=b*10+table[num];
+ 609   5                }
+ 610   4              }
+ 611   3            else if(num==11)
+ 612   3            {
+C51 COMPILER V9.50a   ZZZ                                                                  04/26/2019 15:19:14 PAGE 11  
+
+ 613   4              flag1=1;
+ 614   4              fuhao=2;
+ 615   4            }
+ 616   3            i=table1[num];
+ 617   3            writelcd(0x30+i,1);
+ 618   3            
+ 619   3          } 
+ 620   2        }
+ 621   1        P2=0xef;
+ 622   1        if(P2!=0xef)
+ 623   1        {
+ 624   2          delay_jsq(5);
+ 625   2          if(P2!=0xef)
+ 626   2          {
+ 627   3            if(P2!=0xef)
+ 628   3            {
+ 629   4              temp=P2&0x0f;
+ 630   4              switch(temp)
+ 631   4              {
+ 632   5                case 0x07:num=12;break;
+ 633   5                case 0x0b:num=13;break;
+ 634   5                case 0x0d:num=14;break;
+ 635   5                case 0x0e:num=15;break;
+ 636   5              }
+ 637   4            }
+ 638   3            while(P2!=0xef);
+ 639   3            switch(num)
+ 640   3            {
+ 641   4              case 12:
+ 642   4              {
+ 643   5                writelcd(0x01,0);
+ 644   5                a=0;
+ 645   5                b=0;
+ 646   5                
+ 647   5                flag1=0;
+ 648   5                fuhao=0;
+ 649   5              }
+ 650   4              break;
+ 651   4              case 13:
+ 652   4              {
+ 653   5                if(flag1==0)
+ 654   5                {
+ 655   6                  a=a*10;
+ 656   6                  writelcd(0x30,1);
+ 657   6      
+ 658   6                }
+ 659   5                else if(flag1==1)
+ 660   5                {
+ 661   6                  b=b*10;
+ 662   6                  writelcd(0x30,1);
+ 663   6                } 
+ 664   5              }
+ 665   4              break;
+ 666   4              case 14:
+ 667   4              {
+ 668   5                j=1;
+ 669   5                if(fuhao==1)
+ 670   5                {
+ 671   6                  writelcd(0x04,0);
+ 672   6                  delay_jsq1(1);
+ 673   6                  writelcd(0x80+0x4f,0);
+ 674   6                //  writelcd(0x04,0);
+C51 COMPILER V9.50a   ZZZ                                                                  04/26/2019 15:19:14 PAGE 12  
+
+ 675   6                  c=a+b;
+ 676   6                  while(c!=0)
+ 677   6                  {
+ 678   7                    writelcd(0x30+c%10,1);
+ 679   7                    c=c/10;
+ 680   7                  }
+ 681   6                  writelcd(0x3d,1);
+ 682   6                  a=0;
+ 683   6                  b=0;
+ 684   6                  flag1=0;
+ 685   6                  fuhao=0;
+ 686   6      
+ 687   6                }
+ 688   5                else if(fuhao==2)
+ 689   5                {
+ 690   6                  writelcd(0x04,0);
+ 691   6                  delay_jsq1(1);
+ 692   6                  writelcd(0x80+0x4f,0);
+ 693   6                //  writelcd(0x04,0);
+ 694   6                  if(a-b>0)
+ 695   6                    c=a-b;
+ 696   6                  else
+ 697   6                    c=b-a;
+ 698   6                  while(c!=0)
+ 699   6                  {
+ 700   7                    writelcd(0x30+c%10,1);
+ 701   7                    c=c/10;
+ 702   7                  }
+ 703   6                  if(a-b<0)
+ 704   6                    writelcd(0x2d,1);
+ 705   6                    writelcd(0x3d,1);
+ 706   6                    a=0;
+ 707   6                    b=0;
+ 708   6                    flag1=0;
+ 709   6                    fuhao=0;
+ 710   6                }
+ 711   5                else if(fuhao==3)
+ 712   5                {
+ 713   6                  writelcd(0x04,0);
+ 714   6                  delay_jsq1(1);
+ 715   6                  writelcd(0x80+0x4f,0);
+ 716   6                //  writelcd(0x04,0);
+ 717   6                  a1=a/10000;
+ 718   6                  a2=a%10000;
+ 719   6                  b1=b/10000;
+ 720   6                  b2=b%10000;
+ 721   6                  a=a1*b2;
+ 722   6                  b=a2*b1;
+ 723   6                  a=a+b;
+ 724   6                  c2=a/10000;
+ 725   6                  a=a%10000;
+ 726   6                  b=a2*b2;
+ 727   6                  c1=a1*b1+c2;
+ 728   6                  c2=a*10000+b;
+ 729   6                  a=c2/100000000;
+ 730   6                  c1=c1+a;
+ 731   6                  c2=c2%100000000;
+ 732   6                  c=c2;
+ 733   6                  i=1;
+ 734   6                  if(c1!=0)
+ 735   6                  {
+ 736   7                    while(c!=0||i<8)
+C51 COMPILER V9.50a   ZZZ                                                                  04/26/2019 15:19:14 PAGE 13  
+
+ 737   7                    {
+ 738   8                      writelcd(0x30+c%10,1);
+ 739   8                      c=c/10;
+ 740   8                      i++;
+ 741   8                    }
+ 742   7                  
+ 743   7                    c=c1;           
+ 744   7                    while(c!=0)
+ 745   7                    {
+ 746   8                      writelcd(0x30+c%10,1);
+ 747   8                      c=c/10;
+ 748   8        
+ 749   8                    } 
+ 750   7                  }
+ 751   6                  if(c1==0)
+ 752   6                  {
+ 753   7                    while(c!=0)
+ 754   7                    {
+ 755   8                      writelcd(0x30+c%10,1);
+ 756   8                      c=c/10;
+ 757   8                    }
+ 758   7                  }
+ 759   6                  writelcd(0x3d,1);
+ 760   6                  a=0;
+ 761   6                  b=0;
+ 762   6                  flag1=0;
+ 763   6                  fuhao=0;
+ 764   6                }
+ 765   5                else if(fuhao==4)
+ 766   5                {
+ 767   6                  writelcd(0x04,0);
+ 768   6                  delay_jsq1(1);
+ 769   6                  writelcd(0x80+0x4f,0);
+ 770   6                //  writelcd(0x04,0);
+ 771   6                  i=1;
+ 772   6                  c=(long)(((float)a/b)*100000000);
+ 773   6                  while(c!=0||i<8)
+ 774   6                  {
+ 775   7                    writelcd(0x30+c%10,1);
+ 776   7                    c=c/10;
+ 777   7                    if(i==8)
+ 778   7                    writelcd(0x2e,1);
+ 779   7                    i++;
+ 780   7                  }
+ 781   6                  if(a/b<=0)            
+ 782   6                    writelcd(0x30,1);
+ 783   6                    writelcd(0x3d,1);
+ 784   6                    a=0;
+ 785   6                    b=0;
+ 786   6                    flag1=0;
+ 787   6                    fuhao=0;
+ 788   6                }
+ 789   5                else if(fuhao==0)
+ 790   5                {
+ 791   6                  writelcd(0x04,0);
+ 792   6                  delay_jsq1(1);
+ 793   6                  writelcd(0x80+0x4f,0);
+ 794   6                  //writelcd(0x04,0);
+ 795   6                  c=a;
+ 796   6                  while(c!=0)
+ 797   6                  {
+ 798   7                    writelcd(0x30+c%10,1);
+C51 COMPILER V9.50a   ZZZ                                                                  04/26/2019 15:19:14 PAGE 14  
+
+ 799   7                    c=c/10;
+ 800   7                  }
+ 801   6                  writelcd(0x3d,1);
+ 802   6                  a=0;
+ 803   6                  b=0;
+ 804   6                  flag1=0;
+ 805   6                  fuhao=0;
+ 806   6                }
+ 807   5              }
+ 808   4              break;
+ 809   4              case 15:
+ 810   4              {
+ 811   5                writelcd(0x30+table1[num],1);
+ 812   5                flag1=1;
+ 813   5                fuhao=1;
+ 814   5              }
+ 815   4              break;
+ 816   4            }
+ 817   3          }     
+ 818   2        } 
+ 819   1      }
+ 820          void jisuanqi()
+ 821          {
+ 822   1          keyscan_4_4();
+ 823   1      }
+ 824          void delay(uint z)
+ 825          {
+ 826   1        uint x,y;
+ 827   1        for(x=z;x>0;x--)
+ 828   1        for(y=110;y>0;y--);
+ 829   1      }
+ 830          
+ 831          void write_com(uchar com) // 写命令
+ 832          {
+ 833   1        w=0;
+ 834   1        rs=0; //RS选择写命令还是写数据，写命令
+ 835   1        P2=com; //将写入的命令送到数据总线上
+ 836   1        delay(5); //稍作延时以待数据稳定
+ 837   1        lcde=1; //使能端给一个高脉冲，因为初始化函数已将lcden置为0
+ 838   1        delay(5); //稍作延时
+ 839   1        lcde=0; //将使能端置0以完成高脉冲
+ 840   1      }
+ 841          
+ 842          void write_data(uchar date)//写入数据
+ 843          {
+ 844   1        rs=1;
+ 845   1        P2=date;
+ 846   1        delay(5);
+ 847   1        lcde=1;
+ 848   1        delay(5);
+ 849   1        lcde=0;
+ 850   1      }
+ 851          
+ 852          void write_sfm(uchar add,uchar date) //将数据写到某个地址上
+ 853          {
+ 854   1        uchar shi,ge;
+ 855   1        shi=date/10;
+ 856   1        ge=date%10;
+ 857   1        write_com(0x80+0x40+add-1); //地址指针指在第二行的第add+1个
+ 858   1        delay(5);
+ 859   1        write_data(0x30+shi); //送数据，将数据data的十位数送过去
+ 860   1        delay(5);
+C51 COMPILER V9.50a   ZZZ                                                                  04/26/2019 15:19:14 PAGE 15  
+
+ 861   1        write_data(0x30+ge); //送数据，将数据data的个位数送过去
+ 862   1      }
+ 863          
+ 864          void keyscan()
+ 865          {
+ 866   1        if(k1==0)
+ 867   1        {
+ 868   2          delay(5);
+ 869   2          if(k1==0)//去抖
+ 870   2        {
+ 871   3        k1num++; //计数，计算k1按了几次
+ 872   3        while(!k1); //松手检测
+ 873   3        if(k1num==1) //当按了一次
+ 874   3        {
+ 875   4          TR0=0; //计时器停止，时间停止
+ 876   4          write_com(0x0f); //开显示，显示光标，光标闪烁
+ 877   4          delay(5);
+ 878   4          write_com(0x80+0x48); //数据指针指在第二行秒的个位
+ 879   4        }
+ 880   3        
+ 881   3        if(k1num==2) //当k1按了两次
+ 882   3        {
+ 883   4        
+ 884   4        // write_com(0x0f);
+ 885   4        write_com(0x80+0x44); //数据指针指在第二行分的个位
+ 886   4        
+ 887   4        }
+ 888   3        if(k1num==3) //当k1按了三次
+ 889   3        {
+ 890   4          // write_com(0x0f);
+ 891   4          write_com(0x80+0x41); //数据指针指在第二行时的个位
+ 892   4        }
+ 893   3        
+ 894   3        if(k1num==4) //如果被按了四次
+ 895   3        {
+ 896   4          TR0=1; //启动计时器
+ 897   4          k1num=0; //清零
+ 898   4          write_com(0x0c); //关闭光标
+ 899   4          }
+ 900   3            // if(k1num==5)
+ 901   3            // {
+ 902   3            // write_com(0x80+0x14)
+ 903   3            // }
+ 904   3          }
+ 905   2        }
+ 906   1        if(k1num!=0) //如果k1已经按下过
+ 907   1        {
+ 908   2          if(k2==0) //如果k2按下
+ 909   2          {
+ 910   3            delay(5);
+ 911   3            if(k2==0)
+ 912   3            {
+ 913   4              while(!k2); //松手检测
+ 914   4              if(k1num==1) //当k1按了一次，调秒
+ 915   4              {
+ 916   5                miao++; //每按一次k2秒加一
+ 917   5              if(miao==60)
+ 918   5                {
+ 919   6                  miao=0;
+ 920   6                } 
+ 921   5              write_sfm(8,miao); //数据显示在第二行第9位和第10位
+ 922   5              delay(5);
+C51 COMPILER V9.50a   ZZZ                                                                  04/26/2019 15:19:14 PAGE 16  
+
+ 923   5              write_com(0x80+0x40+7); //k1中已设置光标，数据指针指在0x48
+ 924   5            
+ 925   5              }
+ 926   4        if(k1num==2) //如果k1被按过两次
+ 927   4        {
+ 928   5          fen++;
+ 929   5          if(fen==60)
+ 930   5          fen=0;
+ 931   5          write_sfm(5,fen); //数据送到数据指针指在第六位++
+ 932   5          delay(5);
+ 933   5          write_com(0x80+0x40+4); //数据指针指在第七位 
+ 934   5        } 
+ 935   4        if(k1num==3) //如果k1被按过3次
+ 936   4        {
+ 937   5          shi++;
+ 938   5          if(shi==24)
+ 939   5          shi=0;
+ 940   5          write_sfm(2,shi); // 数据送到第3++
+ 941   5          delay(5);
+ 942   5          write_com(0x80+0x40+1); //地址指针指在第四位
+ 943   5        }
+ 944   4          
+ 945   4          }
+ 946   3          }
+ 947   2          if(k3==0) //k1按过后，如果k3按下
+ 948   2          {
+ 949   3            delay(5);
+ 950   3            if(k3==0)
+ 951   3            {
+ 952   4              while(!k3);
+ 953   4              if(k1num==1) //如果k1按下一次
+ 954   4              {
+ 955   5                miao--;
+ 956   5                if(miao==-1)
+ 957   5                {
+ 958   6                  miao=59;
+ 959   6                }
+ 960   5                write_sfm(8,miao); //数据送到第二行第九位++
+ 961   5                delay(5);
+ 962   5                write_com(0x80+0x40+7); //指针指在第十位
+ 963   5              
+ 964   5          
+ 965   5                }
+ 966   4          if(k1num==2)
+ 967   4          {
+ 968   5          fen--;
+ 969   5          if(fen==-1)
+ 970   5          fen=59;
+ 971   5          write_sfm(5,fen);
+ 972   5          delay(5);
+ 973   5          write_com(0x80+0x40+4); 
+ 974   5          } 
+ 975   4          if(k1num==3)
+ 976   4          {
+ 977   5          shi--;
+ 978   5          if(shi==-1)
+ 979   5          shi=23;
+ 980   5          write_sfm(2,shi);
+ 981   5          delay(5);
+ 982   5          write_com(0x80+0x40+1);
+ 983   5          } 
+ 984   4          }
+C51 COMPILER V9.50a   ZZZ                                                                  04/26/2019 15:19:14 PAGE 17  
+
+ 985   3          }
+ 986   2        }
+ 987   1      }
+ 988          
+ 989          
+ 990          void init_sz() //初始化函数
+ 991          {
+ 992   1        lcde=0;
+ 993   1        write_com(0x38); //设置16*2显示，5*7点阵，8位数据接口
+ 994   1        delay(5);
+ 995   1        write_com(0x0c); //开显示，不显示光标
+ 996   1        delay(5);
+ 997   1        write_com(0x06); //当写一个数据后地址指针加1，且光标加1，当显示一个数据时，整屏显示不移动
+ 998   1        delay(5);
+ 999   1        write_com(0x01); //数据指针清0，显示清0
+1000   1        delay(5);
+1001   1        write_com(0x80); //显示在屏内
+1002   1        delay(5);
+1003   1        TMOD=0x01;
+1004   1        TH0=0xd8;
+1005   1        TL0=0xf0;
+1006   1        EA=1;
+1007   1        ET0=1;
+1008   1        TR0=1;
+1009   1      }
+1010          
+1011          
+1012          void shizhong()
+1013          { 
+1014   1      
+1015   1        
+1016   1        keyscan();
+1017   1      
+1018   1      }
+1019          
+1020          
+1021          void timer0() interrupt 1
+1022          {
+1023   1        TH0=0xd8;
+1024   1        TL0=0xf0;
+1025   1        count++;
+1026   1        if(count==100) //一秒时间到
+1027   1        { 
+1028   2          count=0;
+1029   2          miao++;
+1030   2          if(miao==60)
+1031   2          {
+1032   3            miao=0;
+1033   3            fen++;
+1034   3            if(fen==60)
+1035   3            {
+1036   4              fen=0;
+1037   4              shi++;
+1038   4              if(shi==24)
+1039   4              {
+1040   5                shi=0;
+1041   5              }
+1042   4              if(ki==5)
+1043   4              write_sfm(2,shi);
+1044   4            }
+1045   3            if(ki==5)
+1046   3            write_sfm(5,fen);
+C51 COMPILER V9.50a   ZZZ                                                                  04/26/2019 15:19:14 PAGE 18  
+
+1047   3          }
+1048   2          if(ki==5)
+1049   2          write_sfm(8,miao);
+1050   2        }
+1051   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   3751    ----
+   CONSTANT SIZE    =     63    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     51      15
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

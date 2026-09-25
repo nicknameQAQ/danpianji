@@ -1,0 +1,333 @@
+BL51 BANKED LINKER/LOCATER V6.22                                                        05/06/2017  21:45:55  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22, INVOKED BY:
+E:\PROGRAM FILES\KEIL\C51\BIN\BL51.EXE STARTUP.obj, mabiao.obj TO mabiao
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  STARTUP.obj (?C_STARTUP)
+  mabiao.obj (MABIAO)
+  E:\PROGRAM FILES\KEIL\C51\LIB\C51S.LIB (?C?UIDIV)
+  E:\PROGRAM FILES\KEIL\C51\LIB\C51S.LIB (?C?LMUL)
+  E:\PROGRAM FILES\KEIL\C51\LIB\C51S.LIB (?C?ULDIV)
+  E:\PROGRAM FILES\KEIL\C51\LIB\C51S.LIB (?C?ULCMP)
+
+
+LINK MAP OF MODULE:  mabiao (?C_STARTUP)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     000AH     UNIT         ?DT?MABIAO
+            DATA    0012H     0001H     UNIT         _DATA_GROUP_
+                    0013H     000DH                  *** GAP ***
+            BIT     0020H.0   0000H.1   UNIT         ?BI?MABIAO
+                    0020H.1   0000H.7                *** GAP ***
+            IDATA   0021H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     0003H     ABSOLUTE     
+                    0006H     0005H                  *** GAP ***
+            CODE    000BH     0003H     ABSOLUTE     
+                    000EH     07F2H                  *** GAP ***
+            CODE    0800H     018CH     UNIT         ?PR?DISPLAY?MABIAO
+            CODE    098CH     0183H     UNIT         ?C?LIB_CODE
+            CODE    0B0FH     0091H     UNIT         ?PR?TIME0?MABIAO
+            CODE    0BA0H     003DH     UNIT         ?PR?LCD_INIT?MABIAO
+            CODE    0BDDH     002BH     UNIT         ?PR?_DELAY?MABIAO
+            CODE    0C08H     0024H     UNIT         ?CO?MABIAO
+            CODE    0C2CH     0014H     UNIT         ?PR?INIT?MABIAO
+            CODE    0C40H     0012H     UNIT         ?PR?_WRITE_1602DAT?MABIAO
+            CODE    0C52H     000DH     UNIT         ?PR?EXINT0?MABIAO
+            CODE    0C5FH     000CH     UNIT         ?C_C51STARTUP
+            CODE    0C6BH     000BH     UNIT         ?PR?MAIN?MABIAO
+            CODE    0C76H     0008H     UNIT         ?PR?_WRITE_1602COM?MABIAO
+
+
+
+OVERLAY MAP OF MODULE:   mabiao (?C_STARTUP)
+
+
+SEGMENT                             DATA_GROUP 
+  +--> CALLED SEGMENT             START    LENGTH
+-------------------------------------------------
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/06/2017  21:45:55  PAGE 2
+
+
+?C_C51STARTUP                     -----    -----
+  +--> ?PR?MAIN?MABIAO
+
+?PR?MAIN?MABIAO                   -----    -----
+  +--> ?PR?INIT?MABIAO
+  +--> ?PR?LCD_INIT?MABIAO
+  +--> ?PR?DISPLAY?MABIAO
+
+?PR?LCD_INIT?MABIAO               -----    -----
+  +--> ?PR?_WRITE_1602COM?MABIAO
+  +--> ?CO?MABIAO
+  +--> ?PR?_WRITE_1602DAT?MABIAO
+
+?PR?_WRITE_1602COM?MABIAO         -----    -----
+  +--> ?PR?_DELAY?MABIAO
+
+?PR?_WRITE_1602DAT?MABIAO         -----    -----
+  +--> ?PR?_DELAY?MABIAO
+
+?PR?DISPLAY?MABIAO                -----    -----
+  +--> ?PR?_WRITE_1602COM?MABIAO
+  +--> ?PR?_WRITE_1602DAT?MABIAO
+
+*** NEW ROOT ***************************************************
+
+?PR?TIME0?MABIAO                  0012H    0001H
+
+
+
+SYMBOL TABLE OF MODULE:  mabiao (?C_STARTUP)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        ?C_STARTUP
+  C:0C5FH         SEGMENT       ?C_C51STARTUP
+  I:0021H         SEGMENT       ?STACK
+  C:0000H         PUBLIC        ?C_STARTUP
+  D:00E0H         SYMBOL        ACC
+  D:00F0H         SYMBOL        B
+  D:0083H         SYMBOL        DPH
+  D:0082H         SYMBOL        DPL
+  N:0000H         SYMBOL        IBPSTACK
+  N:0100H         SYMBOL        IBPSTACKTOP
+  N:0080H         SYMBOL        IDATALEN
+  C:0C62H         SYMBOL        IDATALOOP
+  N:0000H         SYMBOL        PBPSTACK
+  N:0100H         SYMBOL        PBPSTACKTOP
+  N:0000H         SYMBOL        PDATALEN
+  N:0000H         SYMBOL        PDATASTART
+  N:0000H         SYMBOL        PPAGE
+  N:0000H         SYMBOL        PPAGEENABLE
+  D:00A0H         SYMBOL        PPAGE_SFR
+  D:0081H         SYMBOL        SP
+  C:0C5FH         SYMBOL        STARTUP1
+  N:0000H         SYMBOL        XBPSTACK
+  N:0000H         SYMBOL        XBPSTACKTOP
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/06/2017  21:45:55  PAGE 3
+
+
+  N:0000H         SYMBOL        XDATALEN
+  N:0000H         SYMBOL        XDATASTART
+  C:0000H         LINE#         126
+  C:0C5FH         LINE#         133
+  C:0C61H         LINE#         134
+  C:0C62H         LINE#         135
+  C:0C63H         LINE#         136
+  C:0C65H         LINE#         185
+  C:0C68H         LINE#         196
+  -------         ENDMOD        ?C_STARTUP
+
+  -------         MODULE        MABIAO
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  D:0090H         PUBLIC        P1
+  D:00A0H         PUBLIC        P2
+  D:00B0H         PUBLIC        P3
+  B:00A8H.7       PUBLIC        EA
+  D:00A8H         PUBLIC        IE
+  C:0BE8H         PUBLIC        _delay
+  C:0C4AH         PUBLIC        _write_1602dat
+  D:00B8H         PUBLIC        IP
+  C:0C76H         PUBLIC        _write_1602com
+  B:0020H.0       PUBLIC        flag
+  C:0C6BH         PUBLIC        main
+  D:0008H         PUBLIC        count
+  D:0098H         PUBLIC        SCON
+  D:0089H         PUBLIC        TMOD
+  D:0088H         PUBLIC        TCON
+  C:0C2CH         PUBLIC        init
+  D:000AH         PUBLIC        Mileage
+  C:0C52H         PUBLIC        EXINT0
+  B:00A8H.1       PUBLIC        ET0
+  C:0BA0H         PUBLIC        lcd_init
+  D:008CH         PUBLIC        TH0
+  B:00A8H.0       PUBLIC        EX0
+  B:0088H.0       PUBLIC        IT0
+  D:008AH         PUBLIC        TL0
+  B:00A0H.6       PUBLIC        en
+  D:000EH         PUBLIC        Velocity
+  B:0088H.4       PUBLIC        TR0
+  C:0B0FH         PUBLIC        time0
+  B:00A0H.7       PUBLIC        rs
+  D:00C8H         PUBLIC        T2CON
+  C:0C08H         PUBLIC        tab1
+  C:0C1BH         PUBLIC        tab2
+  C:0800H         PUBLIC        display
+  D:00D0H         PUBLIC        PSW
+  -------         PROC          L?0036
+  -------         ENDPROC       L?0036
+  -------         PROC          _DELAY
+  D:0006H         SYMBOL        x
+  -------         DO            
+  D:0004H         SYMBOL        i
+  D:0002H         SYMBOL        j
+  -------         ENDDO         
+  C:0BE8H         LINE#         18
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/06/2017  21:45:55  PAGE 4
+
+
+  C:0BE8H         LINE#         19
+  C:0BE8H         LINE#         21
+  C:0BF2H         LINE#         22
+  C:0C07H         LINE#         23
+  -------         ENDPROC       _DELAY
+  -------         PROC          INIT
+  C:0C2CH         LINE#         24
+  C:0C2CH         LINE#         25
+  C:0C2CH         LINE#         26
+  C:0C2EH         LINE#         27
+  C:0C31H         LINE#         28
+  C:0C34H         LINE#         29
+  C:0C37H         LINE#         30
+  C:0C39H         LINE#         31
+  C:0C3BH         LINE#         32
+  C:0C3DH         LINE#         33
+  C:0C3FH         LINE#         34
+  -------         ENDPROC       INIT
+  -------         PROC          _WRITE_1602COM
+  D:0007H         SYMBOL        com
+  C:0C76H         LINE#         37
+  C:0C76H         LINE#         38
+  C:0C76H         LINE#         39
+  C:0C78H         LINE#         40
+  C:0C78H         LINE#         41
+  C:0C78H         LINE#         42
+  C:0C78H         LINE#         43
+  C:0C7BH         LINE#         44
+  C:0C7DH         LINE#         46
+  -------         ENDPROC       _WRITE_1602COM
+  C:0C43H         SYMBOL        L?0035
+  -------         PROC          L?0034
+  -------         ENDPROC       L?0034
+  C:0C43H         SYMBOL        L?0035
+  -------         PROC          _WRITE_1602DAT
+  D:0007H         SYMBOL        dat
+  C:0C4AH         LINE#         49
+  C:0C4AH         LINE#         50
+  C:0C4AH         LINE#         51
+  C:0C4CH         LINE#         52
+  C:0C4CH         LINE#         53
+  C:0C4CH         LINE#         54
+  C:0C4CH         LINE#         55
+  C:0C4FH         LINE#         56
+  C:0C51H         LINE#         57
+  -------         ENDPROC       _WRITE_1602DAT
+  -------         PROC          LCD_INIT
+  -------         DO            
+  D:0001H         SYMBOL        a
+  -------         ENDDO         
+  C:0BA0H         LINE#         60
+  C:0BA0H         LINE#         61
+  C:0BA0H         LINE#         63
+  C:0BA5H         LINE#         64
+  C:0BAAH         LINE#         65
+  C:0BAFH         LINE#         66
+  C:0BB4H         LINE#         68
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/06/2017  21:45:55  PAGE 5
+
+
+  C:0BB9H         LINE#         69
+  C:0BBBH         LINE#         70
+  C:0BBBH         LINE#         71
+  C:0BC4H         LINE#         72
+  C:0BC8H         LINE#         73
+  C:0BCDH         LINE#         74
+  C:0BCFH         LINE#         75
+  C:0BCFH         LINE#         76
+  C:0BD8H         LINE#         77
+  C:0BDCH         LINE#         78
+  -------         ENDPROC       LCD_INIT
+  -------         PROC          DISPLAY
+  C:0800H         LINE#         80
+  C:0800H         LINE#         81
+  C:0800H         LINE#         86
+  C:0805H         LINE#         87
+  C:0821H         LINE#         88
+  C:0825H         LINE#         90
+  C:083DH         LINE#         91
+  C:0897H         LINE#         92
+  C:089BH         LINE#         94
+  C:08C4H         LINE#         95
+  C:08DCH         LINE#         97
+  C:08E1H         LINE#         98
+  C:08F4H         LINE#         99
+  C:091AH         LINE#         100
+  C:091FH         LINE#         101
+  C:0941H         LINE#         102
+  C:0962H         LINE#         104
+  -------         ENDPROC       DISPLAY
+  -------         PROC          MAIN
+  C:0C6BH         LINE#         107
+  C:0C6BH         LINE#         108
+  C:0C6BH         LINE#         109
+  C:0C6EH         LINE#         110
+  C:0C71H         LINE#         111
+  C:0C71H         LINE#         112
+  C:0C71H         LINE#         113
+  C:0C74H         LINE#         114
+  -------         ENDPROC       MAIN
+  -------         PROC          EXINT0
+  C:0C52H         LINE#         117
+  C:0C54H         LINE#         119
+  C:0C5CH         LINE#         120
+  -------         ENDPROC       EXINT0
+  -------         PROC          TIME0
+  -------         DO            
+  D:0012H         SYMBOL        m
+  -------         ENDDO         
+  C:0B0FH         LINE#         122
+  C:0B2CH         LINE#         125
+  C:0B2FH         LINE#         126
+  C:0B32H         LINE#         127
+  C:0B34H         LINE#         128
+  C:0B3BH         LINE#         129
+  C:0B3BH         LINE#         130
+  C:0B3EH         LINE#         131
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/06/2017  21:45:55  PAGE 6
+
+
+  C:0B6DH         LINE#         132
+  C:0B81H         LINE#         133
+  C:0B85H         LINE#         134
+  C:0B85H         LINE#         135
+  -------         ENDPROC       TIME0
+  -------         ENDMOD        MABIAO
+
+  -------         MODULE        ?C?UIDIV
+  C:098CH         PUBLIC        ?C?UIDIV
+  -------         ENDMOD        ?C?UIDIV
+
+  -------         MODULE        ?C?LMUL
+  C:09E1H         PUBLIC        ?C?LMUL
+  -------         ENDMOD        ?C?LMUL
+
+  -------         MODULE        ?C?ULDIV
+  C:0A6CH         PUBLIC        ?C?ULDIV
+  -------         ENDMOD        ?C?ULDIV
+
+  -------         MODULE        ?C?ULCMP
+  C:0AFEH         PUBLIC        ?C?ULCMP
+  -------         ENDMOD        ?C?ULCMP
+
+******************************************************************************
+* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 0304H BYTE (37%) *
+******************************************************************************
+
+Program Size: data=20.1 xdata=0 code=1159
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

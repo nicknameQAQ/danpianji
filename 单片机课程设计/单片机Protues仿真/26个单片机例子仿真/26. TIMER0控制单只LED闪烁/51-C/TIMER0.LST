@@ -1,0 +1,54 @@
+C51 COMPILER V8.02   TIMER0                                                                08/03/2011 21:09:44 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE TIMER0
+OBJECT MODULE PLACED IN TIMER0.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE TIMER0.C BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2          *INT1中断5位计数*
+   3          */
+   4          #include<reg51.h>
+   5          typedef unsigned char uint8;
+   6          typedef unsigned int uint16;
+   7          
+   8          sbit LED = P0^0;
+   9          
+  10          uint16 T_Count = 0;
+  11          
+  12          void main()
+  13          {
+  14   1              TMOD = 0x01;
+  15   1              TH0 = 0xFC;
+  16   1              TL0 = 0x67;
+  17   1              IE   = 0x82;
+  18   1              TR0  = 1;
+  19   1              while(1);
+  20   1      }
+  21          
+  22          void LED_Flash() interrupt 1
+  23          {
+  24   1              TMOD = 0x01;
+  25   1              TH0 = 0xFC;
+  26   1              if(++T_Count == 100)
+  27   1              {
+  28   2                      LED = ~LED;
+  29   2                      T_Count = 0;
+  30   2              }
+  31   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     47    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

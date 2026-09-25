@@ -1,0 +1,564 @@
+C51 COMPILER V9.00   JISUANGQI                                                             12/13/2015 16:36:02 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE JISUANGQI
+OBJECT MODULE PLACED IN jisuangqi.OBJ
+COMPILER INVOKED BY: D:\Keil\C51\BIN\C51.EXE jisuangqi.c OPTIMIZE(9,SPEED) BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include "reg52.h"
+   2          #include <stdlib.h>        //°üº¬atof(),×Ö·û´®->ÊµÊý
+   3          #include <stdio.h>         //°üº¬sprintf(),ÊµÊý->×Ö·û´®
+   4          #include <string.h>        //°üº¬strcpy(),×Ö·û´®¸´ÖÆ
+   5          #include <math.h>                  //ÊýÑ§º¯ÊýÍ·ÎÄ¼þ
+   6          #include "yyxp.h"
+   7          #define uchar unsigned char
+   8          #define uint unsigned int
+   9          
+  10          //sbit choose=P3^4;          //Ê±ÖÓºÍ¼ÆËãÆ÷Ñ¡Ôñ¼ü
+  11          /*************lcd****************/
+  12          sbit lcdrs=P2^7;           //LCD¿ØÖÆ½Å
+  13          sbit lcdrw=P2^6;
+  14          sbit lcden=P2^5;
+  15          bit idata form;            //lcdÏÔÊ¾·½Ê½ÇÐ»»
+  16          uchar idata state;         //lcd×´Ì¬×Ö´æ´¢
+  17          uchar flag_bofang;
+  18          /************¼ÆËãÆ÷*************/
+  19          //sbit reset=P3^0;           //¼ÆËãÆ÷¸´Î»
+  20          //sbit back=P3^1;            //³·ÏúÉÏ´Î¼üÈë¼ü
+  21          //sbit save=P3^2;            //´æ´¢¼ü£¬´æ´¢ÓÐÉÏ´ÎµÄ½á¹ûºÍÁíÍâÄ³´Î¼ÆËãÖµ
+  22          bit idata eqsign;          //°´µÈºÅ±êÖ¾
+  23          bit idata press;           //¼ü°´±êÖ¾
+  24          bit idata savesign;        //¿É´æ´¢½á¹û±êÖ¾
+  25          bit idata sc;                      //¸´ÓÃ±êÖ¾
+  26          uchar idata process[30],proc; //¼ÇÒä¼ÆËã¹ý³Ì£¬ÒÔ±ã´íÎó»Ö¸´ºÍ³·ÏúÊäÈë
+  27          uchar idata continu=0;        //Á¬Ðø¼ÆËãÔËËã·ûºÅ´æ´¢
+  28          uchar idata pai[2][2];        //¦Ð Ç°ÓÐÊý¾Ý±êÖ¾
+  29          uchar idata ferror;        //¼ÆËã¼ì´í±êÖ¾
+  30          uchar idata ywei;                  //ÆÁÄ»ÒÆÎ»
+  31          uchar idata count=0;       //ÊäÈë¼ÆÊý
+  32          uchar idata count_num=0;   //×éºÅ¼ÆÊý
+  33          uchar idata result[15];    //¼ÆËã½á¹ûÁ¢´æ£¬save
+  34          //uchar idata saveresult[15];//´æ´¢½á¹ûÊý×é, sc+save
+  35          uchar idata jieguo[15];    //½á¹û×Ö·û´®
+  36          uchar idata bdate[2][14];  //´ý¼ÆËã×Ö·û´®¶þÎ¬×é
+  37          uchar idata on_symbol;     //ÔËËã·ûºÅ
+  38          uchar idata fsym[2];       //º¯ÊýÇ°·ûºÅ
+  39          uchar idata ssym[2];       //´æ´¢×éÇ°·ûºÅ
+  40          uchar idata bfun[2];       //¼ÆËãÖµµ÷ÓÃº¯ÊýÑ¡Ôñ
+  41          uchar idata futojiao[2];   //·ù¶È to ½Ç¶È±ä»»
+  42          double idata date[2];      //¼ÆËãÖµË«¾«¶È±äÁ¿×é
+  43          double idata resultdate;   //Ë«¾«¶È½á¹ûÖµ
+  44          /***************Ê±ÖÓ****************/
+  45          sbit stime=P3^7;           //Ê±¼äÉèÖÃ¼ü£¬Í¬Ê±ÓÃÓÚ¼ÆËãÆ÷Ä£Ê½µÄ¸´ÓÃ¼ü
+  46          uchar idata ms50=0;        //Ê±¼äµ÷½Ú±äÁ¿
+  47          uchar idata s=0;           //Ãë
+  48          uchar idata m=0;           //·Ö
+  49          uchar idata h=0;           //Ð¡Ê±
+  50          
+  51          /******************º¯ÊýÉùÃ÷**********************/
+  52          
+  53          /***************ÑÓÊ±******************/
+  54          void delay(uchar z);    
+  55          /*************lcdÐ´ÃüÁî***************/
+C51 COMPILER V9.00   JISUANGQI                                                             12/13/2015 16:36:02 PAGE 2   
+
+  56          void write_com(uchar com);
+  57          /*************lcdÐ´Êý¾Ý***************/
+  58          void write_date(uchar date);
+  59          /*************lcd¶Á×´Ì¬***************/
+  60          void read_date(void);
+  61          /*************lcdÐ´×Ö·û´®*************/
+  62          void write_str(uchar *str);
+  63          /************Òº¾§³õÊ¼»¯***************/
+  64          void init(void );
+  65          /**************¼üÅÌÉ¨Ãè***************/
+  66          uchar keyscan(void);
+  67          /*************¼ÆËãÆ÷¸´Î»**************/
+  68          void fuwei();          
+  69          /************error´¦Àí****************/
+  70          void callerror(void);
+  71          /***************³·Ïú¼üÈë**************/
+  72          void huifu(void);
+  73          /**********º¯Êý×éÇ°·ûºÅ´¦Àí***********/
+  74          uchar funqian(void);
+  75          /************ÔËËã·ûÔ¤´¦Àí*************/
+  76          void  cullars(uchar);
+  77          /***********Êä³ö´æ´¢Êý¾ÝÔ¤´¦Àí********/
+  78          char  memory(void);
+  79          /***********°´¼ü¹¦ÄÜÖ÷´¦Àí************/
+  80          void process_date(uchar press_date);
+  81          /***********°´¼ü¹¦ÄÜ×Ó´¦Àí************/
+  82          void calculator(uchar press_date);
+  83          /************************************************/
+  84          /*************LCD³ÌÐò****************/
+  85          /**************ÑÓÊ±******************/
+  86          void delay(uchar z)                        //0.2 ms
+  87          {
+  88   1            uchar  x,y;
+  89   1            for(x=z;x>0;x--)
+  90   1            for(y=100;y>0;y--);
+  91   1      }
+  92          
+  93          /**************Ð´ÃüÁî*****************/
+  94          void write_com(uchar com)
+  95          {
+  96   1            lcdrs=0;
+  97   1            lcdrw=0;
+  98   1            lcden=0;
+  99   1            P0=com;
+ 100   1            delay(5);
+ 101   1            lcden=1;
+ 102   1            delay(5);
+ 103   1            lcden=0;
+ 104   1      }
+ 105          /*************Ð´Êý¾Ý******************/
+ 106          void write_date(uchar date)
+ 107          {
+ 108   1            lcdrs=1;
+ 109   1            lcdrw=0;
+ 110   1            lcden=0;
+ 111   1            P0=date;
+ 112   1            delay(5);
+ 113   1            lcden=1;
+ 114   1            delay(5);
+ 115   1            lcden=0;
+ 116   1      }
+ 117          /*************¶ÁAC µØÖ·*****************/
+C51 COMPILER V9.00   JISUANGQI                                                             12/13/2015 16:36:02 PAGE 3   
+
+ 118          void read_date(void)
+ 119          {
+ 120   1            lcdrs=0;
+ 121   1            lcdrw=1;
+ 122   1                delay(5);
+ 123   1                P0=0xff;
+ 124   1            lcden=1;
+ 125   1            delay(5);
+ 126   1            state=P0;
+ 127   1            delay(5);
+ 128   1            lcden=0;delay(5);
+ 129   1                state=state&127;
+ 130   1      }
+ 131          /*************Ð´×Ö·û´®******************/
+ 132          void write_str(uchar *str)
+ 133          {     
+ 134   1            uchar idata i;
+ 135   1            for(i=0;str[i]!='\0';i++)
+ 136   1               write_date(str[i]);
+ 137   1      }
+ 138          /***********Òº¾§³õÊ¼»¯***************/
+ 139          void init(void )
+ 140          {
+ 141   1            write_com(0x38);       //Ä£Ê½£º8Î»Êý¾Ý£¬Á½ÐÐ£¬5*7×ÖÌå
+ 142   1            write_com(0x0c);       //¿ªÏÔÊ¾£¬ÎÞ¹â±ê
+ 143   1            write_com(0x06);       //Ïò×óÔöÁ¿ÒÆ¶¯
+ 144   1            write_com(0x01);       //ÇåÆÁ
+ 145   1      }
+ 146          
+ 147          
+ 148          /**************¼üÅÌÉ¨Ãè*************/
+ 149          uchar keyscan(void)          //°´ÐÐÉ¨Ãè£¬ÓÐ¼ü°´ÏÂÔò·µ»Ø¼ü·ûºÅ£¬·ñÔò·µ»Ønull
+ 150          {     uchar idata key0,key1,keyment=0;
+ 151   1            P1=0Xef;                                     //ÐÐ1
+ 152   1            key0=P1;
+ 153   1            key0=key0&0x0f;
+ 154   1            key1=key0;
+ 155   1            if(key0!=0x0f)
+ 156   1            {
+ 157   2                 delay(5);               //¼ü¶¶¶¯´¦Àí
+ 158   2                 P1=0Xef;
+ 159   2                 key0=P1;
+ 160   2                 key0=key0&0x0f;
+ 161   2                 if(key0==key1)
+ 162   2                 {
+ 163   3                      switch(key0)
+ 164   3                      {
+ 165   4                        case 0x0e:keyment='7';break;
+ 166   4                        case 0x0d:keyment='8';break;
+ 167   4                        case 0x0b:keyment='9';break;
+ 168   4                        case 0x07:flag_bofang=0;keyment=0xfd;break;  //0xfd³ýºÅÔÚ1602Òº¾§ÖÐµÄ´úÂë
+ 169   4                      }
+ 170   3                      while(key0!=0x0f)  //¼üÊÍ·Å´¦Àí
+ 171   3                      {
+ 172   4                        key0=P1;
+ 173   4                        key0=key0&0x0f;
+ 174   4                      }
+ 175   3                      press=1;                   //¼ü°´±êÖ¾ÖÃ1
+ 176   3                      return(keyment);
+ 177   3                 }
+ 178   2            }
+ 179   1            P1=0Xdf;                                    //ÐÐ2
+C51 COMPILER V9.00   JISUANGQI                                                             12/13/2015 16:36:02 PAGE 4   
+
+ 180   1            key0=P1;
+ 181   1            key0=key0&0x0f;
+ 182   1            key1=key0;
+ 183   1            if(key0!=0x0f)
+ 184   1            {
+ 185   2                 delay(5);
+ 186   2                 P1=0Xdf;
+ 187   2                 key0=P1;
+ 188   2                 key0=key0&0x0f;
+ 189   2                 if(key0==key1)
+ 190   2                 {
+ 191   3                     switch(key0)
+ 192   3                     {
+ 193   4                        case 0x0e:keyment='4';break;
+ 194   4                        case 0x0d:keyment='5';break;
+ 195   4                        case 0x0b:keyment='6';break;
+ 196   4                        case 0x07:flag_bofang=0;keyment='*';break;
+ 197   4                     }
+ 198   3                     while(key0!=0x0f)
+ 199   3                     {
+ 200   4                        key0=P1;
+ 201   4                        key0=key0&0x0f;
+ 202   4                     }
+ 203   3                     press=1;
+ 204   3                     return(keyment);
+ 205   3                 }
+ 206   2            }
+ 207   1            P1=0Xbf;                                           //ÐÐ3
+ 208   1            key0=P1;
+ 209   1            key0=key0&0x0f;
+ 210   1            key1=key0;
+ 211   1            if(key0!=0x0f)
+ 212   1            {
+ 213   2                 delay(5);
+ 214   2                 P1=0Xbf;
+ 215   2                 key0=P1;
+ 216   2                 key0=key0&0x0f;
+ 217   2                 if(key0==key1)
+ 218   2                 {
+ 219   3      
+ 220   3                     switch(key0)
+ 221   3                     {
+ 222   4                         case 0x0e:keyment='1';break;
+ 223   4                         case 0x0d:keyment='2';break;
+ 224   4                         case 0x0b:keyment='3';break;
+ 225   4                         case 0x07:flag_bofang=0;keyment='-';break;
+ 226   4                     }
+ 227   3                     while(key0!=0x0f)
+ 228   3                     {
+ 229   4                         key0=P1;
+ 230   4                         key0=key0&0x0f;
+ 231   4                     }
+ 232   3                     press=1;
+ 233   3                     return(keyment) ;
+ 234   3                 }
+ 235   2            }
+ 236   1            P1=0X7f;                                    //ÐÐ4
+ 237   1            key0=P1;
+ 238   1            key0=key0&0x0f;
+ 239   1            key1=key0;
+ 240   1            if(key0!=0x0f)
+ 241   1            {
+C51 COMPILER V9.00   JISUANGQI                                                             12/13/2015 16:36:02 PAGE 5   
+
+ 242   2                 delay(5);
+ 243   2                 P1=0X7f;
+ 244   2                 key0=P1;
+ 245   2                 key0=key0&0x0f;
+ 246   2                 if(key0==key1)
+ 247   2                 {
+ 248   3                     switch(key0)
+ 249   3                     {
+ 250   4                       case 0x0e:keyment='.';break;
+ 251   4                       case 0x0d:keyment='0';break;
+ 252   4                       case 0x0b:flag_bofang=1;keyment='=';break;
+ 253   4                       case 0x07:flag_bofang=0;keyment='+';break;
+ 254   4                     }
+ 255   3                     while(key0!=0x0f)
+ 256   3                     {
+ 257   4                       key0=P1;
+ 258   4                       key0=key0&0x0f;
+ 259   4                     }
+ 260   3                     press=1;
+ 261   3                     return(keyment);
+ 262   3                 }
+ 263   2           }
+ 264   1      /*     else  if(save==0)                   //´¢´æÊý¾Ý¼ü
+ 265   1           {  delay(5);
+ 266   1                  if(save==0)   
+ 267   1                  { if(sc==0)    //Êä³öÇ°´Î¼ÆËã½á¹û¼ü
+ 268   1                     {        
+ 269   1                            keyment='m';
+ 270   1                    press=1;
+ 271   1                    while(save==0);
+ 272   1                    return(keyment);
+ 273   1                         }
+ 274   1                         else                    //¸üÐÂ´æ´¢µÄÊý¾Ý»òÊä³ö´æ´¢µÄÊý¾Ý
+ 275   1                         {
+ 276   1                    keyment='n';
+ 277   1                    press=1;
+ 278   1                                sc=0;
+ 279   1                    while(save==0);
+ 280   1                    return(keyment);                
+ 281   1                         }
+ 282   1                      }  
+ 283   1           } */
+ 284   1                 return(0);      //ÎÞ¼ü°´ÏÂ·µ»Ønull
+ 285   1      }
+ 286          
+ 287          /**************¼ÆËãÆ÷¸´Î»****************/
+ 288          void fuwei()
+ 289          {   uchar idata j,i;
+ 290   1          write_com(0x0f);        //lcdÉèÖÃ
+ 291   1          write_com(0x01);
+ 292   1          write_com(0x81);
+ 293   1          resultdate=0;
+ 294   1          for(i=0;i<2;i++)
+ 295   1              { date[i]=0;bfun[i]=0;pai[0][i]=0;pai[1][i]=0;fsym[i]=0;futojiao[i]=0; //¸÷±êÖ¾ÖÃ0
+ 296   2                for(j=0;j<14;j++)             //×Ö·ûÊý×é³õÊ¼»¯
+ 297   2            { 
+ 298   3              bdate[i][j]='\0';
+ 299   3            }
+ 300   2              }
+ 301   1          count=0;                            //¸÷±êÖ¾ÖÃ0
+ 302   1          count_num=0;
+ 303   1              proc=0;
+C51 COMPILER V9.00   JISUANGQI                                                             12/13/2015 16:36:02 PAGE 6   
+
+ 304   1          ferror=0;
+ 305   1          eqsign=0;
+ 306   1              sc=0;
+ 307   1              savesign=0;
+ 308   1              ywei=0;
+ 309   1              press=0;
+ 310   1              on_symbol=0; 
+ 311   1      }
+ 312          /**************error´¦Àí******************/
+ 313          void callerror(void)
+ 314          {   uchar idata i;
+ 315   1          speak(cuowu);
+ 316   1          write_com(0x01);
+ 317   1          write_com(0x81);
+ 318   1          write_str("     error!     ");
+ 319   1          for(i=0;i<50;i++)delay(25); //³ÖÐøÏÔÊ¾ 1s
+ 320   1      }
+ 321          
+ 322          /*****************ÔËËã·ûÔ¤´¦Àí*****************/
+ 323          void  cullars(uchar csym)
+ 324          {       read_date();               //¿´µÚ¶þ×éÊÇ·ñÓÐÊäÈë
+ 325   1              ferror++;              //¼ì´í±êÖ¾+1
+ 326   1              continu=csym;              //´æ´¢ÔËËã·ûºÅ
+ 327   1              if(ferror==2&&state<0x43){callerror();huifu();return;}// µÚ¶þ×éÎÞÊäÈëÇÒferror=2£¬´íÎó
+ 328   1              if(ferror==2&&state>0x42)       //µÚ¶þ×éÓÐÊäÈëÇÒferror=2£¬Ôò½øÐÐÁ¬Ðø¼ÆËã
+ 329   1              {  
+ 330   2                 press=1;                                     //Ä£Äâ°´¼ü¡®=¡¯ºÍ¡®M+¡¯£»½«±¾´ÎµÄ¼ÆËã½á¹û×÷ÎªÏÂÒ»´Î¼ÆËãµÄµÚÒ»×é
+ 331   2                 process_date('=');
+ 332   2                 press=1;
+ 333   2                 process_date('m');
+ 334   2                 ferror=1;                            //»Ö¸´ÏÖ³¡£¬±ÜÃâ±ä»¯
+ 335   2                 if(continu=='^'||continu=='%'){process[proc]='h';
+ 336   3                      proc++;process[proc]=continu;proc++;}
+ 337   2                 else{process[proc]=continu;proc++;}    //»Ö¸´Á¬Ðø¼ÆËã¹ý³Ì
+ 338   2                 flag_bofang=0;
+ 339   2              }
+ 340   1              if(continu=='%'){write_str(" f");}else write_date(' ');
+ 341   1              write_date(continu);//½«ÓÃÓëÁ¬Ðø¼ÆËãµÄÔËËã·ûºÅÈ¡³ö
+ 342   1              ywei=0;                            
+ 343   1              savesign=0;
+ 344   1              count_num=1;     //×é±êÖ¾¼Ó1
+ 345   1              count=0;                 //ÊäÈë¼ÆÊýÇåÁã
+ 346   1              on_symbol=continu;  //ÔËËã·ûºÅµ÷ÓÃ
+ 347   1              write_com(0xc2);
+ 348   1              return;
+ 349   1      }
+ 350          /*************Êä³ö´æ´¢Êý¾ÝÔ¤´¦Àí************/
+ 351          char  memory(void)
+ 352          {       if((bdate[count_num][0]=='+'||bdate[count_num][0]=='-')&&count==1)//·ûºÅ´¦Àí                    
+ 353   1          {
+ 354   2                      ssym[count_num]=bdate[count_num][0];
+ 355   2                      bdate[count_num][0]='\0';
+ 356   2                      bdate[count_num][1]='\0';
+ 357   2                      count=0;
+ 358   2              }
+ 359   1          if(bdate[count_num][0]!='\0'){callerror();huifu();return(1);}       //´íÎóÊäÈë·½Ê½´¦Àí
+ 360   1              return(0);
+ 361   1      }
+ 362          /**************°´¼ü¹¦ÄÜÖ÷´¦Àí****************/
+ 363          void process_date(uchar press_date)
+ 364          {    
+ 365   1           if(form==0){write_com(0x0f);form=1;}   //ÏÔÊ¾·½Ê½ÇÐ»» ¹â±êÉÁË¸     
+C51 COMPILER V9.00   JISUANGQI                                                             12/13/2015 16:36:02 PAGE 7   
+
+ 366   1           if(eqsign==1&&press==1)fuwei();            //¸´Î»ÔÙ´Î¼ÆËã£¬¼ÇÒä¹ý³ÌÇåÁã
+ 367   1               press=0;
+ 368   1               if(press_date=='c'){huifu();press_date=0;}
+ 369   1               if(press_date==0)return;               //ÎÞ°´¼ü
+ 370   1               process[proc]=press_date;
+ 371   1               proc++;
+ 372   1               calculator(press_date);
+ 373   1               return;
+ 374   1      }
+ 375          /***************°´¼ü¹¦ÄÜ×Ó´¦Àí***************/
+ 376          void calculator(uchar press_date)
+ 377          {        
+ 378   1           uchar idata j=0;
+ 379   1               /*************************************/
+ 380   1               if((press_date<='9'&&press_date>='0')||(press_date=='.')) //Êý×Ö¼ü´¦Àí
+ 381   1           {  savesign=0;                       //²»¿É¸üÐÂ´æ´¢Êý¾Ý
+ 382   2              if(sc==0)                         //ÊÇ·ñÎª¸´ÓÃscÎª0£¬ÊÇÊý×Ö
+ 383   2              { 
+ 384   3                 if(count<14-ywei)  //Î´µ÷ÓÃº¯ÊýÊ±×î¶àÊäÈë14Î»Êý£¬°üÀ¨Ð¡Êýµã
+ 385   3                 {    
+ 386   4                                     write_date(press_date);
+ 387   4                         bdate[count_num][count]=press_date; //´¢´æ¼üÖµ
+ 388   4                         count++;
+ 389   4                                            if(press_date=='.')
+ 390   4                                              speak(22);
+ 391   4                                              else if(press_date=='0') 
+ 392   4                                      //      speak(60);
+ 393   4                                          speak(ling);
+ 394   4                                              else speak(press_date+1-0x30);
+ 395   4                 }
+ 396   3                 else {callerror();huifu();}  //³¬³ö14Î»³ö´í,»Ö¸´
+ 397   3      
+ 398   3              }
+ 399   2            }
+ 400   1             /*************************************************/
+ 401   1            else if(press_date=='m')       //ÉÏ´Î¼ÆËã½á¹ûÊä³ö
+ 402   1            {  
+ 403   2                 if(memory()==1)return;                                                 //Êä³ö´æ´¢Êý¾ÝÔ¤´¦Àí
+ 404   2                 for(j=0;result[j]!='\0';j++)write_date(result[j]);           //Êä³ö´æ´¢Öµ
+ 405   2                 strcpy(bdate[count_num],result);
+ 406   2                         savesign=1;            //´ËÊ±¿ÉÒÔ¸üÐÂsaveresultÖÐ´æ´¢µÄÊý¾Ý
+ 407   2                         count=14;          //count=14ÊÇÈÃ±¾×éÊý¾ÝÒÑÈ·¶¨
+ 408   2                }
+ 409   1            /****************'+','-'´¦Àí*****************/
+ 410   1             else if((press_date=='+')||(press_date=='-'))
+ 411   1             {    
+ 412   2                            if(count==0)      // ±íÊ¾ÊäÈëÊý¾ÝµÄ·ûºÅ£¬´ËÊ±Ä¬ÈÏÊýÖµÎª0
+ 413   2                    {                                    
+ 414   3                      write_date(press_date);
+ 415   3                      bdate[count_num][0]=press_date; 
+ 416   3                                      bdate[count_num][1]='0';
+ 417   3                                      read_date();                    //¶Á×´Ì¬
+ 418   3                       
+ 419   3                          write_com(state+0x81);//¹â±ê»¹»ØÔ­À´Î»ÖÃ
+ 420   3                      count=1;
+ 421   3                                      if(press_date=='-')
+ 422   3                                      speak(fu);
+ 423   3                    }
+ 424   2                    else                         //ÎªÔËËã·ûºÅ
+ 425   2                    {  
+ 426   3                                while(yyxp_busy==0);
+ 427   3                                       yydelay(2); 
+C51 COMPILER V9.00   JISUANGQI                                                             12/13/2015 16:36:02 PAGE 8   
+
+ 428   3                                      if(press_date=='+')
+ 429   3                                      speak(jia);
+ 430   3                                      else  if(press_date=='-')
+ 431   3                                      speak(jian); 
+ 432   3                                  cullars(press_date);
+ 433   3                                      
+ 434   3                    }                 
+ 435   2             }
+ 436   1             /****************'*','/'´¦Àí*****************/
+ 437   1             else if(press_date==0xfd) //0xfd³ýºÅÔÚ1602Òº¾§ÖÐµÄ´úÂë
+ 438   1             {        
+ 439   2                     if(sc==1)           //·ù¶È to ½Ç¶È
+ 440   2                         {  if(count!=0)
+ 441   3                            {futojiao[count_num]=1;sc=0;write_date(0xDF);count=14;}
+ 442   3                                else {callerror();huifu();}
+ 443   3                         }
+ 444   2                 else { 
+ 445   3                               cullars(press_date);
+ 446   3                                       while(yyxp_busy==0);
+ 447   3                                       yydelay(2);
+ 448   3                                       speak(chuyi);
+ 449   3                                       }
+ 450   2             }
+ 451   1                 else if(press_date=='*') //0xfd³ýºÅÔÚ1602Òº¾§ÖÐµÄ´úÂë
+ 452   1             {                       
+ 453   2                  cullars(press_date);
+ 454   2                               while(yyxp_busy==0);
+ 455   2                                       yydelay(2);
+ 456   2                              speak(chengyi);
+ 457   2             }
+ 458   1             /*******************'='ºÅ´¦Àí*****************/
+ 459   1             else if(press_date=='=')
+ 460   1             { 
+ 461   2                       
+ 462   2                  write_com(0x01);           //ÇåÆÁ
+ 463   2                  write_com(0x80+0x40+1);
+ 464   2                  write_date(press_date);    //ÏÔÊ¾µÈºÅ
+ 465   2                          for(j=0;j<2;j++)               //Á½ÔËËã×éµÄº¯Êý´¦Àí
+ 466   2                              {
+ 467   3                                      date[j]=atof(bdate[j]);  //Á©×éÊý¾Ý£¬×Ö·û´®->ÊµÊý
+ 468   3                                      if(fsym[j]=='-')date[j]=-date[j];        //º¯ÊýÇ°µÄ·ûºÅ´¦Àí 
+ 469   3                              }
+ 470   2                              if(ferror==0)                                                    //½ö½öº¯Êý¼ÆËã
+ 471   2                                 {  resultdate=date[0];}
+ 472   2                  else                                                                         //ÔËËã·ûºÅ¼ÆËã
+ 473   2                              {
+ 474   3                                 switch(on_symbol)
+ 475   3                     {
+ 476   4                        case '+':resultdate=date[0]+date[1];break;
+ 477   4                        case '-':resultdate=date[0]-date[1];break;
+ 478   4                        case '*':resultdate=date[0]*date[1];break;
+ 479   4                        case 0xfd:resultdate=date[0]/date[1];break;       //0xfd³ýºÅÔÚ1602Òº¾§ÖÐµÄ´úÂë
+ 480   4                                        case '^':resultdate=pow(date[0],date[1]);break;       //pow()º¯Êý     x^y
+ 481   4                                        case '%':resultdate=fmod(date[0],date[1]);break;  //fmod()º¯Êý ÇóÓàÊý£¨Ë«¾«¶È£©
+ 482   4                     }
+ 483   3                              }                       
+ 484   2                  sprintf(jieguo,"%g",resultdate);//½á¹ûÊµÊý->×Ö·û´®,²ÉÓÃ¸ñÊ½×Ö·ûg,ÏµÍ³Ñ¡Ôñ%f»ò%eÊä³ö¸ñÊ½£¬ÁùÎ»Ó
+             -ÐÐ§Êý×Ö           
+ 485   2                      if((jieguo[0]>'9'||jieguo[0]<'0')&&(jieguo[1]>'9'||jieguo[1]<'0')&&jieguo[1]!='\0'&&jieguo[1]!='.
+             -')
+ 486   2                               {   callerror();fuwei();return;  }      //´íÎó´¦Àí£¬µ±×é1»ò×é2²»ºÏ·¨Ê±½á¹ûÊÇ¼¸¸öÓ¢ÎÄ×ÖÄ¸ÌáÊ¾   
+ 487   2                              else strcpy(result,jieguo);   //Ã»´íÎó£¬±£´æ½á¹û£¬½á¹ûÁ¢´æ M+¼ü 
+C51 COMPILER V9.00   JISUANGQI                                                             12/13/2015 16:36:02 PAGE 9   
+
+ 488   2                              if(flag_bofang==1)
+ 489   2                                       {                                                                                       
+ 490   3                  for(j=0;jieguo[j]!='\0';j++)               //ÏÔÊ¾½á¹û
+ 491   3                       write_date(jieguo[j]);
+ 492   3                                       while(yyxp_busy==0);
+ 493   3                                       yydelay(2);
+ 494   3                                       
+ 495   3                                       speak(dengyu);
+ 496   3                                       bofang(jieguo);
+ 497   3                                       }
+ 498   2                              for(;j<15;j++)write_date(' ');   //ÈÃ¹â±ê³öÆÁÄ»
+ 499   2                              eqsign=1;                                                //°´µÈºÅ¼ü±êÖ¾ÖÃ1
+ 500   2                 }
+ 501   1                 return;
+ 502   1      }                                                                                        
+ 503          /*********************Ö÷³ÌÐò**********************/
+ 504          void main()
+ 505          {   
+ 506   1            fuwei();          //¼ÆËãÆ÷³õÊ¼»¯
+ 507   1            init();       //ÏÔÊ¾³õÊ¼»¯          
+ 508   1            TH0=0x3c;     //¶¨Ê±Æ÷0³õÊ¼»¯
+ 509   1            TL0=0xb7;
+ 510   1            TMOD=0x1;     //¶¨Ê±Æ÷0£¬·½Ê½1
+ 511   1            TR0=1;        //¿ªÊ¼¼ÆÊ±
+ 512   1            ET0=1;
+ 513   1            EA=1;         //ÔÊÐíÒç³öÖÐ¶ÏÉèÖÃ
+ 514   1                form=1;               //ÏÔÊ¾·½Ê½³õÊ¼»¯
+ 515   1                proc=0;               //¼ÆËã¹¤³Ì´æ´¢³õÊ¼»¯
+ 516   1                            write_com(0x81); 
+ 517   1            while(1)      
+ 518   1            {
+ 519   2                 process_date(keyscan()); //¼ÆËãÆ÷
+ 520   2            }
+ 521   1      }
+ 522          /*********************end**********************/
+ 523          /**********************************************/
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1953    ----
+   CONSTANT SIZE    =     23    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1       7
+   IDATA SIZE       =    124       8
+   BIT SIZE         =      5    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

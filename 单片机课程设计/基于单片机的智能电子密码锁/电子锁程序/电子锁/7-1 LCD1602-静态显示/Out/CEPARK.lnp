@@ -1,0 +1,3 @@
+"..\Out\main.obj" 
+TO "..\Out\CEPARK" 
+PRINT(".\CEPARK.m51") RAMSIZE(256) 

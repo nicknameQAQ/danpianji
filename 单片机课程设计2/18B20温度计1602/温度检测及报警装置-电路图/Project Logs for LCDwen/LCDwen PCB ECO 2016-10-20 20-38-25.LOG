@@ -1,0 +1,15 @@
+Removed Pin From Net: NetName=H Pin=89C52-16
+Removed Pin From Net: NetName=H Pin=K3-2
+Removed Pin From Net: NetName=H Pin=K3-2
+Change Net Name : Old Net Name=A New Net Name=0
+Change Net Name : Old Net Name=B New Net Name=1
+Change Net Name : Old Net Name=C New Net Name=2
+Change Net Name : Old Net Name=D New Net Name=3
+Change Net Name : Old Net Name=E New Net Name=4
+Change Net Name : Old Net Name=F New Net Name=5
+Change Net Name : Old Net Name=G New Net Name=6
+Change Net Name : Old Net Name=H New Net Name=7
+Added Pin To Net: NetName=H Pin=89C52-16
+Added Pin To Net: NetName=H Pin=K3-2
+Added Pin To Net: NetName=H Pin=K3-2
+Added Net: Name=H

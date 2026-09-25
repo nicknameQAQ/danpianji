@@ -1,0 +1,23 @@
+C51 COMPILER V9.01   循迹小车（修正）                                                      06/15/2020 18:06:33 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE 循迹小车（修正）
+OBJECT MODULE PLACED IN 循迹小车（修正）.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 循迹小车（修正）.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    438    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     10    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

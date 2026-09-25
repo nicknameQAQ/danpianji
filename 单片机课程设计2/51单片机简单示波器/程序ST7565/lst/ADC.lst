@@ -1,0 +1,431 @@
+C51 COMPILER V7.06   ADC                          09/11/2014 20:19:53 PAGE 1   
+
+
+C51 COMPILER V7.06, COMPILATION OF MODULE ADC
+OBJECT MODULE PLACED IN ADC.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE c\ADC.c DEBUG OBJECTEXTEND PRINT(.
+                    -\lst\ADC.lst) PAGEWIDTH(79) PAGELENGTH(66) OBJECT(ADC.obj)
+
+stmt level    source
+
+   1          #include <stdio.h>
+   2          #include <intrins.h>
+   3          #include "ADC.h"
+   4          #include "LCD12864.h"
+   5          #include "STC12C5A60S2.h"
+   6          //时间/每格 1-5ms 2-2ms 3-1ms 4-500us 5-200us 6-100us 7-50us 8-20
+             -us 9-10us
+   7          extern unsigned char timpd;
+   8          extern unsigned char xdata wave0[];
+   9          extern unsigned int  samptime;          //采样时间，即定时器0的初值
+  10          extern unsigned int  T0count;           //定时器采样时间间隔计数
+  11          extern unsigned int  index;                     //每次采样的wave数组下标
+  12          
+  13          void ADCinit(void)
+  14          {
+  15   1              //unsigned int i;
+  16   1              AUXR1=0x00;                                             //8位结果
+  17   1              P1ASF=0x02;                                             //P1ASF=0x02;设置P1.1作为模拟口，AD输入
+  18   1              ADC_RES=0;                                              //AD结果寄存器清0
+  19   1              ADC_CONTR=0x80;                                 //开启AD电源
+  20   1              //for(i=2000;i>0;i--);                  //开启AD电源延时等待电压稳定
+  21   1      }
+  22          unsigned char getADC(unsigned char ch)
+  23          {
+  24   1              ADC_CONTR=0xe8|ch;                              //开启AD中断，最高速度 ADC_CONTR=0xe8|ch;
+  25   1              _nop_();
+  26   1              _nop_();
+  27   1              _nop_();
+  28   1              _nop_();
+  29   1              while(!(ADC_CONTR&0x10));
+  30   1              ADC_CONTR&=~0x10;
+  31   1              return ADC_RES;
+  32   1      }
+  33          
+  34          void timerinit(void)
+  35          {
+  36   1              AUXR=0xd0;                                              //1T模式，不分频，开启时钟输出（12分频）；0xc0不
+             -开时钟输出
+  37   1              BRT=6;                                                  //SYSclk/24/(256-BRT)=5KHz时钟输出
+  38   1              WAKE_CLKO=0x04;                                 //允许P1.0输出编程时钟
+  39   1              //AUXR=0xc0;                                            
+  40   1              TMOD=0x51;                                              //T0、T1都工作在方式1;T0定时，T1计数（测频率用）
+  41   1              TH0=samptime>>8;
+  42   1              TL0=samptime&0xff;
+  43   1              TH1=0x3c;                                               //T1测频率，计数50000进一次中断
+  44   1              TL1=0xb0;
+  45   1              TR0=0;
+  46   1              ET0=0;
+  47   1              TR1=1;
+  48   1              ET1=1;
+  49   1              EA =1;
+  50   1      }
+  51          void T0_interrupt(void) interrupt 1
+  52          {
+  53   1              TH0=samptime>>8;
+  54   1              TL0=samptime&0xff;
+C51 COMPILER V7.06   ADC                          09/11/2014 20:19:53 PAGE 2   
+
+  55   1              T0count=T0count+1;
+  56   1              switch(timpd)           
+  57   1              {
+  58   2                      case  3:
+  59   2                      {
+  60   3                          if(T0count>=100)
+  61   3                              {
+  62   4                                      wave0[index]=getADC(1);
+  63   4                                      index++;
+  64   4                                      T0count=0;
+  65   4                              }
+  66   3                              break;
+  67   3                      }
+  68   2                      case  4:                                //5ms
+  69   2                      {
+  70   3                          if(T0count>=50)
+  71   3                              {
+  72   4                                      wave0[index]=getADC(1);
+  73   4                                      index++;
+  74   4                                      T0count=0;
+  75   4                              }
+  76   3                              break;
+  77   3                      }
+  78   2                      case  5:                                //2ms
+  79   2                      {
+  80   3                              if(T0count>=20)
+  81   3                              {
+  82   4                                      wave0[index]=getADC(1);
+  83   4                                      index++;
+  84   4                                      T0count=0;
+  85   4                              }
+  86   3                              break;
+  87   3                      }
+  88   2                      case  6:                                //1ms
+  89   2                      {
+  90   3                          if(T0count>=10)
+  91   3                              {
+  92   4                                      wave0[index]=getADC(1);
+  93   4                                      index++;
+  94   4                                      T0count=0;
+  95   4                              }
+  96   3                              break;
+  97   3                      }
+  98   2                      case  7:                                //500us
+  99   2                      {
+ 100   3                          if(T0count>=5)
+ 101   3                              {
+ 102   4                                      wave0[index]=getADC(1);
+ 103   4                                      index++;
+ 104   4                                      T0count=0;
+ 105   4                              }
+ 106   3                              break;
+ 107   3                      }
+ 108   2                      case  8:                                //200us
+ 109   2                      {
+ 110   3                              if(T0count>=2)
+ 111   3                              {
+ 112   4                                      wave0[index]=getADC(1);
+ 113   4                                      index++;
+ 114   4                                      T0count=0;
+ 115   4                              }
+ 116   3                              break;
+ 117   3                      }
+ 118   2                      case  9:                                //100us
+C51 COMPILER V7.06   ADC                          09/11/2014 20:19:53 PAGE 3   
+
+ 119   2                      {
+ 120   3                              wave0[index]=getADC(1);
+ 121   3                              index++;
+ 122   3                              T0count=0;
+ 123   3                              break;
+ 124   3                      }
+ 125   2              }
+ 126   1              if(index>=511)
+ 127   1              {
+ 128   2                      index=511;
+ 129   2              }
+ 130   1      }
+ 131          
+ 132          void fastADC(void)              //30M晶振  精确40us/div
+ 133          {
+ 134   1              wave0[0]=getADC(1);_nop_();_nop_();
+ 135   1              wave0[1]=getADC(1);_nop_();_nop_();
+ 136   1              wave0[2]=getADC(1);_nop_();_nop_();
+ 137   1              wave0[3]=getADC(1);_nop_();_nop_();
+ 138   1              wave0[4]=getADC(1);_nop_();_nop_();
+ 139   1              wave0[5]=getADC(1);_nop_();_nop_();
+ 140   1              wave0[6]=getADC(1);_nop_();_nop_();
+ 141   1              wave0[7]=getADC(1);_nop_();_nop_();
+ 142   1              wave0[8]=getADC(1);_nop_();_nop_();
+ 143   1              wave0[9]=getADC(1);_nop_();_nop_();
+ 144   1              wave0[10]=getADC(1);_nop_();_nop_();
+ 145   1              wave0[11]=getADC(1);_nop_();_nop_();
+ 146   1              wave0[12]=getADC(1);_nop_();_nop_();
+ 147   1              wave0[13]=getADC(1);_nop_();_nop_();
+ 148   1              wave0[14]=getADC(1);_nop_();_nop_();
+ 149   1              wave0[15]=getADC(1);_nop_();_nop_();
+ 150   1              wave0[16]=getADC(1);_nop_();_nop_();
+ 151   1              wave0[17]=getADC(1);_nop_();_nop_();
+ 152   1              wave0[18]=getADC(1);_nop_();_nop_();
+ 153   1              wave0[19]=getADC(1);_nop_();_nop_();
+ 154   1              wave0[20]=getADC(1);_nop_();_nop_();
+ 155   1              wave0[21]=getADC(1);_nop_();_nop_();
+ 156   1              wave0[22]=getADC(1);_nop_();_nop_();
+ 157   1              wave0[23]=getADC(1);_nop_();_nop_();
+ 158   1              wave0[24]=getADC(1);_nop_();_nop_();
+ 159   1              wave0[25]=getADC(1);_nop_();_nop_();
+ 160   1              wave0[26]=getADC(1);_nop_();_nop_();
+ 161   1              wave0[27]=getADC(1);_nop_();_nop_();
+ 162   1              wave0[28]=getADC(1);_nop_();_nop_();
+ 163   1              wave0[29]=getADC(1);_nop_();_nop_();
+ 164   1              wave0[30]=getADC(1);_nop_();_nop_();
+ 165   1              wave0[31]=getADC(1);_nop_();_nop_();
+ 166   1              wave0[32]=getADC(1);_nop_();_nop_();
+ 167   1              wave0[33]=getADC(1);_nop_();_nop_();
+ 168   1              wave0[34]=getADC(1);_nop_();_nop_();
+ 169   1              wave0[35]=getADC(1);_nop_();_nop_();
+ 170   1              wave0[36]=getADC(1);_nop_();_nop_();
+ 171   1              wave0[37]=getADC(1);_nop_();_nop_();
+ 172   1              wave0[38]=getADC(1);_nop_();_nop_();
+ 173   1              wave0[39]=getADC(1);_nop_();_nop_();
+ 174   1              wave0[40]=getADC(1);_nop_();_nop_();
+ 175   1              wave0[41]=getADC(1);_nop_();_nop_();
+ 176   1              wave0[42]=getADC(1);_nop_();_nop_();
+ 177   1              wave0[43]=getADC(1);_nop_();_nop_();
+ 178   1              wave0[44]=getADC(1);_nop_();_nop_();
+ 179   1              wave0[45]=getADC(1);_nop_();_nop_();
+ 180   1              wave0[46]=getADC(1);_nop_();_nop_();
+ 181   1              wave0[47]=getADC(1);_nop_();_nop_();
+ 182   1              wave0[48]=getADC(1);_nop_();_nop_();
+C51 COMPILER V7.06   ADC                          09/11/2014 20:19:53 PAGE 4   
+
+ 183   1              wave0[49]=getADC(1);_nop_();_nop_();
+ 184   1              wave0[50]=getADC(1);_nop_();_nop_();
+ 185   1              wave0[51]=getADC(1);_nop_();_nop_();
+ 186   1              wave0[52]=getADC(1);_nop_();_nop_();
+ 187   1              wave0[53]=getADC(1);_nop_();_nop_();
+ 188   1              wave0[54]=getADC(1);_nop_();_nop_();
+ 189   1              wave0[55]=getADC(1);_nop_();_nop_();
+ 190   1              wave0[56]=getADC(1);_nop_();_nop_();
+ 191   1              wave0[57]=getADC(1);_nop_();_nop_();
+ 192   1              wave0[58]=getADC(1);_nop_();_nop_();
+ 193   1              wave0[59]=getADC(1);_nop_();_nop_();
+ 194   1              wave0[60]=getADC(1);_nop_();_nop_();
+ 195   1              wave0[61]=getADC(1);_nop_();_nop_();
+ 196   1              wave0[62]=getADC(1);_nop_();_nop_();
+ 197   1              wave0[63]=getADC(1);_nop_();_nop_();
+ 198   1              wave0[64]=getADC(1);_nop_();_nop_();
+ 199   1              wave0[65]=getADC(1);_nop_();_nop_();
+ 200   1              wave0[66]=getADC(1);_nop_();_nop_();
+ 201   1              wave0[67]=getADC(1);_nop_();_nop_();
+ 202   1              wave0[68]=getADC(1);_nop_();_nop_();
+ 203   1              wave0[69]=getADC(1);_nop_();_nop_();
+ 204   1              wave0[70]=getADC(1);_nop_();_nop_();
+ 205   1              wave0[71]=getADC(1);_nop_();_nop_();
+ 206   1              wave0[72]=getADC(1);_nop_();_nop_();
+ 207   1              wave0[73]=getADC(1);_nop_();_nop_();
+ 208   1              wave0[74]=getADC(1);_nop_();_nop_();
+ 209   1              wave0[75]=getADC(1);_nop_();_nop_();
+ 210   1              wave0[76]=getADC(1);_nop_();_nop_();
+ 211   1              wave0[77]=getADC(1);_nop_();_nop_();
+ 212   1              wave0[78]=getADC(1);_nop_();_nop_();
+ 213   1              wave0[79]=getADC(1);_nop_();_nop_();
+ 214   1              wave0[80]=getADC(1);_nop_();_nop_();
+ 215   1              wave0[81]=getADC(1);_nop_();_nop_();
+ 216   1              wave0[82]=getADC(1);_nop_();_nop_();
+ 217   1              wave0[83]=getADC(1);_nop_();_nop_();
+ 218   1              wave0[84]=getADC(1);_nop_();_nop_();
+ 219   1              wave0[85]=getADC(1);_nop_();_nop_();
+ 220   1              wave0[86]=getADC(1);_nop_();_nop_();
+ 221   1              wave0[87]=getADC(1);_nop_();_nop_();
+ 222   1              wave0[88]=getADC(1);_nop_();_nop_();
+ 223   1              wave0[89]=getADC(1);_nop_();_nop_();
+ 224   1              wave0[90]=getADC(1);_nop_();_nop_();
+ 225   1              wave0[91]=getADC(1);_nop_();_nop_();
+ 226   1              wave0[92]=getADC(1);_nop_();_nop_();
+ 227   1              wave0[93]=getADC(1);_nop_();_nop_();
+ 228   1              wave0[94]=getADC(1);_nop_();_nop_();
+ 229   1              wave0[95]=getADC(1);_nop_();_nop_();
+ 230   1              wave0[96]=getADC(1);_nop_();_nop_();
+ 231   1              wave0[97]=getADC(1);_nop_();_nop_();
+ 232   1              wave0[98]=getADC(1);_nop_();_nop_();
+ 233   1              wave0[99]=getADC(1);_nop_();_nop_();
+ 234   1              wave0[100]=getADC(1);_nop_();_nop_();
+ 235   1              wave0[101]=getADC(1);_nop_();_nop_();
+ 236   1              wave0[102]=getADC(1);_nop_();_nop_();
+ 237   1              wave0[103]=getADC(1);_nop_();_nop_();
+ 238   1              wave0[104]=getADC(1);_nop_();_nop_();
+ 239   1              wave0[105]=getADC(1);_nop_();_nop_();
+ 240   1              wave0[106]=getADC(1);_nop_();_nop_();
+ 241   1              wave0[107]=getADC(1);_nop_();_nop_();
+ 242   1              wave0[108]=getADC(1);_nop_();_nop_();
+ 243   1              wave0[109]=getADC(1);_nop_();_nop_();
+ 244   1              wave0[110]=getADC(1);_nop_();_nop_();
+ 245   1              wave0[111]=getADC(1);_nop_();_nop_();
+ 246   1              wave0[112]=getADC(1);_nop_();_nop_();
+C51 COMPILER V7.06   ADC                          09/11/2014 20:19:53 PAGE 5   
+
+ 247   1              wave0[113]=getADC(1);_nop_();_nop_();
+ 248   1              wave0[114]=getADC(1);_nop_();_nop_();
+ 249   1              wave0[115]=getADC(1);_nop_();_nop_();
+ 250   1              wave0[116]=getADC(1);_nop_();_nop_();
+ 251   1              wave0[117]=getADC(1);_nop_();_nop_();
+ 252   1              wave0[118]=getADC(1);_nop_();_nop_();
+ 253   1              wave0[119]=getADC(1);_nop_();_nop_();
+ 254   1              wave0[120]=getADC(1);_nop_();_nop_();
+ 255   1              wave0[121]=getADC(1);_nop_();_nop_();
+ 256   1              wave0[122]=getADC(1);_nop_();_nop_();
+ 257   1              wave0[123]=getADC(1);_nop_();_nop_();
+ 258   1              wave0[124]=getADC(1);_nop_();_nop_();
+ 259   1              wave0[125]=getADC(1);_nop_();_nop_();
+ 260   1              wave0[126]=getADC(1);_nop_();_nop_();
+ 261   1              wave0[127]=getADC(1);_nop_();_nop_();
+ 262   1              wave0[128]=getADC(1);_nop_();_nop_();
+ 263   1              wave0[129]=getADC(1);_nop_();_nop_();
+ 264   1              wave0[130]=getADC(1);_nop_();_nop_();
+ 265   1              wave0[131]=getADC(1);_nop_();_nop_();
+ 266   1              wave0[132]=getADC(1);_nop_();_nop_();
+ 267   1              wave0[133]=getADC(1);_nop_();_nop_();
+ 268   1              wave0[134]=getADC(1);_nop_();_nop_();
+ 269   1              wave0[135]=getADC(1);_nop_();_nop_();
+ 270   1              wave0[136]=getADC(1);_nop_();_nop_();
+ 271   1              wave0[137]=getADC(1);_nop_();_nop_();
+ 272   1              wave0[138]=getADC(1);_nop_();_nop_();
+ 273   1              wave0[139]=getADC(1);_nop_();_nop_();
+ 274   1              wave0[140]=getADC(1);_nop_();_nop_();
+ 275   1              wave0[141]=getADC(1);_nop_();_nop_();
+ 276   1              wave0[142]=getADC(1);_nop_();_nop_();
+ 277   1              wave0[143]=getADC(1);_nop_();_nop_();
+ 278   1              wave0[144]=getADC(1);_nop_();_nop_();
+ 279   1              wave0[145]=getADC(1);_nop_();_nop_();
+ 280   1              wave0[146]=getADC(1);_nop_();_nop_();
+ 281   1              wave0[147]=getADC(1);_nop_();_nop_();
+ 282   1              wave0[148]=getADC(1);_nop_();_nop_();
+ 283   1              wave0[149]=getADC(1);_nop_();_nop_();
+ 284   1              wave0[150]=getADC(1);_nop_();_nop_();
+ 285   1              wave0[151]=getADC(1);_nop_();_nop_();
+ 286   1              wave0[152]=getADC(1);_nop_();_nop_();
+ 287   1              wave0[153]=getADC(1);_nop_();_nop_();
+ 288   1              wave0[154]=getADC(1);_nop_();_nop_();
+ 289   1              wave0[155]=getADC(1);_nop_();_nop_();
+ 290   1              wave0[156]=getADC(1);_nop_();_nop_();
+ 291   1              wave0[157]=getADC(1);_nop_();_nop_();
+ 292   1              wave0[158]=getADC(1);_nop_();_nop_();
+ 293   1              wave0[159]=getADC(1);_nop_();_nop_();
+ 294   1              wave0[160]=getADC(1);_nop_();_nop_();
+ 295   1              wave0[161]=getADC(1);_nop_();_nop_();
+ 296   1              wave0[162]=getADC(1);_nop_();_nop_();
+ 297   1              wave0[163]=getADC(1);_nop_();_nop_();
+ 298   1              wave0[164]=getADC(1);_nop_();_nop_();
+ 299   1              wave0[165]=getADC(1);_nop_();_nop_();
+ 300   1              wave0[166]=getADC(1);_nop_();_nop_();
+ 301   1              wave0[167]=getADC(1);_nop_();_nop_();
+ 302   1              wave0[168]=getADC(1);_nop_();_nop_();
+ 303   1              wave0[169]=getADC(1);_nop_();_nop_();
+ 304   1              wave0[170]=getADC(1);_nop_();_nop_();
+ 305   1              wave0[171]=getADC(1);_nop_();_nop_();
+ 306   1              wave0[172]=getADC(1);_nop_();_nop_();
+ 307   1              wave0[173]=getADC(1);_nop_();_nop_();
+ 308   1              wave0[174]=getADC(1);_nop_();_nop_();
+ 309   1              wave0[175]=getADC(1);_nop_();_nop_();
+ 310   1              wave0[176]=getADC(1);_nop_();_nop_();
+C51 COMPILER V7.06   ADC                          09/11/2014 20:19:53 PAGE 6   
+
+ 311   1              wave0[177]=getADC(1);_nop_();_nop_();
+ 312   1              wave0[178]=getADC(1);_nop_();_nop_();
+ 313   1              wave0[179]=getADC(1);_nop_();_nop_();
+ 314   1              wave0[180]=getADC(1);_nop_();_nop_();
+ 315   1              wave0[181]=getADC(1);_nop_();_nop_();
+ 316   1              wave0[182]=getADC(1);_nop_();_nop_();
+ 317   1              wave0[183]=getADC(1);_nop_();_nop_();
+ 318   1              wave0[184]=getADC(1);_nop_();_nop_();
+ 319   1              wave0[185]=getADC(1);_nop_();_nop_();
+ 320   1              wave0[186]=getADC(1);_nop_();_nop_();
+ 321   1              wave0[187]=getADC(1);_nop_();_nop_();
+ 322   1              wave0[188]=getADC(1);_nop_();_nop_();
+ 323   1              wave0[189]=getADC(1);_nop_();_nop_();
+ 324   1              wave0[190]=getADC(1);_nop_();_nop_();
+ 325   1              wave0[191]=getADC(1);_nop_();_nop_();
+ 326   1              wave0[192]=getADC(1);_nop_();_nop_();
+ 327   1              wave0[193]=getADC(1);_nop_();_nop_();
+ 328   1              wave0[194]=getADC(1);_nop_();_nop_();
+ 329   1              wave0[195]=getADC(1);_nop_();_nop_();
+ 330   1              wave0[196]=getADC(1);_nop_();_nop_();
+ 331   1              wave0[197]=getADC(1);_nop_();_nop_();
+ 332   1              wave0[198]=getADC(1);_nop_();_nop_();
+ 333   1              wave0[199]=getADC(1);_nop_();_nop_();
+ 334   1              wave0[200]=getADC(1);_nop_();_nop_();
+ 335   1              wave0[201]=getADC(1);_nop_();_nop_();
+ 336   1              wave0[202]=getADC(1);_nop_();_nop_();
+ 337   1              wave0[203]=getADC(1);_nop_();_nop_();
+ 338   1              wave0[204]=getADC(1);_nop_();_nop_();
+ 339   1              wave0[205]=getADC(1);_nop_();_nop_();
+ 340   1              wave0[206]=getADC(1);_nop_();_nop_();
+ 341   1              wave0[207]=getADC(1);_nop_();_nop_();
+ 342   1              wave0[208]=getADC(1);_nop_();_nop_();
+ 343   1              wave0[209]=getADC(1);_nop_();_nop_();
+ 344   1              wave0[210]=getADC(1);_nop_();_nop_();
+ 345   1              wave0[211]=getADC(1);_nop_();_nop_();
+ 346   1              wave0[212]=getADC(1);_nop_();_nop_();
+ 347   1              wave0[213]=getADC(1);_nop_();_nop_();
+ 348   1              wave0[214]=getADC(1);_nop_();_nop_();
+ 349   1              wave0[215]=getADC(1);_nop_();_nop_();
+ 350   1              wave0[216]=getADC(1);_nop_();_nop_();
+ 351   1              wave0[217]=getADC(1);_nop_();_nop_();
+ 352   1              wave0[218]=getADC(1);_nop_();_nop_();
+ 353   1              wave0[219]=getADC(1);_nop_();_nop_();
+ 354   1              wave0[220]=getADC(1);_nop_();_nop_();
+ 355   1              wave0[221]=getADC(1);_nop_();_nop_();
+ 356   1              wave0[222]=getADC(1);_nop_();_nop_();
+ 357   1              wave0[223]=getADC(1);_nop_();_nop_();
+ 358   1              wave0[224]=getADC(1);_nop_();_nop_();
+ 359   1              wave0[225]=getADC(1);_nop_();_nop_();
+ 360   1              wave0[226]=getADC(1);_nop_();_nop_();
+ 361   1              wave0[227]=getADC(1);_nop_();_nop_();
+ 362   1              wave0[228]=getADC(1);_nop_();_nop_();
+ 363   1              wave0[229]=getADC(1);_nop_();_nop_();
+ 364   1              wave0[230]=getADC(1);_nop_();_nop_();
+ 365   1              wave0[231]=getADC(1);_nop_();_nop_();
+ 366   1              wave0[232]=getADC(1);_nop_();_nop_();
+ 367   1              wave0[233]=getADC(1);_nop_();_nop_();
+ 368   1              wave0[234]=getADC(1);_nop_();_nop_();
+ 369   1              wave0[235]=getADC(1);_nop_();_nop_();
+ 370   1              wave0[236]=getADC(1);_nop_();_nop_();
+ 371   1              wave0[237]=getADC(1);_nop_();_nop_();
+ 372   1              wave0[238]=getADC(1);_nop_();_nop_();
+ 373   1              wave0[239]=getADC(1);_nop_();_nop_();
+ 374   1              wave0[240]=getADC(1);_nop_();_nop_();
+C51 COMPILER V7.06   ADC                          09/11/2014 20:19:53 PAGE 7   
+
+ 375   1              wave0[241]=getADC(1);_nop_();_nop_();
+ 376   1              wave0[242]=getADC(1);_nop_();_nop_();
+ 377   1              wave0[243]=getADC(1);_nop_();_nop_();
+ 378   1              wave0[244]=getADC(1);_nop_();_nop_();
+ 379   1              wave0[245]=getADC(1);_nop_();_nop_();
+ 380   1              wave0[246]=getADC(1);_nop_();_nop_();
+ 381   1              wave0[247]=getADC(1);_nop_();_nop_();
+ 382   1              wave0[248]=getADC(1);_nop_();_nop_();
+ 383   1              wave0[249]=getADC(1);_nop_();_nop_();
+ 384   1              wave0[250]=getADC(1);_nop_();_nop_();
+ 385   1              wave0[251]=getADC(1);_nop_();_nop_();
+ 386   1              wave0[252]=getADC(1);_nop_();_nop_();
+ 387   1              wave0[253]=getADC(1);_nop_();_nop_();
+ 388   1              wave0[254]=getADC(1);_nop_();_nop_();
+ 389   1              wave0[255]=getADC(1);_nop_();_nop_();
+ 390   1              wave0[256]=getADC(1);_nop_();_nop_();
+ 391   1              wave0[257]=getADC(1);_nop_();_nop_();
+ 392   1      }
+ 393          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   3048    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

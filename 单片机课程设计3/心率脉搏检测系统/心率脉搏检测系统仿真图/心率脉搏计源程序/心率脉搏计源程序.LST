@@ -1,0 +1,115 @@
+C51 COMPILER V9.00   ÐÄ_Ê_ö²«¼ÆÔ´³ÌÐò                                                      12/04/2014 13:33:05 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE ÐÄ_Ê_ö²«¼ÆÔ´³ÌÐò
+OBJECT MODULE PLACED IN ÐÄÂÊÂö²«¼ÆÔ´³ÌÐò.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE ÐÄÂÊÂö²«¼ÆÔ´³ÌÐò.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include <reg52.h>
+   2          #include "lcd1602.h"
+   3          
+   4          #define uchar unsigned char 
+   5          #define uint  unsigned int
+   6          
+   7          unsigned char num=0,timecount=0,displayOK=0,rate=0;
+   8          unsigned int time[6]={0};
+   9          
+  10          /***********************1msÑÓÊ±º¯Êý*****************************/
+  11          void delay_1ms(uint q)
+  12          {
+  13   1              uint i,j;
+  14   1              for(i=0;i<q;i++)
+  15   1                      for(j=0;j<110;j++);
+  16   1      }
+  17          
+  18          
+  19          void main()
+  20          {       
+  21   1              init_1602();
+  22   1              TCON=0x01;//ÉèÖÃÍâ²¿ÖÐ¶Ï0
+  23   1                      EX0=1;
+  24   1                      TMOD=0x01;//¶¨Ê±Æ÷0³õÊ¼»¯
+  25   1                      TH0=(65536-50650)/256;//Êµ²âÃ¿50msÖÐ¶ÏµÄ¶¨Ê±Öµ
+  26   1                      TL0=(65536-50650)%256;
+  27   1                      ET0=1;//¿ª¶¨Ê±Æ÷ÖÐ¶Ï
+  28   1                      //ÏÔÊ¾»ù±¾ÎÄ×Ö
+  29   1                      write_string(1,0,"   Heart Rate   ");
+  30   1                      write_string(2,0,"        /min    ");
+  31   1                      TR0=0;//¶¨Ê±Æ÷Í£Ö¹
+  32   1                      EA=1;//¿ª×ÜÖÐ¶Ï                    
+  33   1                 while(1)
+  34   1                 {
+  35   2                      
+  36   2                         if(displayOK==1)
+  37   2                         {
+  38   3                              rate=60000/(time[1]/5+time[2]/5+time[3]/5+time[4]/5+time[5]/5);
+  39   3                              write_sfm3_18B20(2,5,rate);
+  40   3      
+  41   3                      }       
+  42   2                              else
+  43   2                              {
+  44   3                                        write_string(2,5,"   ");
+  45   3                              }
+  46   2                         delay_1ms(300);
+  47   2                                                                      
+  48   2              
+  49   2              }
+  50   1      }
+  51          
+  52          void ex0() interrupt 0
+  53          {
+  54   1                      EX0=0;//ÔÝÊ±¹ØÍâ²¿ÖÐ¶Ï
+  55   1                      if(timecount<8)   //µ±Á¬ÐøÁ½´Î¼ì²âÊ±¼ä¼ä¸ôÐ¡ÓÚ8*50ms=400ms²»´¦Àí
+C51 COMPILER V9.00   ÐÄ_Ê_ö²«¼ÆÔ´³ÌÐò                                                      12/04/2014 13:33:05 PAGE 2   
+
+  56   1                      {
+  57   2                                      TR0=1;//¿ª¶¨Ê±Æ÷
+  58   2                      }
+  59   1                      else
+  60   1                      {
+  61   2                                      time[num]=timecount*50+TH0*0.256+TL0/1000;//Ëã³ö¼ä¸ôÊ±¼ä
+  62   2                                      TL0=(65536-50650)%256;//ÖØÐÂÉèÖÃ¶¨Ê±Æ÷
+  63   2                                      TH0=(65536-50650)/256;
+  64   2                                      timecount=0;//50ms¼ÆÊýÇåÁã
+  65   2                                      num++;
+  66   2                                      if(num==6)//¼ÇÂ¼µ½³¬¹ýµÈÓÚ6´ÎÊ±¼ä
+  67   2                                      {
+  68   3                                                      num=1;//¼ÆÊý´Ó1¿ªÊ¼
+  69   3                                                      displayOK=1;    //²âµÃ5´Î¿ªÊ¼ÏÔÊ¾
+  70   3                                      }       
+  71   2                                      
+  72   2                      }
+  73   1                      EX0=1;
+  74   1      }
+  75          void et0() interrupt 1
+  76          {
+  77   1                      TL0=(65536-50650)%256;
+  78   1                      TH0=(65536-50650)/256;
+  79   1                              
+  80   1                      timecount++;//Ã¿50msÒ»´Î¼ÆÊý
+  81   1                      if(timecount>25)     //µ±³¬¹ý25*50ms=1.5sÃ»ÓÐ¼ì²âµ½ÐÅºÅÍ£Ö¹ÏÔÊ¾
+  82   1                      {
+  83   2                                      num=0;//Êý¾Ý¸öÊýÇåÁã
+  84   2                                      timecount=0;//50ms¼ÆÊýÇåÁã
+  85   2                                      displayOK=0;//ÏÔÊ¾¹Ø
+  86   2                                      TR0=0;//¶¨Ê±Æ÷¹Ø
+  87   2                                      TH0=(65536-50650)/256;
+  88   2                                      TL0=(65536-50650)%256;
+  89   2                      }
+  90   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    618    ----
+   CONSTANT SIZE    =     56    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     16    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

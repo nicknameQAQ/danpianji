@@ -1,0 +1,23 @@
+C51 COMPILER V8.02   数码管显蔩4X4键盘__阵按键                                             08/01/2011 22:26:52 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE 数码管显蔩4X4键盘__阵按键
+OBJECT MODULE PLACED IN 数码管显示4X4键盘矩阵按键.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 数码管显示4X4键盘矩阵按键.C BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    183    ----
+   CONSTANT SIZE    =     16    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

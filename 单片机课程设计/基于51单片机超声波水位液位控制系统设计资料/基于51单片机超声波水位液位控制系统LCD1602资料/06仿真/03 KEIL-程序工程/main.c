@@ -1,0 +1,162 @@
+#include<reg52.h>
+#include <intrins.h>
+#include "LCD1602.h"
+sbit  RX = P3^6;  //定义超声波端口
+sbit  TX = P3^7;
+
+sbit LED = P2^0;  //LED
+sbit SPEAK = P2^1; //蜂鸣器
+sbit Motor = P2^2; //水泵
+
+sbit KEY1 = P1^3;  //设置按键
+sbit KEY2 = P1^4;  //加按键
+sbit KEY3 = P1^5;  //减按键
+
+unsigned int  time=0;//计时变量
+unsigned int  timer=0;//计时变量
+unsigned int S=0;//当前值
+unsigned int SET_H=100,SET_L=10;//最高值和最低值
+bit  flag =0; //测量标志位
+unsigned char Table[3],Table1[5];//显示数组
+unsigned char KEY_flag=0; //按键选择标志
+//延时函数
+void Delay_ms(int jj)  //延时函数
+{
+	int ii;	//延时变量
+	while(jj--)//延时n毫秒
+		for(ii=0;ii<116;ii++);//延时1毫秒
+}
+void Conut(void)	 //测量函数
+	{
+	 time=TH0*256+TL0;	 //距离计数
+	 TH0=0;	 //定时器清零
+	 TL0=0;	 //定时器清零
+	
+	 S=(time*1.87)/10;     //算出来是CM、转换
+	 if((S>=700)||flag==1) //超出测量范围显示“-”
+	 {	 
+	  flag=0; //数据无效标志
+	 }
+	 else
+	 {
+	  Table1[0]= S/1000+0X30;	//显示当前值
+	  Table1[1]= S/100%10+0X30;	//显示当前值
+	  Table1[2]= S/10/10+0X30;	//显示当前值
+	  Table1[3]= '.';			//显示当前值
+	  Table1[4]= S%10+0X30;	   //显示当前值
+	  LCD1602_Disp_ZF(0x88,Table1,5); //显示当前值
+	}
+}
+void main(void)	//主函数
+{
+    LCD1602_init();//液晶初始化
+	//////////////////////0123456789ABCDEF
+    LCD1602_Disp_ZF(0x80,"  Now S:     CM ",16);
+						     //0123456789ABCDEF
+    LCD1602_Disp_ZF(0x80+0X40,"Set H:    L:    ",16);
+	TMOD=0x11;		   //设T0为方式1，GATE=1；
+	TH0=0;			   //定时器清零
+	TL0=0;             //定时器清零
+	TH1=0xf8;		   //2MS定时
+	TL1=0x30;		   //2MS定时
+	ET0=1;             //允许T0中断
+	ET1=1;			   //允许T1中断
+	TR1=1;			   //开启定时器
+	EA=1;			   //开启总中断
+	EA=0;//关闭中断
+	///SET_H = ISP_READ(0x2c00)*256+ISP_READ(0x2c01);//读取存储的最大值
+	//SET_L = ISP_READ(0x2c02)*256+ISP_READ(0x2c03);//读取存储的最小值
+	EA=1; //开启总中断
+	while(1)//函数循环
+	{
+		while(!RX);		    //当RX为零时等待
+		TR0=1;			    //开启计数
+		while(RX);			//当RX为1计数并等待
+		TR0=0;				//关闭计数
+		Conut();  //计算显示距离函数
+		/////////////////////////////////////
+		if((S/10>SET_H)||(S/10<SET_L)) //水位过低过高报警，
+		{
+			LED=0;SPEAK=0; //报警
+		}
+		else 
+		{
+			LED=1;SPEAK=1; //不报警
+		}
+		////////////////////////////////
+		if((S/10>SET_H)) //水位过低打开水泵
+		{
+			Motor=0; //打开
+		}
+		else 
+		{
+			Motor=1; //关闭
+		}	
+		if(!KEY1) //切换设置最大值和最小值
+		{
+			Delay_ms(10);//延时去抖动
+			if(!KEY1)//切换设置最大值和最小值
+			{
+				KEY_flag++;	//模式选择
+				//ISP_ERASE(0x2c00);		//注意：字节编程时必须要先要擦除整个扇区	
+				//ISP_PROGRAM(0x2c00, SET_H/256);	//记忆存储
+				//ISP_PROGRAM(0x2c01, SET_H);//记忆存储
+				//ISP_PROGRAM(0x2c02, SET_L/256);//记忆存储
+				//ISP_PROGRAM(0x2c03, SET_L);	//记忆存储
+			}
+			while(!KEY1);//等待按键抬起
+		}
+		if(!KEY2)//设置加
+		{
+			Delay_ms(10);//延时去抖动
+			if(!KEY2) //设置加
+			{
+				if(KEY_flag%2==0)SET_H++; //设置加
+				if(KEY_flag%2==1)SET_L++; //设置加
+			}
+		}
+		if(!KEY3) //设置减
+		{
+			Delay_ms(10);//延时去抖动
+			if(!KEY3) //设置减
+			{
+				if(KEY_flag%2==0)SET_H--; //设置减
+				if(KEY_flag%2==1)SET_L--;//设置减
+			}
+		}
+	  Table[0]= SET_H/100+0X30;//显示最大值
+	  Table[1]= SET_H%100/10+0X30;
+	  Table[2]= SET_H%10+0X30;
+	  LCD1602_Disp_ZF(0x86+0x40,Table,3);
+	  Table[0]= SET_L/100+0X30;	 //显示最小值
+	  Table[1]= SET_L%100/10+0X30;
+	  Table[2]= SET_L%10+0X30;
+	  LCD1602_Disp_ZF(0x8C+0x40,Table,3);
+	}
+}
+
+/********************************************************/
+     void zd0() interrupt 1 		 //T0中断用来计数器溢出,超过测距范围
+  {
+    flag=1;							 //中断溢出标志
+  }
+/********************************************************/
+   void  zd3()  interrupt 3 	
+  {
+	 TH1=0xf8;//2毫秒定时初始化
+	 TL1=0x30;//2毫秒定时初始化
+	 timer++;//计数
+	 if(timer>=100)//计数100次，200毫秒
+	 {
+	  timer=0;
+	  TX=1;			                //200MS  启动一次模块
+	  _nop_(); _nop_(); _nop_(); 
+	  _nop_(); _nop_(); _nop_(); 
+	  _nop_(); _nop_(); _nop_(); 
+	  _nop_(); _nop_(); _nop_(); 
+	  _nop_(); _nop_(); _nop_(); 
+	  _nop_(); _nop_();_nop_(); 
+	  _nop_(); _nop_(); _nop_();
+	  TX=0;
+	 } 
+  }

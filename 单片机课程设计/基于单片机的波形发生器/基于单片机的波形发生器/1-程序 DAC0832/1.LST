@@ -1,0 +1,436 @@
+C51 COMPILER V9.00   1                                                                     09/12/2016 10:07:00 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE 1
+OBJECT MODULE PLACED IN 1.OBJ
+COMPILER INVOKED BY: D:\Keil4 for 51\C51\BIN\C51.EXE 1.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include<reg52.h>                                          //包含头文件
+   2          #include<intrins.h>
+   3          #define uchar unsigned char                        //宏定义
+   4          #define uint unsigned int
+   5          
+   6          sbit s1=P3^5;                                              //定义按键的接口
+   7          sbit s2=P3^6;
+   8          sbit s3=P3^7;
+   9          sbit s4=P3^4;
+  10          
+  11          sbit led0=P3^0;
+  12          sbit led1=P3^1;
+  13          sbit led2=P3^2;
+  14          sbit led3=P3^3;
+  15                                                                                     
+  16          sbit lcdrs=P2^7;                                           //液晶控制位
+  17          sbit lcden=P2^6;
+  18          
+  19          char num,boxing,u;                                         //定义全局变量
+  20          int pinlv=100,bujin=1,bujin1=1;
+  21          uchar code table[]="0123456789";                //定义显示的数组
+  22          uchar code table1[]="Fout=     Wave form:";
+  23          unsigned long int m;
+  24          int a,b,h,num1;
+  25          
+  26          //自定义字符
+  27          uchar code zifu[]={
+  28                                                          0x0e,0x11,0x11,0x00,0x00,0x00,0x00,0x00,
+  29                                                          0x00,0x00,0x00,0x00,0x11,0x11,0x0e,0x00,          //正弦波         0  1
+  30          
+  31                                                          0x00,0x07,0x04,0x04,0x04,0x04,0x1c,0x00,
+  32                                                          0x00,0x1c,0x04,0x04,0x04,0x04,0x07,0x00,          //矩形波         2  3
+  33          
+  34                                                          0x00,0x01,0x02,0x04,0x08,0x10,0x00,0x00,
+  35                                                          0x00,0x10,0x08,0x04,0x02,0x01,0x00,0x00,          //三角波         4  5
+  36          
+  37                                                          0x00,0x01,0x03,0x05,0x09,0x11,0x00,0x00,          //锯齿波         6
+  38          };
+  39          uchar code sin[64]={
+  40          135,145,158,167,176,188,199,209,218,226,234,240,245,249,252,254,254,253,251,247,243,237,230,222,213,204,19
+             -3,182,170,158,
+  41          146,133,121,108,96,84,72,61,50,41,32,24,17,11,7,3,1,0,0,2,5,9,14,20,28,36,45,55,66,78,90,102,114,128
+  42          };                                        //正弦波取码
+  43          uchar code juxing[64]={
+  44          255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+  45          255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+  46          };                                        //矩形波取码
+  47          
+  48          uchar code sanjiao[64]={
+  49          0,8,16,24,32,40,48,56,64,72,80,88,96,104,112,120,128,136,144,152,160,168,176,184,192,200,208,216,224,232,2
+             -40,248,
+  50          248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,
+             -16,8,0
+  51          };                                              //三角波取码
+  52          uchar code juchi[64]={
+C51 COMPILER V9.00   1                                                                     09/12/2016 10:07:00 PAGE 2   
+
+  53          0,4,8,12,16,20,24,28,32,36,40,45,49,53,57,61,65,69,73,77,81,85,89,93,97,101,105,109,113,117,121,125,130,13
+             -4,138,142,
+  54          146,150,154,158,162,166,170,174,178,182,186,190,194,198,202,206,210,215,219,223,227,231,235,239,243,247,25
+             -1,255
+  55          };                                        //锯齿波取码
+  56          
+  57          void delay(uint xms)     //延时函数
+  58          {
+  59   1              int a,b;
+  60   1              for(a=xms;a>0;a--)
+  61   1                      for(b=110;b>0;b--);
+  62   1      }
+  63          void write_com(uchar com)               //写命令函数
+  64          {
+  65   1              lcdrs=0;
+  66   1              P0=com; 
+  67   1              delay(1);
+  68   1              lcden=1;
+  69   1              delay(1);                                                                         
+  70   1              lcden=0;
+  71   1      }
+  72          
+  73          void write_date(uchar date)             //写数据函数
+  74          {
+  75   1              lcdrs=1;
+  76   1              P0=date;
+  77   1              delay(1);
+  78   1              lcden=1;
+  79   1              delay(1);
+  80   1              lcden=0;
+  81   1      }
+  82          
+  83          //自定义字符集
+  84          void Lcd_ram()      
+  85          { 
+  86   1              uint i,j,k=0,temp=0x40; 
+  87   1              for(i=0;i<7;i++)
+  88   1              {
+  89   2                 for(j=0;j<8;j++)
+  90   2                 {
+  91   3                  write_com(temp+j);
+  92   3                  write_date(zifu[k]);
+  93   3                  k++;
+  94   3                 }
+  95   2                 temp=temp+8;
+  96   2              }
+  97   1      }
+  98          
+  99          void init_lcd()                                 //初始化函数
+ 100          {
+ 101   1              uchar i;                                                                  
+ 102   1              lcden=0;                                        //默认开始状态为关使能端，见时序图  
+ 103   1              Lcd_ram();
+ 104   1              write_com(0x0f);
+ 105   1              write_com(0x38);                        //显示模式设置，默认为0x38,不用变。
+ 106   1              write_com(0x01);                        //显示清屏，将上次的内容清除，默认为0x01. 
+ 107   1              write_com(0x0c);                        //显示功能设置0x0f为开显示，显示光标，光标闪烁；0x0c为开显示，不显光标，光标不闪
+ 108   1              write_com(0x06);                        //设置光标状态默认0x06,为读一个字符光标加1. 
+ 109   1              write_com(0x80);                        //设置初始化数据指针，是在读指令的操作里进行的
+ 110   1              for(i=10;i<20;i++)                         //显示初始化
+ 111   1              {
+ 112   2                      write_date(table1[i]);
+C51 COMPILER V9.00   1                                                                     09/12/2016 10:07:00 PAGE 3   
+
+ 113   2              }
+ 114   1              write_com(0x80+0x40);
+ 115   1              for(i=0;i<9;i++)
+ 116   1              {
+ 117   2                      write_date(table1[i]);
+ 118   2              }
+ 119   1              write_com(0x80+10);
+ 120   1              write_date(0);
+ 121   1              write_date(1);
+ 122   1              write_date(0);
+ 123   1              write_date(1);
+ 124   1              write_date(0);
+ 125   1              write_date(1);
+ 126   1              write_com(0x80+0x40+0x09);
+ 127   1              write_date(' ');
+ 128   1              write_date('1');
+ 129   1              write_date('0');
+ 130   1              write_date('.');
+ 131   1              write_date('0');
+ 132   1              write_date('H');
+ 133   1              write_date('z');
+ 134   1      }
+ 135          void initclock()                           //时钟初始化
+ 136          {
+ 137   1              TMOD=0x01;
+ 138   1              TH0=a;
+ 139   1              TL0=b;
+ 140   1              EA=1;
+ 141   1              ET0=1;
+ 142   1              TR0=1;
+ 143   1      }
+ 144          void display()                             //显示函数
+ 145          {
+ 146   1              uchar qian,bai,shi,ge;
+ 147   1              qian=pinlv/1000;
+ 148   1              bai=pinlv%1000/100;
+ 149   1              shi=pinlv%1000%100/10;
+ 150   1              ge=pinlv%1000%100%10;
+ 151   1              write_com(0x80+0x40+0x09);
+ 152   1      
+ 153   1              if(qian==0)
+ 154   1              write_date(' ');
+ 155   1              else
+ 156   1              write_date(table[qian]);
+ 157   1              if(qian==0&&bai==0)
+ 158   1              write_date(' ');
+ 159   1              else
+ 160   1              write_date(table[bai]);
+ 161   1              write_date(table[shi]);
+ 162   1              write_date('.');
+ 163   1              write_date(table[ge]);
+ 164   1              write_date('H');
+ 165   1              write_date('z');
+ 166   1              if(boxing==0)
+ 167   1              {
+ 168   2                      write_com(0x80+10);
+ 169   2                      write_date(0);
+ 170   2                      write_date(1);
+ 171   2                      write_date(0);
+ 172   2                      write_date(1);
+ 173   2                      write_date(0);
+ 174   2                      write_date(1);
+C51 COMPILER V9.00   1                                                                     09/12/2016 10:07:00 PAGE 4   
+
+ 175   2                      led3=1;
+ 176   2                      led0=0;
+ 177   2              }
+ 178   1              if(boxing==1)
+ 179   1              {
+ 180   2                      write_com(0x80+10);
+ 181   2                      write_date(2);
+ 182   2                      write_date(3);
+ 183   2                      write_date(2);
+ 184   2                      write_date(3);
+ 185   2                      write_date(2);
+ 186   2                      write_date(3);
+ 187   2                      led0=1;
+ 188   2                      led1=0;
+ 189   2              }
+ 190   1      
+ 191   1      
+ 192   1              if(boxing==2)
+ 193   1              {
+ 194   2                      write_com(0x80+10);
+ 195   2                      write_date(4);
+ 196   2                      write_date(5);
+ 197   2                      write_date(4);
+ 198   2                      write_date(5);
+ 199   2                      write_date(4);
+ 200   2                      write_date(5);
+ 201   2                      led1=1;
+ 202   2                      led2=0;
+ 203   2              }
+ 204   1              if(boxing==3)
+ 205   1              {
+ 206   2                      write_com(0x80+10);
+ 207   2                      write_date(6);
+ 208   2                      write_date(6);
+ 209   2                      write_date(6);
+ 210   2                      write_date(6);
+ 211   2                      write_date(6);
+ 212   2                      write_date(6);
+ 213   2                      led2=1;
+ 214   2                      led3=0;
+ 215   2              }
+ 216   1      
+ 217   1      }
+ 218          void keyscan()                                  //键盘检测函数
+ 219          {
+ 220   1              if(s1==0)
+ 221   1              {        
+ 222   2                      EA=0;
+ 223   2                      delay(2);
+ 224   2                      if(s1==0)
+ 225   2                      {
+ 226   3                              while(!s1);
+ 227   3                              pinlv+=bujin;
+ 228   3                              if(pinlv>1000)
+ 229   3                              {
+ 230   4                                      pinlv=100;
+ 231   4                              }
+ 232   3                              display();
+ 233   3                              m=65536-(150000/pinlv);
+ 234   3                              a=m/256;
+ 235   3                              b=m%256;
+ 236   3                              EA=1;
+C51 COMPILER V9.00   1                                                                     09/12/2016 10:07:00 PAGE 5   
+
+ 237   3                      }
+ 238   2              }
+ 239   1              if(s2==0)
+ 240   1              {        
+ 241   2                      
+ 242   2                      delay(5);
+ 243   2                      if(s2==0)
+ 244   2                      {
+ 245   3                              EA=0;   
+ 246   3                              while(!s2);
+ 247   3                              pinlv-=bujin;
+ 248   3                              if(pinlv<100)
+ 249   3                              {
+ 250   4                                      pinlv=1000;
+ 251   4                              }
+ 252   3                              display();
+ 253   3                              m=65536-(150000/pinlv);
+ 254   3                              a=m/256;
+ 255   3                              b=m%256;        
+ 256   3                              EA=1;
+ 257   3                      }
+ 258   2              }
+ 259   1              if(s3==0)
+ 260   1              {        
+ 261   2                      delay(5);
+ 262   2                      if(s3==0)
+ 263   2                      {
+ 264   3                              EA=0;
+ 265   3                              while(!s3);
+ 266   3                              boxing++;
+ 267   3                              if(boxing>=4)
+ 268   3                              {
+ 269   4                                      boxing=0;
+ 270   4                              }
+ 271   3                              display();
+ 272   3                              EA=1;
+ 273   3                      }
+ 274   2              }       
+ 275   1      }
+ 276          void bujindisplay()
+ 277          {
+ 278   1              uint bai,shi,ge;
+ 279   1              bai=bujin1/100;
+ 280   1              shi=bujin1%100/10;
+ 281   1              ge=bujin1%100%10;
+ 282   1              write_com(0x80+11);
+ 283   1              if(bai==0)
+ 284   1              write_date(' ');
+ 285   1              else
+ 286   1              write_date(table[bai]);
+ 287   1              write_date(table[shi]);
+ 288   1              write_date('.');
+ 289   1              write_date(table[ge]);
+ 290   1      }
+ 291          void bujinjiance()
+ 292          {
+ 293   1              if(s4==0)
+ 294   1              {
+ 295   2                      delay(5);
+ 296   2                      if(s4==0)
+ 297   2                      {
+ 298   3                               while(!s4);
+C51 COMPILER V9.00   1                                                                     09/12/2016 10:07:00 PAGE 6   
+
+ 299   3                               h++;
+ 300   3                               if(h==1)
+ 301   3                               {
+ 302   4                                       write_com(0x01);
+ 303   4                                       write_com(0x80);
+ 304   4                                       write_date('S');delay(1);        //step value
+ 305   4                                       write_date('t');delay(1);
+ 306   4                                       write_date('e');delay(1);
+ 307   4                                       write_date('p');delay(1);
+ 308   4                                       write_date(' ');delay(1);
+ 309   4                                       write_date('v');delay(1);
+ 310   4                                       write_date('a');delay(1);
+ 311   4                                       write_date('l');delay(1);
+ 312   4                                       write_date('u');delay(1);
+ 313   4                                       write_date('e');delay(1);
+ 314   4                                       write_date(':');delay(1);
+ 315   4                                       bujin1=bujin;
+ 316   4                                       
+ 317   4                                       bujindisplay();
+ 318   4                               }
+ 319   3                               if(h==2)
+ 320   3                               {
+ 321   4                                      h=0;
+ 322   4                                      bujin=bujin1;
+ 323   4                                      
+ 324   4                                      init_lcd();
+ 325   4                                      initclock();
+ 326   4                                      display();
+ 327   4                               }
+ 328   3                      }
+ 329   2              }
+ 330   1              if(h==1)
+ 331   1              {
+ 332   2                      if(s1==0)
+ 333   2                      {
+ 334   3                              delay(5);
+ 335   3                              if(s1==0)
+ 336   3                              {
+ 337   4                                      while(!s1);
+ 338   4                                      bujin1++;
+ 339   4                                      if(bujin1>=101)
+ 340   4                                      {
+ 341   5                                              bujin1=1;
+ 342   5                                      }
+ 343   4                                      bujindisplay();
+ 344   4                              }
+ 345   3                      }
+ 346   2                      if(s2==0)
+ 347   2                      {
+ 348   3                              delay(5);
+ 349   3                              if(s2==0)
+ 350   3                              {
+ 351   4                                      while(!s2);
+ 352   4                                      bujin1--;
+ 353   4                                      if(bujin1<=0)
+ 354   4                                      {
+ 355   5                                              bujin1=100;
+ 356   5                                      }
+ 357   4                                      bujindisplay();
+ 358   4                              }
+ 359   3                      }
+ 360   2              }
+C51 COMPILER V9.00   1                                                                     09/12/2016 10:07:00 PAGE 7   
+
+ 361   1      }
+ 362          void main()                                      //主函数
+ 363          {       
+ 364   1              init_lcd();
+ 365   1              m=65536-(150000/pinlv);
+ 366   1              a=m/256;
+ 367   1              b=m%256;
+ 368   1              initclock();
+ 369   1              led0=0;
+ 370   1              while(1)
+ 371   1              {
+ 372   2                      if(h==0)
+ 373   2                      {
+ 374   3                              keyscan();
+ 375   3                      //      display();
+ 376   3                      }
+ 377   2                       
+ 378   2                      bujinjiance();
+ 379   2      
+ 380   2                      switch(boxing)
+ 381   2                      {
+ 382   3                              case 0 : P1=sin[u]; break;
+ 383   3                              case 1 : P1=juxing[u]; break;
+ 384   3                              case 2 : P1=sanjiao[u]; break;
+ 385   3                              case 3 : P1=juchi[u]; break;
+ 386   3                      }
+ 387   2              }
+ 388   1      }
+ 389          void T0_time()interrupt 1                  //定时器
+ 390          {
+ 391   1              TH0=a;
+ 392   1              TL0=b;
+ 393   1              u++;
+ 394   1              if(u>=64)
+ 395   1              u=0;
+ 396   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1489    ----
+   CONSTANT SIZE    =    344    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     21      11
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

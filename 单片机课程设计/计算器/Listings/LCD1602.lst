@@ -1,0 +1,47 @@
+C51 COMPILER V9.01   LCD1602                                                               06/17/2020 21:36:37 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE LCD1602
+OBJECT MODULE PLACED IN .\Objects\LCD1602.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE LCD1602.c OPTIMIZE(9,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\LCD1
+                    -602.lst) OBJECT(.\Objects\LCD1602.obj)
+
+line level    source
+
+   1          #include "LCD1602.h"
+   2          #include <STC8.h>
+*** WARNING C318 IN LINE 2 OF LCD1602.c: can't open file 'STC8.h'
+   3          
+   4          sbit RS=P2^1;
+*** ERROR C202 IN LINE 4 OF LCD1602.C: 'P2': undefined identifier
+   5          sbit RW=P2^2;
+*** ERROR C202 IN LINE 5 OF LCD1602.C: 'P2': undefined identifier
+   6          sbit E=P2^4;
+*** ERROR C202 IN LINE 6 OF LCD1602.C: 'P2': undefined identifier
+   7          
+   8          void LCD1602_operation(unsigned char Dat){//²Ù×÷1602
+   9   1              unsigned int delay;
+  10   1              RW=0;
+*** ERROR C202 IN LINE 10 OF LCD1602.C: 'RW': undefined identifier
+  11   1              E=1;
+*** ERROR C202 IN LINE 11 OF LCD1602.C: 'E': undefined identifier
+  12   1              P0=Dat;
+*** ERROR C202 IN LINE 12 OF LCD1602.C: 'P0': undefined identifier
+  13   1              E=0;
+*** ERROR C202 IN LINE 13 OF LCD1602.C: 'E': undefined identifier
+  14   1              for(delay=800;--delay;);
+  15   1      }
+  16          
+  17          void LCD1602_Write_Reg(unsigned char Dat){//1602Ð´ÃüÁî
+  18   1              RS=0;
+*** ERROR C202 IN LINE 18 OF LCD1602.C: 'RS': undefined identifier
+  19   1        LCD1602_operation(Dat);
+  20   1      }
+  21          
+  22          void LCD1602_Write_Data(unsigned char Dat){//1602Ð´Êý¾Ý
+  23   1              RS=1;
+*** ERROR C202 IN LINE 23 OF LCD1602.C: 'RS': undefined identifier
+  24   1        LCD1602_operation(Dat);
+  25   1      }
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  9 ERROR(S)

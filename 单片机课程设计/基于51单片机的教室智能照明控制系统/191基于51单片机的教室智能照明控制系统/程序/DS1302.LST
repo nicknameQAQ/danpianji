@@ -1,0 +1,1152 @@
+C51 COMPILER V9.01   DS1302                                                                03/15/2017 19:49:58 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE DS1302
+OBJECT MODULE PLACED IN DS1302.OBJ
+COMPILER INVOKED BY: G:\Keil 4\NEW\C51\BIN\C51.EXE DS1302.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include <reg51.h>
+   2          #include <intrins.h>
+   3          #define uchar unsigned char
+   4          #define uint unsigned int
+   5          
+   6          uchar time_data[7];
+   7          uchar code write_add[7]={0x8c,0x8a,0x88,0x86,0x84,0x82,0x80};       //数据的地址
+   8          uchar code read_add[7]={0x8d,0x8b,0x89,0x87,0x85,0x83,0x81};
+   9          
+  10          uchar code table1[]="C: 00|2000/00/00";
+  11          uchar code table2[]="T: 00|00:00:00 0";
+  12          uchar code table3[]="                ";                  //清屏内容
+  13          uchar code table4[]="  Set Real Time ";
+  14          uchar code table5[]="  Set Open Time ";
+  15          uchar code table6[]="   Start Time:  ";
+  16          uchar code table7[]="    00:00:00    ";
+  17          uchar code table8[]="    End Time:   ";
+  18          uchar code table9[]="Date: 2000/00/00";
+  19          uchar code table0[]="Time: 00:00:00 0";
+  20          
+  21          bit Adjust;                       //调节标志位，=1表示进入调节模式，=0是正常模式
+  22          bit Auto_flg;             //自动模式标志位，=1表示手动模式，=0是自动模式
+  23          sbit rs=P1^0;             //LCD1602
+  24          sbit rw=P1^1;             //LCD1602
+  25          sbit e=P1^2;              //LCD1602
+  26          sbit sck=P2^5;            //时钟端口
+  27          sbit io=P2^6;             //时钟端口
+  28          sbit rst=P2^7;            //时钟端口
+  29          sbit SELT =P1^6;          //选择键
+  30          sbit ENTER=P1^7;          //确认键
+  31          sbit UP   =P3^0;          //加键
+  32          sbit DOWN =P3^1;          //减键
+  33          sbit MODE =P3^2;          //切换按键接口
+  34          sbit SWITCH=P3^3;         //手动开关
+  35          sbit AUTO_LED=P1^3;       //自动模式灯接口
+  36          sbit HAND_LED=P1^4;       //手动灯接口
+  37          sbit LAMP1=P3^4;          //灯接口
+  38          sbit LAMP2=P3^5;          //灯接口
+  39          sbit LAMP3=P3^6;          //灯接口
+  40          sbit LAMP4=P3^7;          //灯接口
+  41          sbit LIGHT1=P2^0;         //光线检测端口
+  42          sbit IN1=P2^2;
+  43          sbit OUT1=P2^1;
+  44          sbit DQ=P1^5;             //温度数据口
+  45          uchar Select_num;         //选择按键按下次数
+  46          uchar Enter_num;          //确认按键按下次数
+  47          uchar Switch_num;         //手动开关按键按下次数
+  48          float Year,Month,Day,Hour,Minute,Second;                        //时间设置值
+  49          uchar Week;             
+  50          float Hour_H,Minute_H,Second_H;                                         //设置开始时间
+  51          float Hour_L,Minute_L,Second_L;                                         //设置结束时间
+  52          int Value1;                                                                                     //人数
+  53          uchar IN1_flag=0;
+  54          uchar OUT1_flag=0;
+  55          uint Count;           //T0定时器中断计数次数
+C51 COMPILER V9.01   DS1302                                                                03/15/2017 19:49:58 PAGE 2   
+
+  56          uchar Miao;
+  57          
+  58          int temperature;                                                                        //全局变量 温度
+  59          
+  60          void read_rtc();
+  61          
+  62          /**************************************************LCD1602显示********************************************
+             -***********************/
+  63          void delay1(uint z)                       //延时函数
+  64          {
+  65   1              uint x,y;
+  66   1              for(x=z;x>0;x--)
+  67   1                      for(y=10;y>0;y--);
+  68   1      }
+  69          
+  70          void write_com(uchar com)                        //写指令函数
+  71          {
+  72   1              rw=0;
+  73   1              delay1(5);
+  74   1              rs=0;
+  75   1              delay1(5);
+  76   1              e=1;
+  77   1              delay1(5);
+  78   1              P0=com;
+  79   1              delay1(5);
+  80   1              e=0;
+  81   1              delay1(5);      
+  82   1      }
+  83          
+  84          void write_date(uchar date)                     //写数据函数
+  85          {                                                                       
+  86   1              rw=0;
+  87   1              delay1(5);
+  88   1              rs=1;
+  89   1              delay1(5);
+  90   1              e=1;
+  91   1              delay1(5);
+  92   1              P0=date;
+  93   1              delay1(5);
+  94   1              e=0;
+  95   1              delay1(5);      
+  96   1      }
+  97          
+  98          void init()                                                 //初始化函数
+  99          {       
+ 100   1              uchar num;
+ 101   1              Year=17;
+ 102   1              Month=1;
+ 103   1              Day=1;
+ 104   1              Hour=15;
+ 105   1              Minute=30;
+ 106   1              Second=50;
+ 107   1              Week=1;
+ 108   1              Hour_H=22;
+ 109   1              Minute_H=0;
+ 110   1              Second_H=0;
+ 111   1              Hour_L=18;
+ 112   1              Minute_L=0;
+ 113   1              Second_L=0;
+ 114   1              e=0;                                                // 时序表e初始为0
+ 115   1              write_com(0x38);                        //设置16*2显示，5*7点阵，8位数据接口
+ 116   1              write_com(0x0c);                                //设置光标
+C51 COMPILER V9.01   DS1302                                                                03/15/2017 19:49:58 PAGE 3   
+
+ 117   1              write_com(0x06);                                //光标自动加1,光标输入方式
+ 118   1              write_com(0x01);                                //清屏
+ 119   1              write_com(0x80);                                //设置初始显示位置
+ 120   1              for(num=0;num<16;num++)
+ 121   1              {
+ 122   2                      write_date(table1[num]);
+ 123   2                      delay1(5);
+ 124   2              }
+ 125   1              write_com(0x80+0x40);
+ 126   1              for(num=0;num<16;num++)
+ 127   1              {
+ 128   2                      write_date(table2[num]);
+ 129   2                      delay1(5);
+ 130   2              }                                         
+ 131   1      }
+ 132          
+ 133          void SetTime_dispaly(uchar add,uchar dat)        //第一个：参数的地址，第二个：参数的内容
+ 134          {
+ 135   1              uchar shi,ge;
+ 136   1              shi=dat/10;                                                     //把十位提取出来
+ 137   1              ge=dat%10;                                                      //把个位提取出来
+ 138   1              write_com(add);                                         //要写的地址
+ 139   1              write_date(0x30+shi);                           //十位的内容   1602字符库
+ 140   1              write_date(0x30+ge);                            //个位的内容   1602字符库
+ 141   1      }
+ 142          
+ 143          void Week_dispaly(uchar add,uchar dat)  //第一个：参数的地址，第二个：参数的内容
+ 144          {
+ 145   1              write_com(add);                                         //要写的地址
+ 146   1              write_date(0x30+dat);                           //十位的内容   1602字符库
+ 147   1      }
+ 148          void Date_dispaly(uchar add,uchar dat)   //第一个：参数的地址，第二个：参数的内容
+ 149          {
+ 150   1              uchar shi,ge;
+ 151   1              shi=dat/16;                                                     //把十位提取出来
+ 152   1              ge=dat%16;                                                      //把个位提取出来
+ 153   1              write_com(add+3);                                       //要写的地址
+ 154   1              write_date(0x30+shi);                           //十位的内容   1602字符库
+ 155   1              write_date(0x30+ge);                            //个位的内容   1602字符库                                  
+ 156   1      }
+ 157          
+ 158          void LCD_Clean(uchar i)                                 //液晶屏清除显示
+ 159          {
+ 160   1              uchar num;
+ 161   1              if(i==1)
+ 162   1              {
+ 163   2                      write_com(0x80);                                //设置初始显示位置
+ 164   2                      for(num=0;num<16;num++)                 //显示第一行内容
+ 165   2                      {
+ 166   3                              write_date(table3[num]);
+ 167   3                              delay1(1);
+ 168   3                      }
+ 169   2              }
+ 170   1              if(i==2)
+ 171   1              {
+ 172   2                      write_com(0x80+0x40);
+ 173   2                      for(num=0;num<16;num++)                 //显示第二行内容
+ 174   2                      {
+ 175   3                              write_date(table3[num]);
+ 176   3                              delay1(1);
+ 177   3                      }
+ 178   2              }
+C51 COMPILER V9.01   DS1302                                                                03/15/2017 19:49:58 PAGE 4   
+
+ 179   1      }
+ 180          
+ 181          void LCD_Display_String(unsigned char line,unsigned char *string)
+ 182          {                                                                               //液晶屏显示内容，把要显示的内容写到对应的位置
+ 183   1              unsigned char i;
+ 184   1              unsigned char address=0;
+ 185   1              if(line==1)
+ 186   1              {
+ 187   2                      address=0x80;                                   //0X80是第1行的第1个位置  ,0x81第2位
+ 188   2              }
+ 189   1              else if(line==2)
+ 190   1              {
+ 191   2                      address=0x80+0x40;                      //0X80+0x40是第2行的第1个位置  ,0X80+0x40+1是第2行第2位
+ 192   2              }
+ 193   1              
+ 194   1              for(i=0;i<16;i++)
+ 195   1              {
+ 196   2                      write_com(address);
+ 197   2                      write_date(string[i]);
+ 198   2                      address++;
+ 199   2              } 
+ 200   1      }
+ 201          /**********************************DS1302时钟***************************************/
+ 202          void Time_Display(void)
+ 203          {
+ 204   1              read_rtc();
+ 205   1              Date_dispaly(0x80+0x40+9,time_data[6]);  //显示秒
+ 206   1              Date_dispaly(0x80+0x40+6,time_data[5]);  //显示分
+ 207   1              Date_dispaly(0x80+0x40+3,time_data[4]);  //显示时
+ 208   1              Date_dispaly(0x80+11,time_data[3]);              //显示日
+ 209   1              Date_dispaly(0x80+8,time_data[2]);               //显示月
+ 210   1              Week_dispaly(0x80+0x40+15,time_data[1]); //显示周
+ 211   1              Date_dispaly(0x80+5,time_data[0]);               //显示年
+ 212   1                                                 //   Year/10*16+Year%10
+ 213   1              Hour=time_data[4]/16*10+time_data[4]%16;;
+ 214   1              Minute=time_data[5]/16*10+time_data[5]%16;;
+ 215   1              Second=time_data[6]/16*10+time_data[6]%16;;
+ 216   1      }
+ 217          
+ 218          
+ 219          void write_ds1302_byte(uchar dat)
+ 220          {
+ 221   1              uchar i;
+ 222   1              for(i=0;i<8;i++)
+ 223   1              {
+ 224   2                      sck=0;
+ 225   2                      io=dat&0x01;                                       //准备数据,从最低位开始
+ 226   2                      dat=dat>>1;
+ 227   2                      sck=1;
+ 228   2              }
+ 229   1      }
+ 230          
+ 231          void write_ds1302(uchar add,uchar dat)
+ 232          {
+ 233   1              rst=0;
+ 234   1              _nop_();                                                //CPU原地踏步
+ 235   1              sck=0;
+ 236   1              _nop_();
+ 237   1              rst=1;
+ 238   1              _nop_();
+ 239   1              write_ds1302_byte(add);             //传地址
+ 240   1              write_ds1302_byte(dat);             //传数据
+C51 COMPILER V9.01   DS1302                                                                03/15/2017 19:49:58 PAGE 5   
+
+ 241   1              rst=0;                                                  //不受其他影响
+ 242   1              _nop_();
+ 243   1              io=1;                                              //释放
+ 244   1              sck=1;
+ 245   1      }
+ 246          
+ 247          uchar read_ds1302(uchar add)
+ 248          {
+ 249   1              uchar i,value;
+ 250   1              rst=0;
+ 251   1              _nop_();  //CPU原地踏步
+ 252   1              sck=0;
+ 253   1              _nop_();
+ 254   1              rst=1;
+ 255   1              _nop_();
+ 256   1              write_ds1302_byte(add);
+ 257   1              for(i=0;i<8;i++)
+ 258   1              {
+ 259   2                      value=value>>1;
+ 260   2                      sck=0;
+ 261   2                      if(io)
+ 262   2                      value=value|0x80;
+ 263   2                      sck=1;
+ 264   2              }
+ 265   1              rst=0;
+ 266   1              _nop_();
+ 267   1              sck=0;
+ 268   1              _nop_();
+ 269   1              sck=1;
+ 270   1              io=1;
+ 271   1              return value;
+ 272   1      }
+ 273          
+ 274          void set_rtc()                            //设置时间
+ 275          {
+ 276   1              uchar i,j;
+ 277   1              for(i=0;i<7;i++)                         //转换BCD码
+ 278   1              {
+ 279   2                      j=time_data[i]/10;
+ 280   2                      time_data[i]=time_data[i]%10;
+ 281   2                      time_data[i]=time_data[i]+j*16;
+ 282   2              }
+ 283   1              write_ds1302(0x8e,0x00);          //去除写保护
+ 284   1              for(i=0;i<7;i++)
+ 285   1              {
+ 286   2                      write_ds1302(write_add[i],time_data[i]);
+ 287   2              }
+ 288   1              write_ds1302(0x8e,0x80);      //加写保护
+ 289   1      }
+ 290          
+ 291          void read_rtc()
+ 292          {
+ 293   1              uchar i;
+ 294   1              for(i=0;i<7;i++)
+ 295   1              {
+ 296   2                      time_data[i]=read_ds1302(read_add[i]);  //最终读出来的数 16进制
+ 297   2              }
+ 298   1      }
+ 299          
+ 300          /*************************************************按键****************************************************
+             -************/
+ 301          void Keyscan(void)
+C51 COMPILER V9.01   DS1302                                                                03/15/2017 19:49:58 PAGE 6   
+
+ 302          {
+ 303   1              if(SELT==0)
+ 304   1              {
+ 305   2                      delay1(2);
+ 306   2                      if(SELT==0)
+ 307   2                      {
+ 308   3                              while(!SELT);
+ 309   3                              Select_num++;                                   //选择键按下一次
+ 310   3                              Adjust=1;                                               //进入调节模式                  
+ 311   3                      }
+ 312   2                      if(Select_num==1)
+ 313   2                      {
+ 314   3                              LCD_Clean(1);
+ 315   3                              LCD_Clean(2);
+ 316   3                              LCD_Display_String(1,table4);
+ 317   3                              LCD_Display_String(2,table5);
+ 318   3                              write_com(0x80+0);                              //写 >>
+ 319   3                              write_date(0x3e);
+ 320   3                              write_com(0x80+1);                              //写 >>
+ 321   3                              write_date(0x3e);
+ 322   3                              Enter_num=0;
+ 323   3                      }
+ 324   2                      if(Select_num==2)
+ 325   2                      {
+ 326   3                              LCD_Clean(1);
+ 327   3                              LCD_Clean(2);
+ 328   3                              LCD_Display_String(1,table4);
+ 329   3                              LCD_Display_String(2,table5);
+ 330   3                              write_com(0x80+0x40+0);                         //写 >>
+ 331   3                              write_date(0x3e);
+ 332   3                              write_com(0x80+0x40+1);                         //写 >>
+ 333   3                              write_date(0x3e);
+ 334   3                              Enter_num=0;
+ 335   3                      }
+ 336   2                      if(Select_num==3)
+ 337   2                      {
+ 338   3                              LCD_Clean(1);
+ 339   3                              LCD_Clean(2);
+ 340   3                              LCD_Display_String(1,table1);
+ 341   3                              LCD_Display_String(2,table2);
+ 342   3                              Select_num=0;
+ 343   3                              Enter_num=0;                                    
+ 344   3                              Adjust=0;
+ 345   3                      }
+ 346   2                      write_com(0x0c);                                                                        //光标不再闪烁
+ 347   2                      Enter_num=0;
+ 348   2              }
+ 349   1              
+ 350   1              if(ENTER==0)
+ 351   1              {
+ 352   2                      delay1(2);
+ 353   2                      if(ENTER==0)
+ 354   2                      {
+ 355   3                              while(!ENTER);
+ 356   3                              Enter_num++;
+ 357   3                      }
+ 358   2                      if(Select_num==1)                                       //设置实时时间
+ 359   2                      {
+ 360   3                              if(Enter_num==1)
+ 361   3                              {
+ 362   4                                      LCD_Clean(1);
+ 363   4                                      LCD_Clean(2);
+C51 COMPILER V9.01   DS1302                                                                03/15/2017 19:49:58 PAGE 7   
+
+ 364   4                                      LCD_Display_String(1,table9);
+ 365   4                                      LCD_Display_String(2,table0);
+ 366   4                                      SetTime_dispaly(0x80+8,Year);
+ 367   4                                      SetTime_dispaly(0x80+11,Month);
+ 368   4                                      SetTime_dispaly(0x80+14,Day);
+ 369   4                                      SetTime_dispaly(0x80+0x40+6,Hour);
+ 370   4                                      SetTime_dispaly(0x80+0x40+9,Minute);
+ 371   4                                      SetTime_dispaly(0x80+0x40+12,Second);
+ 372   4                                      Week_dispaly(0x80+0x40+15,Week);
+ 373   4                                      write_com(0x80+8);                      //光标闪烁地址，停留在年的位置上                                        
+ 374   4                                      write_com(0x0f);                        //光标闪烁
+ 375   4                              }
+ 376   3                              if(Enter_num==2)
+ 377   3                              {
+ 378   4                                      write_com(0x80+11);                     //光标闪烁地址，停留在月的位置上                                        
+ 379   4                                      write_com(0x0f);                        //光标闪烁
+ 380   4                              }
+ 381   3                              if(Enter_num==3)
+ 382   3                              {
+ 383   4                                      write_com(0x80+14);                     //光标闪烁地址，停留在日的位置上                                        
+ 384   4                                      write_com(0x0f);                        //光标闪烁
+ 385   4                              }
+ 386   3                              if(Enter_num==4)
+ 387   3                              {
+ 388   4                                      write_com(0x80+0x40+6);         //光标闪烁地址，停留在时的位置上                                        
+ 389   4                                      write_com(0x0f);                        //光标闪烁
+ 390   4                              }
+ 391   3                              if(Enter_num==5)
+ 392   3                              {
+ 393   4                                      write_com(0x80+0x40+9);         //光标闪烁地址，停留在分的位置上                                        
+ 394   4                                      write_com(0x0f);                        //光标闪烁
+ 395   4                              }
+ 396   3                              if(Enter_num==6)
+ 397   3                              {
+ 398   4                                      write_com(0x80+0x40+12);        //光标闪烁地址，停留在秒的位置上                                        
+ 399   4                                      write_com(0x0f);                        //光标闪烁
+ 400   4                              }
+ 401   3                              if(Enter_num==7)
+ 402   3                              {
+ 403   4                                      write_com(0x80+0x40+15);        //光标闪烁地址，停留在星期的位置上                                      
+ 404   4                                      write_com(0x0f);                        //光标闪烁
+ 405   4                              }
+ 406   3                              if(Enter_num==8)
+ 407   3                              {
+ 408   4                                      Enter_num=0;
+ 409   4                                      write_com(0x0c);                        //光标不再闪烁
+ 410   4                                      LCD_Clean(1);
+ 411   4                                      LCD_Clean(2);
+ 412   4                                      LCD_Display_String(1,table1);
+ 413   4                                      LCD_Display_String(2,table2);
+ 414   4                                      time_data[0]=Year;///10*16+Year%10;
+ 415   4                                      time_data[1]=Week;///10*16+Week%10;
+ 416   4                                      time_data[2]=Month;///10*16+Month%10;
+ 417   4                                      time_data[3]=Day;///10*16+Day%10;
+ 418   4                                      time_data[4]=Hour;///10*16+Hour%10;
+ 419   4                                      time_data[5]=Minute;///10*16+Minute%10;
+ 420   4                                      time_data[6]=Second;///10*16+Second%10;
+ 421   4                                      set_rtc();                                       //设置时间
+ 422   4                                      Select_num=0;
+ 423   4                                      Adjust=0;
+ 424   4                              }
+ 425   3                      }
+C51 COMPILER V9.01   DS1302                                                                03/15/2017 19:49:58 PAGE 8   
+
+ 426   2      
+ 427   2                      if(Select_num==2)                                       //设置开关锁时间
+ 428   2                      {
+ 429   3                              if(Enter_num==1)
+ 430   3                              {
+ 431   4                                      LCD_Clean(1);
+ 432   4                                      LCD_Clean(2);
+ 433   4                                      LCD_Display_String(1,table6);
+ 434   4                                      LCD_Display_String(2,table7);
+ 435   4                                      SetTime_dispaly(0x80+0x40+4,Hour_L);
+ 436   4                                      SetTime_dispaly(0x80+0x40+7,Minute_L);
+ 437   4                                      SetTime_dispaly(0x80+0x40+10,Second_L);
+ 438   4                                      write_com(0x80+0x40+4);         //光标闪烁地址，停留在时的位置上                                        
+ 439   4                                      write_com(0x0f);                        //光标闪烁
+ 440   4                              }
+ 441   3                              if(Enter_num==2)
+ 442   3                              {
+ 443   4                                      write_com(0x80+0x40+7);         //光标闪烁地址，停留在分的位置上                                        
+ 444   4                                      write_com(0x0f);                        //光标闪烁
+ 445   4                              }
+ 446   3                              if(Enter_num==3)
+ 447   3                              {
+ 448   4                                      write_com(0x80+0x40+10);        //光标闪烁地址，停留在秒的位置上                                        
+ 449   4                                      write_com(0x0f);                        //光标闪烁
+ 450   4                              }
+ 451   3                              if(Enter_num==4)
+ 452   3                              {
+ 453   4                                      write_com(0x0c);                        //光标不再闪烁
+ 454   4                                      LCD_Clean(1);
+ 455   4                                      LCD_Clean(2);
+ 456   4                                      LCD_Display_String(1,table8);
+ 457   4                                      LCD_Display_String(2,table7);   
+ 458   4                                      SetTime_dispaly(0x80+0x40+4,Hour_H);
+ 459   4                                      SetTime_dispaly(0x80+0x40+7,Minute_H);
+ 460   4                                      SetTime_dispaly(0x80+0x40+10,Second_H);
+ 461   4                                      write_com(0x80+0x40+4);         //光标闪烁地址，停留在时的位置上                                        
+ 462   4                                      write_com(0x0f);                        //光标闪烁
+ 463   4                              }
+ 464   3                              if(Enter_num==5)
+ 465   3                              {
+ 466   4                                      write_com(0x80+0x40+7);         //光标闪烁地址，停留在分的位置上                                        
+ 467   4                                      write_com(0x0f);                        //光标闪烁
+ 468   4                              }
+ 469   3                              if(Enter_num==6)
+ 470   3                              {
+ 471   4                                      write_com(0x80+0x40+10);        //光标闪烁地址，停留在秒的位置上                                        
+ 472   4                                      write_com(0x0f);                        //光标闪烁
+ 473   4                              }               
+ 474   3                              if(Enter_num==7)
+ 475   3                              {
+ 476   4                                      Enter_num=0;
+ 477   4                                      write_com(0x0c);                        //光标不再闪烁
+ 478   4                                      LCD_Clean(1);
+ 479   4                                      LCD_Clean(2);
+ 480   4                                      LCD_Display_String(1,table1);
+ 481   4                                      LCD_Display_String(2,table2);
+ 482   4                                      Select_num=0;
+ 483   4                                      Adjust=0;
+ 484   4                              }
+ 485   3                      }
+ 486   2      
+ 487   2              }
+C51 COMPILER V9.01   DS1302                                                                03/15/2017 19:49:58 PAGE 9   
+
+ 488   1              if(UP==0)
+ 489   1              {
+ 490   2                      delay1(2);
+ 491   2                      if(UP==0)
+ 492   2                      {
+ 493   3                              while(!UP);
+ 494   3                              if(Select_num==1)
+ 495   3                              {
+ 496   4                                      if(Enter_num==1)
+ 497   4                                      {
+ 498   5                                              Year++;
+ 499   5                                              if(Year>99)
+ 500   5                                              Year=0;
+ 501   5                                              SetTime_dispaly(0x80+8,Year);
+ 502   5                                              write_com(0x80+8);                                                              
+ 503   5                                              write_com(0x0f);                        
+ 504   5                                      }
+ 505   4                                      if(Enter_num==2)
+ 506   4                                      {
+ 507   5                                              Month++;
+ 508   5                                              if(Month>12)
+ 509   5                                              Month=1;
+ 510   5                                              SetTime_dispaly(0x80+11,Month);
+ 511   5                                              write_com(0x80+11);                                                             
+ 512   5                                              write_com(0x0f);                                                          
+ 513   5                                      }
+ 514   4                                      if(Enter_num==3)
+ 515   4                                      {
+ 516   5                                              Day++;
+ 517   5                                              if(Day>31)
+ 518   5                                              Day=1;
+ 519   5                                              SetTime_dispaly(0x80+14,Day);
+ 520   5                                              write_com(0x80+14);                                                             
+ 521   5                                              write_com(0x0f);
+ 522   5                                      }
+ 523   4                                      if(Enter_num==4)
+ 524   4                                      {
+ 525   5                                              Hour++;
+ 526   5                                              if(Hour>23)
+ 527   5                                              Hour=0;
+ 528   5                                              SetTime_dispaly(0x80+0x40+6,Hour);
+ 529   5                                              write_com(0x80+0x40+6);                                                         
+ 530   5                                              write_com(0x0f);
+ 531   5                                      }
+ 532   4                                      if(Enter_num==5)
+ 533   4                                      {
+ 534   5                                              Minute++;
+ 535   5                                              if(Minute>59)
+ 536   5                                              Minute=0;
+ 537   5                                              SetTime_dispaly(0x80+0x40+9,Minute);
+ 538   5                                              write_com(0x80+0x40+9);                                                         
+ 539   5                                              write_com(0x0f);
+ 540   5                                      }
+ 541   4                                      if(Enter_num==6)
+ 542   4                                      {
+ 543   5                                              Second++;
+ 544   5                                              if(Second>59)
+ 545   5                                              Second=0;
+ 546   5                                              SetTime_dispaly(0x80+0x40+12,Second);
+ 547   5                                              write_com(0x80+0x40+12);                                                                
+ 548   5                                              write_com(0x0f);
+ 549   5                                      }
+C51 COMPILER V9.01   DS1302                                                                03/15/2017 19:49:58 PAGE 10  
+
+ 550   4                                      if(Enter_num==7)
+ 551   4                                      {
+ 552   5                                              Week++;
+ 553   5                                              if(Week>7)
+ 554   5                                              Week=1;
+ 555   5                                              Week_dispaly(0x80+0x40+15,Week);
+ 556   5                                              write_com(0x80+0x40+15);                                                                
+ 557   5                                              write_com(0x0f);
+ 558   5                                      }
+ 559   4                              }
+ 560   3                              if(Select_num==2)
+ 561   3                              {                               
+ 562   4                                      if(Enter_num==1)
+ 563   4                                      {
+ 564   5                                              Hour_L++;
+ 565   5                                              if(Hour_L>23)
+ 566   5                                              Hour_L=0;
+ 567   5                                              SetTime_dispaly(0x80+0x40+4,Hour_L);
+ 568   5                                              write_com(0x80+0x40+4);                                                         
+ 569   5                                              write_com(0x0f);
+ 570   5                                      }
+ 571   4                                      if(Enter_num==2)
+ 572   4                                      {
+ 573   5                                              Minute_L++;
+ 574   5                                              if(Minute_L>59)
+ 575   5                                              Minute_L=0;
+ 576   5                                              SetTime_dispaly(0x80+0x40+7,Minute_L);
+ 577   5                                              write_com(0x80+0x40+7);                                                         
+ 578   5                                              write_com(0x0f);
+ 579   5                                      }
+ 580   4                                       
+ 581   4                                      if(Enter_num==3)
+ 582   4                                      {
+ 583   5                                              Second_L++;
+ 584   5                                              if(Second_L>59)
+ 585   5                                              Second_L=0;
+ 586   5                                              SetTime_dispaly(0x80+0x40+10,Second_L);
+ 587   5                                              write_com(0x80+0x40+10);                                                                
+ 588   5                                              write_com(0x0f);
+ 589   5                                      }
+ 590   4                                      if(Enter_num==4)
+ 591   4                                      {
+ 592   5                                              Hour_H++;
+ 593   5                                              if(Hour_H>23)
+ 594   5                                              Hour_H=0;
+ 595   5                                              SetTime_dispaly(0x80+0x40+4,Hour_H);
+ 596   5                                              write_com(0x80+0x40+4);                                                         
+ 597   5                                              write_com(0x0f);
+ 598   5                                      }
+ 599   4                                      if(Enter_num==5)
+ 600   4                                      {
+ 601   5                                              Minute_H++;
+ 602   5                                              if(Minute_H>59)
+ 603   5                                              Minute_H=0;
+ 604   5                                              SetTime_dispaly(0x80+0x40+7,Minute_H);
+ 605   5                                              write_com(0x80+0x40+7);                                                         
+ 606   5                                              write_com(0x0f);
+ 607   5                                      }
+ 608   4                                       
+ 609   4                                      if(Enter_num==6)
+ 610   4                                      {
+ 611   5                                              Second_H++;
+C51 COMPILER V9.01   DS1302                                                                03/15/2017 19:49:58 PAGE 11  
+
+ 612   5                                              if(Second_H>59)
+ 613   5                                              Second_H=0;
+ 614   5                                              SetTime_dispaly(0x80+0x40+10,Second_H);
+ 615   5                                              write_com(0x80+0x40+10);                                                                
+ 616   5                                              write_com(0x0f);
+ 617   5                                      }                               
+ 618   4                              }
+ 619   3                      }
+ 620   2              }
+ 621   1              if(DOWN==0)
+ 622   1              {
+ 623   2                      delay1(2);
+ 624   2                      if(DOWN==0)
+ 625   2                      {
+ 626   3                              while(!DOWN);
+ 627   3                              if(Select_num==1)
+ 628   3                              {
+ 629   4                                      if(Enter_num==1)
+ 630   4                                      {
+ 631   5                                              Year--;
+ 632   5                                              if(Year<0)
+ 633   5                                              Year=99;
+ 634   5                                              SetTime_dispaly(0x80+8,Year);
+ 635   5                                              write_com(0x80+8);                                                              
+ 636   5                                              write_com(0x0f);
+ 637   5                                      }
+ 638   4                                      if(Enter_num==2)
+ 639   4                                      {
+ 640   5                                              Month--;
+ 641   5                                              if(Month<1)
+ 642   5                                              Month=12;
+ 643   5                                              SetTime_dispaly(0x80+11,Month);
+ 644   5                                              write_com(0x80+11);                                                             
+ 645   5                                              write_com(0x0f);
+ 646   5                                      }
+ 647   4                                      if(Enter_num==3)
+ 648   4                                      {
+ 649   5                                              Day--;
+ 650   5                                              if(Day<1)
+ 651   5                                              Day=31;
+ 652   5                                              SetTime_dispaly(0x80+14,Day);
+ 653   5                                              write_com(0x80+14);                                                             
+ 654   5                                              write_com(0x0f);
+ 655   5                                      }
+ 656   4                                      if(Enter_num==4)
+ 657   4                                      {
+ 658   5                                              Hour--;
+ 659   5                                              if(Hour<0)
+ 660   5                                              Hour=23;
+ 661   5                                              SetTime_dispaly(0x80+0x40+6,Hour);
+ 662   5                                              write_com(0x80+0x40+6);                                                         
+ 663   5                                              write_com(0x0f);
+ 664   5                                      }
+ 665   4                                      if(Enter_num==5)
+ 666   4                                      {
+ 667   5                                              Minute--;
+ 668   5                                              if(Minute<0)
+ 669   5                                              Minute=59;
+ 670   5                                              SetTime_dispaly(0x80+0x40+9,Minute);
+ 671   5                                              write_com(0x80+0x40+9);                                                         
+ 672   5                                              write_com(0x0f);
+ 673   5                                      }
+C51 COMPILER V9.01   DS1302                                                                03/15/2017 19:49:58 PAGE 12  
+
+ 674   4                                      if(Enter_num==6)
+ 675   4                                      {
+ 676   5                                              Second--;
+ 677   5                                              if(Second<0)
+ 678   5                                              Second=59;
+ 679   5                                              SetTime_dispaly(0x80+0x40+12,Second);
+ 680   5                                              write_com(0x80+0x40+12);                                                                
+ 681   5                                              write_com(0x0f);
+ 682   5                                      }
+ 683   4                                      if(Enter_num==7)
+ 684   4                                      {
+ 685   5                                              Week--;
+ 686   5                                              if(Week<1)
+ 687   5                                              Week=7;
+ 688   5                                              Week_dispaly(0x80+0x40+15,Week);
+ 689   5                                              write_com(0x80+0x40+15);                                                                
+ 690   5                                              write_com(0x0f);
+ 691   5                                      }               
+ 692   4                              }
+ 693   3      
+ 694   3                              if(Select_num==2)
+ 695   3                              {
+ 696   4                                      if(Enter_num==1)
+ 697   4                                      {
+ 698   5                                              Hour_L--;
+ 699   5                                              if(Hour_L<0)
+ 700   5                                              Hour_L=23;
+ 701   5                                              SetTime_dispaly(0x80+0x40+4,Hour_L);
+ 702   5                                              write_com(0x80+0x40+4);                                                         
+ 703   5                                              write_com(0x0f);
+ 704   5                                      }
+ 705   4                                      if(Enter_num==2)
+ 706   4                                      {
+ 707   5                                              Minute_L--;
+ 708   5                                              if(Minute_L<0)
+ 709   5                                              Minute_L=59;
+ 710   5                                              SetTime_dispaly(0x80+0x40+7,Minute_L);
+ 711   5                                              write_com(0x80+0x40+7);                                                         
+ 712   5                                              write_com(0x0f);
+ 713   5                                      }
+ 714   4                                      if(Enter_num==3)
+ 715   4                                      {
+ 716   5                                              Second_L--;
+ 717   5                                              if(Second_L<0)
+ 718   5                                              Second_L=59;
+ 719   5                                              SetTime_dispaly(0x80+0x40+10,Second_L);
+ 720   5                                              write_com(0x80+0x40+10);                                                                
+ 721   5                                              write_com(0x0f);
+ 722   5                                      }
+ 723   4                                       
+ 724   4                                      if(Enter_num==4)
+ 725   4                                      {
+ 726   5                                              Hour_H--;
+ 727   5                                              if(Hour_H<0)
+ 728   5                                              Hour_H=23;
+ 729   5                                              SetTime_dispaly(0x80+0x40+4,Hour_H);
+ 730   5                                              write_com(0x80+0x40+4);                                                         
+ 731   5                                              write_com(0x0f);
+ 732   5                                      }
+ 733   4                                      if(Enter_num==5)
+ 734   4                                      {
+ 735   5                                              Minute_H--;
+C51 COMPILER V9.01   DS1302                                                                03/15/2017 19:49:58 PAGE 13  
+
+ 736   5                                              if(Minute_H<0)
+ 737   5                                              Minute_H=59;
+ 738   5                                              SetTime_dispaly(0x80+0x40+7,Minute_H);
+ 739   5                                              write_com(0x80+0x40+7);                                                         
+ 740   5                                              write_com(0x0f);
+ 741   5                                      }
+ 742   4                                      if(Enter_num==6)
+ 743   4                                      {
+ 744   5                                              Second_H--;
+ 745   5                                              if(Second_H<0)
+ 746   5                                              Second_H=59;
+ 747   5                                              SetTime_dispaly(0x80+0x40+10,Second_H);
+ 748   5                                              write_com(0x80+0x40+10);                                                                
+ 749   5                                              write_com(0x0f);
+ 750   5                                      }
+ 751   4                              }
+ 752   3                      }
+ 753   2              }
+ 754   1      
+ 755   1              if(MODE==0)                                                     //切换按键按下
+ 756   1              {
+ 757   2                      delay1(2);                                                      //消抖
+ 758   2                      if(MODE==0)
+ 759   2                      {
+ 760   3                              while(!MODE);                                   //按键释放
+ 761   3                              Auto_flg=~Auto_flg;                             //模式切换
+ 762   3                              if(Auto_flg==0)                                 //自动模式
+ 763   3                              {
+ 764   4                                      AUTO_LED=0;                                     //自动灯亮
+ 765   4                                      HAND_LED=1;
+ 766   4                              }
+ 767   3                              if(Auto_flg==1)                                 //手动模式
+ 768   3                              {
+ 769   4                                      AUTO_LED=1;                                     
+ 770   4                                      HAND_LED=0;                                     //手动灯亮
+ 771   4                                      LAMP1=1;                                        //关灯
+ 772   4                                      LAMP2=1;
+ 773   4                                      LAMP3=1;
+ 774   4                                      LAMP4=1;
+ 775   4                              }
+ 776   3                      }
+ 777   2              }
+ 778   1              if(Auto_flg==1)                                                 //手动模式
+ 779   1              {
+ 780   2                      if(SWITCH==0)                                           //灯开关按键按下
+ 781   2                      {
+ 782   3                              delay1(2);                                              //消抖
+ 783   3                              if(SWITCH==0)
+ 784   3                              {
+ 785   4                                      while(!SWITCH);                         //按键释放
+ 786   4                                      Switch_num++;                           //按下次数增加
+ 787   4                                      if(Switch_num==1)                       //按下一次，开一盏灯
+ 788   4                                      {
+ 789   5                                              LAMP1=0;
+ 790   5                                              LAMP2=1;
+ 791   5                                              LAMP3=1;
+ 792   5                                              LAMP4=1;
+ 793   5                                      }
+ 794   4                                      if(Switch_num==2)                       //按下二次，开二盏灯
+ 795   4                                      {
+ 796   5                                              LAMP1=0;
+ 797   5                                              LAMP2=0;
+C51 COMPILER V9.01   DS1302                                                                03/15/2017 19:49:58 PAGE 14  
+
+ 798   5                                              LAMP3=1;
+ 799   5                                              LAMP4=1;
+ 800   5                                      }
+ 801   4                                      if(Switch_num==3)                       //按下3次，开3盏灯
+ 802   4                                      {
+ 803   5                                              LAMP1=0;
+ 804   5                                              LAMP2=0;
+ 805   5                                              LAMP3=0;
+ 806   5                                              LAMP4=1;
+ 807   5                                      }
+ 808   4                                      if(Switch_num==4)                       //按下4次，开4盏灯
+ 809   4                                      {
+ 810   5                                              LAMP1=0;
+ 811   5                                              LAMP2=0;
+ 812   5                                              LAMP3=0;
+ 813   5                                              LAMP4=0;
+ 814   5                                      }
+ 815   4                                      if(Switch_num==5)                       //按下5次，开0盏灯
+ 816   4                                      {
+ 817   5                                              LAMP1=1;
+ 818   5                                              LAMP2=1;
+ 819   5                                              LAMP3=1;
+ 820   5                                              LAMP4=1;
+ 821   5                                              Switch_num=0;                   //次数清除
+ 822   5                                      }
+ 823   4                              }
+ 824   3                      }
+ 825   2              }
+ 826   1      }
+ 827          
+ 828          void Open(void)
+ 829          {
+ 830   1              float Now;
+ 831   1              float Set_L,Set_H;
+ 832   1              Now=Hour+Minute/60+Second/3600;                                         //把实时时间化成小时为单位
+ 833   1              Set_L=Hour_L+Minute_L/60+Second_L/3600;                         //把设置下限时间化成小时为单位
+ 834   1              Set_H=Hour_H+Minute_H/60+Second_H/3600;                         //把设置上限时间化成小时为单位
+ 835   1              if(Auto_flg==0)                                                                         //自动模式
+ 836   1              {
+ 837   2                      if((Now>=Set_L)&(Now<=Set_H))                                   //实时时间在上下限时间范围内
+ 838   2                      {
+ 839   3                              if(LIGHT1==0)                                                       //光线不足
+ 840   3                              {
+ 841   4                                      if(Value1==0)
+ 842   4                                      {
+ 843   5                                              LAMP1=1;                                                        //全灭
+ 844   5                                              LAMP2=1;
+ 845   5                                              LAMP3=1;
+ 846   5                                              LAMP4=1;
+ 847   5                                      }
+ 848   4                                      if((Value1>0)&(Value1<10))
+ 849   4                                      {
+ 850   5                                              LAMP1=0;                                                        //亮一个灯
+ 851   5                                              LAMP2=1;
+ 852   5                                              LAMP3=1;
+ 853   5                                              LAMP4=1;
+ 854   5                                      }
+ 855   4                                      if((Value1>=10)&(Value1<20))
+ 856   4                                      {
+ 857   5                                              LAMP1=0;                                                        //亮二个灯
+ 858   5                                              LAMP2=0;
+ 859   5                                              LAMP3=1;
+C51 COMPILER V9.01   DS1302                                                                03/15/2017 19:49:58 PAGE 15  
+
+ 860   5                                              LAMP4=1;
+ 861   5                                      }
+ 862   4                                      if((Value1>=20)&(Value1<30))
+ 863   4                                      {
+ 864   5                                              LAMP1=0;                                                        //亮三个灯
+ 865   5                                              LAMP2=0;
+ 866   5                                              LAMP3=0;
+ 867   5                                              LAMP4=1;
+ 868   5                                      }
+ 869   4                                      if(Value1>=30)
+ 870   4                                      {
+ 871   5                                              LAMP1=0;                                                        //亮四个灯
+ 872   5                                              LAMP2=0;
+ 873   5                                              LAMP3=0;
+ 874   5                                              LAMP4=0;
+ 875   5                                      }
+ 876   4                              }
+ 877   3                              if(LIGHT1==1)                                                       //光线强烈
+ 878   3                              {
+ 879   4                                      LAMP1=1;                                                                //全灭
+ 880   4                                      LAMP2=1;
+ 881   4                                      LAMP3=1;
+ 882   4                                      LAMP4=1;
+ 883   4                              }
+ 884   3                      }
+ 885   2              
+ 886   2                      if((Now<Set_L)|(Now>Set_H))                                             //实时时间不在范围内
+ 887   2                      {
+ 888   3                              LAMP1=1;                                                                        //全灭
+ 889   3                              LAMP2=1;
+ 890   3                              LAMP3=1;
+ 891   3                              LAMP4=1;
+ 892   3                      }
+ 893   2              }
+ 894   1      } 
+ 895          
+ 896          /*******************************************************************************************************/
+ 897          void Count_Value(void)
+ 898          {
+ 899   1              SetTime_dispaly(0x80+3,Value1);
+ 900   1              if(IN1==0)
+ 901   1              {
+ 902   2                      delay1(1);
+ 903   2                      if(IN1==0)
+ 904   2                      {
+ 905   3                              while(!IN1);
+ 906   3                              if(OUT1_flag==0)
+ 907   3                              {
+ 908   4                                      IN1_flag=1;
+ 909   4                                      TR0=1;                                   //开启定时器 防止误触发
+ 910   4                              }
+ 911   3                              if(OUT1_flag==1)
+ 912   3                              {
+ 913   4                                      
+ 914   4                                      Value1++;                                //人数增加
+ 915   4                                      if(Value1>=99)                   //如果人数计数到99，变为最大99
+ 916   4                                      Value1=99;
+ 917   4                                      OUT1_flag=0;                     //清零
+ 918   4                                      IN1_flag=0;
+ 919   4                                      TR0=0;                                   //关闭定时器
+ 920   4                                      Count=0;
+ 921   4                                      Miao=0;
+C51 COMPILER V9.01   DS1302                                                                03/15/2017 19:49:58 PAGE 16  
+
+ 922   4                              }
+ 923   3                      }
+ 924   2              }
+ 925   1              if(OUT1==0)
+ 926   1              {
+ 927   2                      delay1(1);
+ 928   2                      if(OUT1==0)
+ 929   2                      {
+ 930   3                              while(!OUT1);
+ 931   3                              if(IN1_flag==0)
+ 932   3                              {
+ 933   4                                      OUT1_flag=1;
+ 934   4                                      TR0=1;                                   //开启定时器 防止误触发
+ 935   4                              }
+ 936   3                              if(IN1_flag==1)
+ 937   3                              {
+ 938   4                                      Value1--;                               //人数减少
+ 939   4                                      if(Value1<0)                    //如果人数计数小于0，变为最小0
+ 940   4                                      Value1=0;
+ 941   4                                      IN1_flag=0;                             //清零
+ 942   4                                      OUT1_flag=0;
+ 943   4                                      TR0=0;                                   //关闭定时器
+ 944   4                                      Count=0;
+ 945   4                                      Miao=0;
+ 946   4                              }
+ 947   3                      }
+ 948   2              }
+ 949   1      }
+ 950          /****************************************温度************************************************************/
+ 951          /*void delay(uint y)                                                                    //DS18B20延时函数（仿真用）
+ 952          {
+ 953                  while(y--);
+ 954          } 
+ 955          */
+ 956          void delay(uint z)                                                                              //DS18B20延时函数（实物用）
+ 957          {
+ 958   1              uint x,y;
+ 959   1              for(x=z;x>0;x--)
+ 960   1                      for(y=1;y>0;y--);
+ 961   1      }  
+ 962          
+ 963          void write_byte(uint dat)                       //写一个字节
+ 964          {
+ 965   1              uchar i;
+ 966   1              for(i=0;i<8;i++)                        //循环八次        共有八位
+ 967   1              {
+ 968   2                      DQ=0;                                           //写零
+ 969   2                      DQ=dat&0x01;                //向总线写位数据，从最低位写起
+ 970   2                      delay(4);
+ 971   2                      DQ=1;                                           //写一
+ 972   2                      dat>>=1;                                    //下次写作准备，移位数据
+ 973   2              }
+ 974   1              delay(4);
+ 975   1      }                                    
+ 976          
+ 977          uchar read_byte(void)                           //读一个字节，返回值
+ 978          {
+ 979   1              uchar i;
+ 980   1              uint value;
+ 981   1              for(i=0;i<8;i++)                        //循环八次        共有八位
+ 982   1              {
+ 983   2                      DQ=0;
+C51 COMPILER V9.01   DS1302                                                                03/15/2017 19:49:58 PAGE 17  
+
+ 984   2                      value>>=1;
+ 985   2                      DQ=1;                                           //释放总线
+ 986   2                      if(DQ)
+ 987   2                      value|=0x80;                        //DQ=1，value取1
+ 988   2                      delay(4);
+ 989   2              }
+ 990   1              return value;
+ 991   1      }
+ 992          
+ 993          void ds18b20_init()                                 //初始化函数
+ 994          {
+ 995   1              uint n;
+ 996   1              DQ=1;
+ 997   1              delay(8);                                          
+ 998   1              DQ=0;
+ 999   1              delay(80);                                          //低电平480——960us
+1000   1              DQ=1;                                                   //总线释放
+1001   1              delay(8);                                           //等待50——100us
+1002   1              n=DQ;                                               //读取复位状态
+1003   1              delay(4);
+1004   1      }
+1005          
+1006          int readtemperature()                           //读整数部分
+1007          {       
+1008   1          int a,b;                                            //高八位，低八位
+1009   1              ds18b20_init();
+1010   1              write_byte(0xcc);                           //跳过rom匹配，跳过读序列号的操作，可节省操作时间
+1011   1              write_byte(0x44);                           //启动温度检测
+1012   1              delay(300);                                         //测温度
+1013   1              ds18b20_init();                             //开始操作前需要复位
+1014   1              write_byte(0xcc);                               //跳过rom匹配
+1015   1              write_byte(0xbe);                           //写读寄存器中温度值的命令
+1016   1              a=read_byte();                              //low         低位开始读取
+1017   1              b=read_byte();                              //high        高位开始读取
+1018   1              b<<=8;                                                  //把高位左移八位
+1019   1              b=b|a;                                                  //高八位与第八位进行或运算，得到总和
+1020   1              if(b>=0)                                                //如果温度大于等于0
+1021   1              {
+1022   2                      b=b*0.0625;                                     //直接乘以0.0625
+1023   2                      write_com(0x80+0x40+2);         //在LCD1602对应的位置不写内容
+1024   2                      write_date(0x20);
+1025   2              }
+1026   1          else                                                        //温度小于0
+1027   1              {       
+1028   2                      b=~b+1;                                         //取反码再加一
+1029   2                      b=b*0.0625;                                     //再运算
+1030   2                      write_com(0x80+0x40+2);         //在LCD1602对应的位置写一个负号
+1031   2                      write_date(0x2d);
+1032   2              }
+1033   1              return b;                                               //返回b，此时以表示温度
+1034   1      }
+1035          void temperature_dispaly(char add,char dat)                     //温度显示函数：第一个：参数的地址，第二个：参数的内容
+1036          {
+1037   1              uchar shi,ge;
+1038   1              shi=dat/10;                                                                             //把温度的十位提取出来
+1039   1              ge=dat%10;                                                                              //把温度的个位提取出来
+1040   1              write_com(0x80+0x40+add);                                               //要写的地址
+1041   1              write_date(0x30+shi);                                                   //十位的内容   1602字符库
+1042   1              write_date(0x30+ge);                                            //个位的内容    1602字符库
+1043   1      }
+1044          /*****************************************定时器初始化和主函数********************************************
+             -***************/
+C51 COMPILER V9.01   DS1302                                                                03/15/2017 19:49:58 PAGE 18  
+
+1045          void T0_init(void)
+1046          {
+1047   1              TMOD=0x11;                                         //设置定时器0为工作方式1
+1048   1              TH0=(65536-50000)/256;             //50MS定时
+1049   1              TL0=(65536-50000)%256;
+1050   1              EA=1;                                              //开定时器T0的中断   总中断
+1051   1              ET0=1;                                             //允许T0中断
+1052   1      //      TR0=1;                                             //开启定时器
+1053   1      }
+1054          void main()
+1055          {
+1056   1              AUTO_LED=0;                                      //默认自动模式
+1057   1              temperature=readtemperature();
+1058   1              init();                                          //液晶初始化
+1059   1              T0_init();                                       //定时器初始化
+1060   1              delay1(8000);
+1061   1              while(1)
+1062   1              {
+1063   2                      if(Adjust==0)                    //非调节模式下显示时间人数和温度
+1064   2                      {       
+1065   3                              temperature=readtemperature();                  //读取温度
+1066   3                              temperature_dispaly(3,temperature);             //显示温度
+1067   3                              Time_Display();          //显示时间
+1068   3                              Open();                          //动作判断,根据光线和声响开关
+1069   3                              Count_Value();           //计算人数
+1070   3                      }
+1071   2                      Keyscan();                               //扫描键盘
+1072   2              }
+1073   1      }
+1074          void Timer0() interrupt 1                                       //定时器T0中断函数
+1075          {
+1076   1              TH0=(65536-50000)/256;                                  //赋初值=50ms
+1077   1              TL0=(65536-50000)%256;                                  //TH0=3C,TL0=B0
+1078   1              Count++;                                                                //每中断一次，Count加一，计数20次，表示1s的时间到
+1079   1              if(Count>=20)                                                   //1s到
+1080   1              {
+1081   2                      Count=0;
+1082   2                      Miao++;
+1083   2                      if(Miao>=3)                                                     //3秒内无触发另一个，全部清零
+1084   2                      {
+1085   3                              Miao=0;
+1086   3                              OUT1_flag=0;                                    //清零
+1087   3                              IN1_flag=0;
+1088   3                              TR0=0;                                                  //关闭定时器
+1089   3                      }
+1090   2              }
+1091   1      
+1092   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   4971    ----
+   CONSTANT SIZE    =    184    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     68      23
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      2    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

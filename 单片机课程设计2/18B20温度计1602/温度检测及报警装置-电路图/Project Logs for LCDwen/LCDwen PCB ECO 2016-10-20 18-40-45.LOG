@@ -1,0 +1,6 @@
+Removed Pin From Net: NetName=B Pin=10k-2
+Removed Pin From Net: NetName=B Pin=lcd-3
+Added Pin To Net: NetName=K Pin=10k-2
+Added Pin To Net: NetName=K Pin=lcd-3
+Added Net: Name=K
+Added Room: Name=LCDwen

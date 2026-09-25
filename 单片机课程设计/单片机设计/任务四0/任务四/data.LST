@@ -1,0 +1,271 @@
+C51 COMPILER V9.01   DATA                                                                  07/12/2019 08:12:11 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE DATA
+OBJECT MODULE PLACED IN data.OBJ
+COMPILER INVOKED BY: D:\keil\C51\BIN\C51.EXE data.c COMPACT BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include"data.h"
+   2          #include"ATC24C02.h"
+   3          #include "dalay.h"
+   4          #include "beep.h"
+   5          #include "judge.h"
+   6          
+   7          int maxday;                //maxday:每个月最大的天数
+   8          int h=8,min=0;
+   9          int h1=6,min1=30,h2=8,min2=30;  //闹钟的初始化时间
+  10          int year0=2019,month0=6,day0=8,maxday0=30; //暂且定义maxday0=30  
+  11          int year=2019,month=7,day=9;  //前期初始化时间
+  12          int p=7003;     
+  13          
+  14          int t[14];
+  15          int c[16];
+  16          
+  17          
+  18          void delay5ms(void)   //误差 0us
+  19          {
+  20   1          unsigned char a,b;
+  21   1          for(b=19;b>0;b--)
+  22   1              for(a=130;a>0;a--);
+  23   1      }
+  24          
+  25          void process()                    //时间换算函数
+  26          {
+  27   1              if(sec>=60)
+  28   1              {
+  29   2                      min++;
+  30   2                      sec=0;
+  31   2              }
+  32   1              if(min>=60)
+  33   1              {
+  34   2                      h++;
+  35   2                      min=0;
+  36   2              }
+  37   1              if(min<0)
+  38   1              {
+  39   2                      min=0;
+  40   2              }
+  41   1              if(h>=24)
+  42   1              {
+  43   2                      p++;
+  44   2                      h=0;
+  45   2                      day++;
+  46   2                      day0++;
+  47   2              }
+  48   1              if(h<0)
+  49   1              {
+  50   2                      h=0;
+  51   2              }
+  52   1              if(h1>=24||h1<0)
+  53   1              {
+  54   2                      h1=0;
+  55   2              }
+C51 COMPILER V9.01   DATA                                                                  07/12/2019 08:12:11 PAGE 2   
+
+  56   1              if(h2>=24||h2<0)
+  57   1              {
+  58   2                      h2=0;
+  59   2              }
+  60   1              if(min1>=60)
+  61   1              {
+  62   2                 h1++;
+  63   2                 min1=0;
+  64   2              }
+  65   1              if(min2>=60)
+  66   1              {
+  67   2                 h2++;
+  68   2                 min2=0;
+  69   2              }
+  70   1              if(min1<0)
+  71   1              {
+  72   2                 min1=0;
+  73   2              }
+  74   1              if(min2<0)
+  75   1              {
+  76   2                 min2=0;
+  77   2              }
+  78   1              t[5]=sec%10;
+  79   1              t[4]=sec/10;
+  80   1              t[3]=min%10;
+  81   1              t[2]=min/10;
+  82   1              t[1]=h%10;
+  83   1              t[0]=h/10;
+  84   1                      
+  85   1      }
+  86          void years()                              //日期换算函数
+  87          {
+  88   1              
+  89   1              if(day>maxday)
+  90   1              {
+  91   2                      month++;
+  92   2                      day=1;
+  93   2                      
+  94   2              }
+  95   1              if(day<=0)
+  96   1              {
+  97   2                      day=1;
+  98   2              }
+  99   1              if(day>31)
+ 100   1              {
+ 101   2                      day=1;
+ 102   2              }
+ 103   1              if(month>=12)
+ 104   1              {
+ 105   2                      year++;
+ 106   2                      month=1;
+ 107   2                      
+ 108   2              }
+ 109   1                      if(month<=0)
+ 110   1              {
+ 111   2                      month=1;
+ 112   2              }
+ 113   1      
+ 114   1              if(day0>maxday0)
+ 115   1              {
+ 116   2                      month0++;
+ 117   2                      day0=1;
+C51 COMPILER V9.01   DATA                                                                  07/12/2019 08:12:11 PAGE 3   
+
+ 118   2                      
+ 119   2              }
+ 120   1              if(day0<=0)
+ 121   1              {
+ 122   2                      day0=1;
+ 123   2              }
+ 124   1              if(day0>31)
+ 125   1              {
+ 126   2                      day0=1;
+ 127   2              }
+ 128   1              if(month0>=12)
+ 129   1              {
+ 130   2                      year0++;
+ 131   2                      month0=1;
+ 132   2                      
+ 133   2              }
+ 134   1                      if(month0<=0)
+ 135   1              {
+ 136   2                      month0=1;
+ 137   2              }
+ 138   1      
+ 139   1              c[15]=day0%10;
+ 140   1              c[14]=day0/10;
+ 141   1              c[13]=month0%10;
+ 142   1              c[12]=month0/10;
+ 143   1              c[11]=year0%10;
+ 144   1              c[10]=year0%100/10;
+ 145   1              c[9]=year0%1000/100;
+ 146   1              c[8]=year0/1000;
+ 147   1              c[7]=day%10;
+ 148   1              c[6]=day/10;
+ 149   1              c[5]=month%10;
+ 150   1              c[4]=month/10;
+ 151   1              c[3]=year%10;
+ 152   1              c[2]=year%100/10;
+ 153   1              c[1]=year%1000/100;
+ 154   1              c[0]=year/1000;
+ 155   1      
+ 156   1              At24c02Write(1,sec);                    //储存时间                                        
+ 157   1              delay5ms();                                             //5ms
+ 158   1              At24c02Write(2,min);
+ 159   1              delay5ms();
+ 160   1              At24c02Write(3,h);
+ 161   1              delay5ms();
+ 162   1              At24c02Write(4,day);
+ 163   1              delay5ms();
+ 164   1              At24c02Write(5,month);
+ 165   1              delay5ms();
+ 166   1              At24c02Write(6,year%100);
+ 167   1              delay5ms();
+ 168   1              At24c02Write(7,year/100);
+ 169   1              delay5ms();
+ 170   1              At24c02Write(8,min1);                                                             
+ 171   1              delay5ms();                                             
+ 172   1              At24c02Write(9,h1);
+ 173   1              delay5ms();
+ 174   1              At24c02Write(10,day0);
+ 175   1              delay5ms();
+ 176   1              At24c02Write(11,month0);
+ 177   1              delay5ms();
+ 178   1              At24c02Write(12,year0%100);
+ 179   1              delay5ms();
+C51 COMPILER V9.01   DATA                                                                  07/12/2019 08:12:11 PAGE 4   
+
+ 180   1              At24c02Write(13,year0/100);
+ 181   1              delay5ms();
+ 182   1      }
+ 183          
+ 184          void reading()                  //读取时间函数
+ 185          {
+ 186   1              sec=At24c02Read(1);
+ 187   1              delay5ms();
+ 188   1              min=At24c02Read(2);
+ 189   1              delay5ms();
+ 190   1              h=At24c02Read(3);
+ 191   1              delay5ms();
+ 192   1              day=At24c02Read(4);
+ 193   1              delay5ms();
+ 194   1              month=At24c02Read(5);
+ 195   1              delay5ms();
+ 196   1              year=At24c02Read(6)+At24c02Read(7)*100;
+ 197   1              delay5ms();
+ 198   1              min1=At24c02Read(8);
+ 199   1              delay5ms();
+ 200   1              h1=At24c02Read(9);
+ 201   1              delay5ms();
+ 202   1              day0=At24c02Read(10);
+ 203   1              delay5ms();
+ 204   1              month0=At24c02Read(11);
+ 205   1              delay5ms();
+ 206   1              year0=At24c02Read(12)+At24c02Read(13)*100;
+ 207   1              delay5ms();
+ 208   1      }
+ 209          
+ 210          
+ 211          void colock()    //闹钟时间换算
+ 212          {
+ 213   1              if(h1>=24)
+ 214   1              {
+ 215   2                      h1=0;
+ 216   2              }
+ 217   1              if(min1>=60)
+ 218   1              {
+ 219   2                      h1++;
+ 220   2                      min1=0;
+ 221   2              }
+ 222   1              if(h2>=24)
+ 223   1              {
+ 224   2                      h2=0;
+ 225   2              }
+ 226   1              if(min2>=60)
+ 227   1              {
+ 228   2                      h2++;
+ 229   2                      min2=0;
+ 230   2              }
+ 231   1              t[6]=h1/10;
+ 232   1              t[7]=h1%10;
+ 233   1              t[8]=min1/10;
+ 234   1              t[9]=min1%10;
+ 235   1              t[10]=h2/10;
+ 236   1              t[11]=h2%10;
+ 237   1              t[12]=min2/10;
+ 238   1          t[13]=min2%10;
+ 239   1              }
+ 240                  
+
+C51 COMPILER V9.01   DATA                                                                  07/12/2019 08:12:11 PAGE 5   
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1730    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =     90    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,5 +1,0 @@
-"STARTUP.obj",
-"lcd1602.obj",
-"main.obj",
-"i2c.obj" 
-TO "laozhen" 

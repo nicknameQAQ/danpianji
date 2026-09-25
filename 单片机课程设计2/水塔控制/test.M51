@@ -1,0 +1,138 @@
+BL51 BANKED LINKER/LOCATER V6.22                                                        07/03/2020  15:00:54  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE »ùÓÚµ¥Æ¬»úµÄÖÇÄÜË®Ëþ¿ØÖÆ.obj TO test
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  »ùÓÚµ¥Æ¬»úµÄÖÇÄÜË®Ëþ¿ØÖÆ.obj (»_ÓÚµ¥Æ¬»_µÄ_ÇÄ_Ë®Ëþ¿Ø_Æ)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+
+
+LINK MAP OF MODULE:  test (»_ÓÚµ¥Æ¬»_µÄ_ÇÄ_Ë®Ëþ¿Ø_Æ)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            IDATA   0008H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     00BBH     UNIT         ?PR?MAIN?»_ÓÚµ¥Æ¬»_µÄ_ÇÄ_Ë®Ëþ¿Ø_Æ
+            CODE    00BEH     000DH     UNIT         ?PR?DELAY02S?»_ÓÚµ¥Æ¬»_µÄ_ÇÄ_Ë®Ëþ¿Ø_Æ
+            CODE    00CBH     000CH     UNIT         ?C_C51STARTUP
+            CODE    00D7H     000AH     UNIT         ?CO?»_ÓÚµ¥Æ¬»_µÄ_ÇÄ_Ë®Ëþ¿Ø_Æ
+
+
+
+OVERLAY MAP OF MODULE:   test (»_ÓÚµ¥Æ¬»_µÄ_ÇÄ_Ë®Ëþ¿Ø_Æ)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?»_ÓÚµ¥Æ¬»_µÄ_ÇÄ_Ë®Ëþ¿Ø_Æ
+
+?PR?MAIN?»_ÓÚµ¥Æ¬»_µÄ_ÇÄ_Ë®Ëþ¿Ø_Æ
+  +--> ?CO?»_ÓÚµ¥Æ¬»_µÄ_ÇÄ_Ë®Ëþ¿Ø_Æ
+  +--> ?PR?DELAY02S?»_ÓÚµ¥Æ¬»_µÄ_ÇÄ_Ë®Ëþ¿Ø_Æ
+
+
+
+SYMBOL TABLE OF MODULE:  test (»_ÓÚµ¥Æ¬»_µÄ_ÇÄ_Ë®Ëþ¿Ø_Æ)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        »_ÓÚµ¥Æ¬»_µÄ_ÇÄ_Ë®Ëþ¿Ø_Æ
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  D:0090H         PUBLIC        P1
+  D:00B0H         PUBLIC        P3
+  C:00D7H         PUBLIC        table
+  B:0090H.5       PUBLIC        sw1
+BL51 BANKED LINKER/LOCATER V6.22                                                      07/03/2020  15:00:54  PAGE 2
+
+
+  B:0090H.4       PUBLIC        sw2
+  B:0090H.3       PUBLIC        sw3
+  B:0090H.2       PUBLIC        sw4
+  B:0090H.1       PUBLIC        sw5
+  B:00B0H.7       PUBLIC        state
+  C:0003H         PUBLIC        main
+  C:00BEH         PUBLIC        delay02s
+  B:0090H.6       PUBLIC        shougong
+  B:0090H.7       PUBLIC        dianji
+  B:0090H.0       PUBLIC        shuiman
+  -------         PROC          DELAY02S
+  -------         DO            
+  D:0007H         SYMBOL        i
+  D:0006H         SYMBOL        j
+  D:0005H         SYMBOL        k
+  -------         ENDDO         
+  C:00BEH         LINE#         15
+  C:00BEH         LINE#         16
+  C:00BEH         LINE#         18
+  C:00C0H         LINE#         19
+  C:00C2H         LINE#         20
+  C:00CAH         LINE#         21
+  -------         ENDPROC       DELAY02S
+  -------         PROC          MAIN
+  C:0003H         LINE#         22
+  C:0003H         LINE#         23
+  C:0003H         LINE#         24
+  C:0006H         LINE#         25
+  C:0006H         LINE#         26
+  C:0006H         LINE#         27
+  C:0018H         LINE#         28
+  C:0018H         LINE#         29
+  C:001AH         LINE#         30
+  C:001CH         LINE#         31
+  C:0023H         LINE#         32
+  C:0026H         LINE#         33
+  C:0026H         LINE#         35
+  C:0038H         LINE#         36
+  C:0038H         LINE#         37
+  C:003FH         LINE#         38
+  C:003FH         LINE#         40
+  C:0051H         LINE#         41
+  C:0051H         LINE#         42
+  C:0058H         LINE#         43
+  C:0058H         LINE#         45
+  C:006AH         LINE#         46
+  C:006AH         LINE#         47
+  C:0071H         LINE#         48
+  C:0071H         LINE#         50
+  C:0083H         LINE#         51
+  C:0083H         LINE#         52
+  C:008AH         LINE#         53
+  C:008AH         LINE#         55
+  C:009CH         LINE#         56
+  C:009CH         LINE#         57
+  C:009EH         LINE#         58
+  C:00A0H         LINE#         59
+BL51 BANKED LINKER/LOCATER V6.22                                                      07/03/2020  15:00:54  PAGE 3
+
+
+  C:00A7H         LINE#         60
+  C:00A7H         LINE#         62
+  C:00ADH         LINE#         63
+  C:00ADH         LINE#         64
+  C:00AFH         LINE#         65
+  C:00B1H         LINE#         66
+  C:00B8H         LINE#         67
+  C:00BBH         LINE#         68
+  C:00BBH         LINE#         70
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        »_ÓÚµ¥Æ¬»_µÄ_ÇÄ_Ë®Ëþ¿Ø_Æ
+
+Program Size: data=9.0 xdata=0 code=225
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

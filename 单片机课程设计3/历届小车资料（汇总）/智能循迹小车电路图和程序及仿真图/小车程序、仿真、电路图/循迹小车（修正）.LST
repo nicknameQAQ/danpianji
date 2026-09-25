@@ -1,0 +1,251 @@
+C51 COMPILER V8.02   循迹小车（衉正）                                                      07/29/2009 00:35:21 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE 循迹小车（衉正）
+OBJECT MODULE PLACED IN 循迹小车（修正）.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 循迹小车（修正）.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include<reg52.h>
+   2          #define uchar unsigned char 
+   3          #define uint unsigned int
+   4          uchar temp,signal,tt1,t0,t1,t2,t3,t4,t5,t6;
+   5          
+   6          
+   7          void delay_1ms(uint d)
+   8          {
+   9   1              uint i;
+  10   1              while(d--)
+  11   1                      for(i=0;i<75;i++);
+  12   1      }
+  13          
+  14          void motor_run()                   //电机起动
+  15          {
+  16   1              P1=0x35;
+  17   1              delay_1ms(200);
+  18   1              P1=0x53;
+  19   1              delay_1ms(10);
+  20   1      /*      ENA=1;
+  21   1      
+  22   1              OUT1=0;
+  23   1      
+  24   1              OUT2=1;
+  25   1              delay_1ms(800);
+  26   1              OUT2=0;
+  27   1              delay_1ms(200);
+  28   1              
+  29   1              ENB=1;
+  30   1      
+  31   1              OUT4=0;
+  32   1      
+  33   1              OUT3=1;
+  34   1              delay_1ms(800);
+  35   1              OUT3=0;
+  36   1              delay_1ms(200);
+  37   1      */
+  38   1      }
+  39          void motor_left()                        //左进
+  40          {
+  41   1              P1=0x30;
+  42   1              delay_1ms(200);
+  43   1              P1=0x00;
+  44   1              delay_1ms(20);
+  45   1      }
+  46          
+  47          void motor_right()                 //右进
+  48          {
+  49   1              P1=0x05;
+  50   1              delay_1ms(200);
+  51   1              P1=0x00;
+  52   1              delay_1ms(20);
+  53   1      }
+  54          
+  55          void motor_big_right()                   //粗右进
+C51 COMPILER V8.02   循迹小车（衉正）                                                      07/29/2009 00:35:21 PAGE 2   
+
+  56          {
+  57   1              P1=0x55;
+  58   1              delay_1ms(200);
+  59   1              P1=0x00;
+  60   1              delay_1ms(20);
+  61   1      }
+  62          void motor_big_left()
+  63          {
+  64   1              P1=0x33;
+  65   1              delay_1ms(200);
+  66   1              P1=0x00;
+  67   1              delay_1ms(20);
+  68   1      }
+  69           void motor_stop()                                      //电机停止
+  70          {
+  71   1               P1=0x00;
+  72   1      }
+  73          void motor_back()
+  74          {
+  75   1              P1=0x53;
+  76   1      }
+  77          void main()
+  78          {
+  79   1              t0=0;
+  80   1              t1=0;
+  81   1              t2=0;
+  82   1              t3=0;
+  83   1              t4=0;
+  84   1              t5=0;
+  85   1              t6=0;
+  86   1      
+  87   1              tt1=0;
+  88   1              EA=1;
+  89   1              ET1=1;
+  90   1              TR1=1;
+  91   1              TMOD=0x01;
+  92   1              TH1=-(1000/256);
+  93   1              TL1=-(1000%256);
+  94   1              while(1)
+  95   1              {
+  96   2      
+  97   2                      temp=P2;
+  98   2                      signal=temp&0xff;                  //得到红外反向信号
+  99   2                      switch(signal)
+ 100   2                      {
+ 101   3                              case 0xff:         //无偏差
+ 102   3                                      motor_run();
+ 103   3                                      t0++;
+ 104   3                                      if(t0==10)
+ 105   3                                      {
+ 106   4                                              t0=0;
+ 107   4                                              motor_left();
+ 108   4                                              motor_right();
+ 109   4                                      }
+ 110   3                                      t1=t2=t3=t4=t5=t6=0;    
+ 111   3                                      break;
+ 112   3                              case 0xfd:         //1轮右偏                    
+ 113   3      
+ 114   3                                      motor_big_left();
+ 115   3                                      t1++;
+ 116   3                                      if(t1==4)
+ 117   3                                      {
+C51 COMPILER V8.02   循迹小车（衉正）                                                      07/29/2009 00:35:21 PAGE 3   
+
+ 118   4                                              t1=0;
+ 119   4                                              motor_left();
+ 120   4                                      }
+ 121   3                                      t0=t2=t3=t4=t5=t6=0;    
+ 122   3                                      break;
+ 123   3                              case 0xef:          //4轮左偏                      
+ 124   3      
+ 125   3                                      motor_big_right(); 
+ 126   3                                      t2++;
+ 127   3                                      if(t2==4)
+ 128   3                                      {
+ 129   4                                              t2=0;
+ 130   4                                              motor_right();
+ 131   4                                      }
+ 132   3                                      t0=t1=t3=t4=t5=t6=0;    
+ 133   3                                      break;
+ 134   3                              case 0xfb:     //2轮右偏出轨
+ 135   3                              case 0xf9:         //1、2轮右偏                                         
+ 136   3                                      motor_big_left();
+ 137   3                                      t3++;
+ 138   3                                      if(t3==4)
+ 139   3                                      {
+ 140   4                                              t3=0;
+ 141   4                                              motor_left();
+ 142   4                                      }
+ 143   3                                      t0=t1=t2=t4=t5=t6=0;    
+ 144   3      //                              delay_1ms(10);
+ 145   3                                      break;
+ 146   3      
+ 147   3                              case 0xdf:         //5左偏出轨                  
+ 148   3                              case 0xcf:      //4、5轮左偏
+ 149   3                                      motor_big_right();
+ 150   3                                      t4++;
+ 151   3                                      if(t4==4)
+ 152   3                                      {
+ 153   4                                              t4=0;
+ 154   4                                              motor_right();
+ 155   4                                      }
+ 156   3                                      t0=t1=t2=t3=t5=t6=0;    
+ 157   3      //                              delay_1ms(10);
+ 158   3                                      break;
+ 159   3      
+ 160   3                              case 0xfe:         //0最右偏出轨           
+ 161   3                              case 0xfa:
+ 162   3                                      motor_big_left();
+ 163   3                                      t5++;
+ 164   3                                      if(t5==1)
+ 165   3                                      {
+ 166   4                                              t5=0;
+ 167   4                                              motor_left();
+ 168   4                                              motor_left();
+ 169   4                                      }
+ 170   3                                      t0=t1=t2=t3=t4=t6=0;    
+ 171   3      //                              delay_1ms(10);
+ 172   3                                      break;
+ 173   3      
+ 174   3                              case 0xbf:     //6最左偏出轨      
+ 175   3                              case 0x9f:         
+ 176   3                                      motor_big_right();
+ 177   3                                      t6++;
+ 178   3                                      if(t6==1)
+ 179   3                                      {
+C51 COMPILER V8.02   循迹小车（衉正）                                                      07/29/2009 00:35:21 PAGE 4   
+
+ 180   4                                              t6=0;
+ 181   4                                              motor_right();
+ 182   4                                              motor_right();
+ 183   4                                      }
+ 184   3                                      t0=t1=t2=t3=t4=t5=0;    
+ 185   3      //                              delay_1ms(10);
+ 186   3                                      break;  
+ 187   3                              
+ 188   3                              case 0xeb:       //前两传感器压在黑线上
+ 189   3                              case 0xdb:       //后两传感器压在黑线上
+ 190   3                              case 0xbe:       //中间两传感器压在黑线上
+ 191   3                              case 0xac:              //前四传感器压在黑线上
+ 192   3                              case 0x9a:              //后四传感器压在黑线上
+ 193   3                                      motor_back();
+ 194   3                                      delay_1ms(200);
+ 195   3                                      motor_stop();
+ 196   3                                      
+ 197   3      //                              delay_1ms(1000);                                                                                                                                        
+ 198   3      
+ 199   3                              default:
+ 200   3      //                              motor_back();
+ 201   3      //                              delay_1ms(50);
+ 202   3      //                              motor_left();
+ 203   3      //                              motor_right();
+ 204   3                                      break;
+ 205   3                      }  
+ 206   2              } 
+ 207   1                              
+ 208   1      }
+ 209          
+ 210          /*void time1() interrupt 3
+ 211          {
+ 212          
+ 213                  TH1=-(1000/256);
+ 214                  TL1=-(1000%256);
+ 215                  tt1++;
+ 216                  if(tt1==300)
+ 217                  {
+ 218                          motor_back();
+ 219                  //      delay_1ms(1);
+ 220                          tt1=0;
+ 221                  }
+ 222          } */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    438    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     10    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

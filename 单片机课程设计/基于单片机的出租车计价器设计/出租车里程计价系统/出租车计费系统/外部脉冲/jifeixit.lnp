@@ -1,0 +1,4 @@
+"STARTUP.obj",
+"jifeixit.obj" 
+TO "jifeixit" 
+RAMSIZE(256) 

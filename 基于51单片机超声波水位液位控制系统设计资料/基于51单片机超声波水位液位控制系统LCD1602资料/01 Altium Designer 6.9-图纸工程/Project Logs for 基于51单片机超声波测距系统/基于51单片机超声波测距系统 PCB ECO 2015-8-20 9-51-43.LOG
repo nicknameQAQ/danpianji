@@ -1,7 +1,0 @@
-Removed Pin From Net: NetName=P15 Pin=S4-2
-Removed Pin From Net: NetName=P15 Pin=S4-2
-Added Pin To Net: NetName=P16 Pin=S4-2
-Added Pin To Net: NetName=P16 Pin=S4-2
-Added Pin To Net: NetName=P16 Pin=U1-7
-Added Net: Name=P16
-Added Room: Name=基于51单片机超声波测距系统

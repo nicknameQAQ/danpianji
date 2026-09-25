@@ -1,3 +1,0 @@
-".\Objects\main.obj" 
-TO ".\Objects\traffic" 
-PRINT(".\Listings\traffic.m51")

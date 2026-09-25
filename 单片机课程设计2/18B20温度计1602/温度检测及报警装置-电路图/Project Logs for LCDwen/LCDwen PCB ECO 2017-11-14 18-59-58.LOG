@@ -1,0 +1,54 @@
+Removed Pin From Net: NetName=GND Pin=10k-1
+Removed Pin From Net: NetName=VCC Pin=10k-3
+Change Component DesignItemId : Designator=bu Old DesignItemId= New DesignItemId=buzzer
+Change Component DesignItemId : Designator=lcd Old DesignItemId= New DesignItemId=l
+Change Component DesignItemId : Designator=mic Old DesignItemId= New DesignItemId=micro
+Change Component DesignItemId : Designator=8550 Old DesignItemId= New DesignItemId=PNP
+Change Component DesignItemId : Designator=89C52 Old DesignItemId= New DesignItemId=ST
+Change Component DesignItemId : Designator=K1 Old DesignItemId= New DesignItemId=开关
+Change Component DesignItemId : Designator=K2 Old DesignItemId= New DesignItemId=开关
+Change Component DesignItemId : Designator=K3 Old DesignItemId= New DesignItemId=开关
+Change Component DesignItemId : Designator=K4 Old DesignItemId= New DesignItemId=开关
+Change Component DesignItemId : Designator=K5 Old DesignItemId= New DesignItemId=开关
+Change Component DesignItemId : Designator=k Old DesignItemId= New DesignItemId=拨动开关
+Change Component DesignItemId : Designator=PR1 Old DesignItemId= New DesignItemId=排阻
+Change Component DesignItemId : Designator=OSC1 Old DesignItemId= New DesignItemId=晶震
+Change Component DesignItemId : Designator=C1 Old DesignItemId= New DesignItemId=电容
+Change Component DesignItemId : Designator=C2 Old DesignItemId= New DesignItemId=电容
+Change Component DesignItemId : Designator=Cap1 Old DesignItemId= New DesignItemId=电解电容
+Change Component DesignItemId : Designator=R1 Old DesignItemId= New DesignItemId=电阻
+Change Component DesignItemId : Designator=R2 Old DesignItemId= New DesignItemId=电阻
+Change Component DesignItemId : Designator=R9 Old DesignItemId= New DesignItemId=电阻
+Change Component DesignItemId : Designator=Rb Old DesignItemId= New DesignItemId=电阻
+Change Component DesignItemId : Designator=10k Old DesignItemId= New DesignItemId=蓝白电位器
+Change Component Comment : Designator=K5 Old Comment=* New Comment=
+Change Component Comment : Designator=Rb Old Comment=10k New Comment=1k
+Change Component Comment : Designator=k Old Comment=拨动开关 New Comment=*
+Change Component Comment : Designator=10k Old Comment=蓝白电位器 New Comment=
+Change Component Library : Designator=10k Old Library=1412220207梁? New Library=1412220207梁新坚元器件库.IntLib
+Change Component Library : Designator=k Old Library=1412220207梁新 New Library=1412220207梁新坚元器件库.IntLib
+Change Component Library : Designator=8550 Old Library=1412220207梁新? New Library=1412220207梁新坚元器件库.IntLib
+Change Component Library : Designator=C1 Old Library=1412220207梁新? New Library=1412220207梁新坚元器件库.IntLib
+Change Component Library : Designator=C2 Old Library=1412220207梁新? New Library=1412220207梁新坚元器件库.IntLib
+Change Component Library : Designator=Cap1 Old Library=1412220207梁新坚 New Library=1412220207梁新坚元器件库.IntLib
+Change Component Library : Designator=K1 Old Library=1412220207梁新坚 New Library=1412220207梁新坚元器件库.IntLib
+Change Component Library : Designator=K2 Old Library=1412220207梁新坚 New Library=1412220207梁新坚元器件库.IntLib
+Change Component Library : Designator=K3 Old Library=1412220207梁新坚 New Library=1412220207梁新坚元器件库.IntLib
+Change Component Library : Designator=K4 Old Library=1412220207梁新坚 New Library=1412220207梁新坚元器件库.IntLib
+Change Component Library : Designator=K5 Old Library=1412220207梁新坚 New Library=1412220207梁新坚元器件库.IntLib
+Change Component Library : Designator=OSC1 Old Library=1412220207梁新坚 New Library=1412220207梁新坚元器件库.IntLib
+Change Component Library : Designator=PR1 Old Library=1412220207梁新坚 New Library=1412220207梁新坚元器件库.IntLib
+Change Component Library : Designator=R1 Old Library=1412220207梁新坚 New Library=1412220207梁新坚元器件库.IntLib
+Change Component Library : Designator=R2 Old Library=1412220207梁新坚 New Library=1412220207梁新坚元器件库.IntLib
+Change Component Library : Designator=R9 Old Library=1412220207梁新坚 New Library=1412220207梁新坚元器件库.IntLib
+Change Component Library : Designator=Rb Old Library=1412220207梁新坚 New Library=1412220207梁新坚元器件库.IntLib
+Change Component Library : Designator=89C52 Old Library=1412220207梁新坚元 New Library=1412220207梁新坚元器件库.IntLib
+Change Component Library : Designator=bu Old Library=1412220207梁新坚元 New Library=1412220207梁新坚元器件库.IntLib
+Change Component Library : Designator=lcd Old Library=1412220207梁新坚元 New Library=1412220207梁新坚元器件库.IntLib
+Change Component Library : Designator=mic Old Library=1412220207梁新坚元 New Library=1412220207梁新坚元器件库.IntLib
+Added Pin To Net: NetName=VCC Pin=10k-1
+Added Pin To Net: NetName=GND Pin=10k-3
+Added Pin To Net: NetName=GND Pin=C1-1
+Added Pin To Net: NetName=GND Pin=C2-1
+Added Pin To Net: NetName=GND Pin=R1-1
+Added Room: Name=LCDwen

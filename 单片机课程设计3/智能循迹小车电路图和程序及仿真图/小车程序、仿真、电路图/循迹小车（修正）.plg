@@ -1,0 +1,17 @@
+<html>
+<body>
+<pre>
+<h1>礦ision Build Log</h1>
+<h2>Project:</h2>
+C:\Users\2000601\Desktop\智能循迹小车电路图和程序及仿真图\小车程序、仿真、电路图\循迹小车（修正）.uvproj
+Project File Date:  <unknown>
+
+<h2>Output:</h2>
+compiling 循迹小车（修正）.c...
+循迹小车（修正）.c - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling 循迹小车（修正）.c...
+linking...
+Program Size: data=19.0 xdata=0 code=491
+creating hex file from "循迹小车（修正）"...
+"循迹小车（修正）" - 0 Error(s), 0 Warning(s).

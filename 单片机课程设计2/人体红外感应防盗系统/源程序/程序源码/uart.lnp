@@ -1,0 +1,6 @@
+"ADC.obj",
+"lcd.obj",
+"main.obj" 
+TO "uart" 
+RAMSIZE(256) 
+XDATA( 0X0000-0X06FF )

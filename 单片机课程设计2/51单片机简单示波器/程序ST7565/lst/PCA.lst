@@ -1,0 +1,92 @@
+C51 COMPILER V7.06   PCA                          09/11/2014 20:19:53 PAGE 1   
+
+
+C51 COMPILER V7.06, COMPILATION OF MODULE PCA
+OBJECT MODULE PLACED IN PCA.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE c\PCA.c DEBUG OBJECTEXTEND PRINT(.
+                    -\lst\PCA.lst) PAGEWIDTH(79) PAGELENGTH(66) OBJECT(PCA.obj)
+
+stmt level    source
+
+   1          #include <stdio.h>
+   2          #include <intrins.h>
+   3          #include "PCA.h"
+   4          #include "STC12C5A60S2.h"
+   5          extern unsigned int  T1count;           //T1¶¨Ê±Æ÷£¬ÆµÂÊ¼ÆÊý
+   6          extern unsigned int  PCA0loop;          //PCA0Ñ­»·³õÖµ,25ms
+   7          extern unsigned int  PCA1loop;          //PCA1Ñ­»·³õÖµ,500us(1KHz·½²¨)
+   8          extern unsigned int  PCA0count;         //PCA0½øÈëÖÐ¶Ï´ÎÊý£¨¼ÆÊ±ÀÛ¼Æ£©
+   9          extern unsigned int  PCA1count;         //PCA1Ñ­»·µÝÔöÖµ£¬Êä³öµÄ·½²¨ÖÜÆÚ
+             -/2.5
+  10          extern unsigned long freqin;                                    //Ê¾²¨Æ÷ÊäÈëµÄÐÅºÅÆµÂÊ,µ¥Î»Hz
+  11          
+  12          void PCAinit(void)
+  13          {
+  14   1              AUXR1&=0xbf;                                    //PCAÔÚP1¿Ú
+  15   1              //CMOD=0x08;                                    //PCAÊ±ÖÓÎªÏµÍ³Ê±ÖÓ£¨30MHz£©²»·ÖÆµ£¬¼ÆÊýÒç³öÖÐ¶
+             -ÏÊ§ÄÜ
+  16   1              CMOD=0x00;                                              //PCAÊ±ÖÓÎªÏµÍ³Ê±ÖÓ£¨30MHz£©12·ÖÆµ£¬¼ÆÊýÒç³öÖÐ¶Ï
+             -Ê§ÄÜ
+  17   1              CCAPM0=0x49;                                    //PCA0ÓÃÓÚÈí¼þ¼ÆÊ±Ä£Ê½£¬ÅäºÏT1¼ÆÊýÆ÷²âÁ¿ÆµÂÊ
+  18   1              //CCAPM1=0x4d;                                  //P1.4»òP4.3Êä³ö¸ßËÙÂö³å
+  19   1              CH=0;CL=0;                                              //PCA¼ÆÊýÆ÷ÇåÁã
+  20   1              CCAP0L=PCA0loop;
+  21   1              CCAP0H=PCA0loop>>8;
+  22   1              CCAP1L=PCA1loop;
+  23   1              CCAP1H=PCA1loop>>8;
+  24   1              CF=0;                                                   //PCAÒç³ö±êÖ¾Î»ÇåÁã
+  25   1              CCF0=0;                                                 //Çå²¶»ñÖÐ¶Ï±êÖ¾
+  26   1              CCF1=0;                                                 
+  27   1              CR=1;                                                   //Æô¶¯PCA
+  28   1      }
+  29          
+  30          void T1_interrupt(void) interrupt 3
+  31          {
+  32   1              TH1=0x3c;                                               //T1²âÆµÂÊ£¬¼ÆÊý50000½øÒ»´ÎÖÐ¶Ï
+  33   1              TL1=0xb0;
+  34   1              T1count++;
+  35   1      }
+  36          void PCAinterrupt(void) interrupt 7
+  37          {                               
+  38   1              if(CCF0==1)                                             //Èí¼þ¼ÆÊ±£¬ÅäºÏT1²âÆµÂÊ
+  39   1              {
+  40   2                      CCF0=0;                                         //Çå²¶»ñÖÐ¶Ï±êÖ¾
+  41   2                      PCA0loop+=50000;                        //²»·ÖÆµÊ±PCA0loop+=62500;
+  42   2                      CCAP0L=PCA0loop;
+  43   2                      CCAP0H=PCA0loop>>8;
+  44   2                      PCA0count++;
+  45   2                      if(PCA0count>=50)                       //1sÊ±¼äµ½  //²»·ÖÆµÊ±if(PCA0count>=480)
+  46   2                      {
+  47   3                              ET1=0;TR1=0;
+  48   3                              freqin=T1count*50000+((((unsigned int)TH1<<8)+TL1)-0x3cb0);
+  49   3                              TH1=0x3c;                               //T1²âÆµÂÊ£¬¼ÆÊý50000½øÒ»´ÎÖÐ¶Ï
+  50   3                              TL1=0xb0;
+  51   3                              T1count=0;
+  52   3                              PCA0count=0;
+  53   3                              ET1=1;TR1=1;
+C51 COMPILER V7.06   PCA                          09/11/2014 20:19:53 PAGE 2   
+
+  54   3                      }
+  55   2              }       
+  56   1      /*      if(CCF1==1)                                             //·½²¨Êä³ö,ÐèÍ¬Ê±ÐÞ¸ÄPCA³õÊ¼»¯ÁîCCAPM1=0x4d;
+  57   1              {
+  58   1                      CCF1=0; 
+  59   1                      PCA1loop=PCA1loop+PCA1count;
+  60   1                      CCAP1L=PCA1loop;
+  61   1                      CCAP1H=PCA1loop>>8;
+  62   1              } */            
+  63   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    248    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

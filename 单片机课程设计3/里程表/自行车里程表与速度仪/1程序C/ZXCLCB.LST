@@ -1,0 +1,282 @@
+C51 COMPILER V9.01   ZXCLCB                                                                04/10/2017 11:21:15 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE ZXCLCB
+OBJECT MODULE PLACED IN ZXCLCB.OBJ
+COMPILER INVOKED BY: D:\程序安装位置\KEILL\C51\BIN\C51.EXE ZXCLCB.C BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include<reg52.h> 
+   2          #include<intrins.h>  //包含_nop_();函数定义的头文件 
+   3          void timer0_int(); 
+   4          sbit LED=P3^7; 
+   5          sbit E=P3^2;  //1602使能引脚 
+   6          sbit RW=P3^1;  //1602读写引脚  
+   7          sbit RS=P3^0;  //1602数据/命令选择引脚 
+   8          unsigned char hour,minute,second; 
+   9          unsigned char n,count; 
+  10          unsigned long lengthbuf,lengthvalue; 
+  11          unsigned char code 
+  12          Table[]={0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f};    
+  13          //0~9的共阴极七段管代码 
+  14          unsigned char code 
+  15          Table1[]={0xbf,0x86,0xdb,0xcf,0xe6,0xed,0xfd,0x87,0xff,0xef};   
+  16          //0~9的共阴极七段管代码带小数点 
+  17          void Delay0(int Times); 
+  18          void Display(unsigned int x); 
+  19          void delay()  //延时5US 
+  20          { 
+  21   1      _nop_(); 
+  22   1      _nop_(); 
+  23   1      _nop_(); 
+  24   1      _nop_(); 
+  25   1      _nop_(); 
+  26   1      }
+  27          bit Busy(void)     //读状态函数判断液晶模块的忙碌状态 
+  28          { 
+  29   1      bit busy_flag = 0; 
+  30   1      RS = 0; 
+  31   1      RW = 1; 
+  32   1      E = 1; 
+  33   1      delay(); 
+  34   1      busy_flag = (bit)(P0 & 0x80); 
+  35   1      E = 0; 
+  36   1      return busy_flag; 
+  37   1      } 
+  38          void wcmd(unsigned char del)  //将模式设置指令或显示地址写入液晶模
+  39          { 
+  40   1      while(Busy()); 
+  41   1      RS = 0; 
+  42   1      RW = 0; 
+  43   1      E = 0; 
+  44   1      delay(); 
+  45   1      P0 = del; 
+  46   1      delay(); 
+  47   1      E = 1; 
+  48   1      delay(); 
+  49   1      E = 0; 
+  50   1      } 
+  51          void wdata(unsigned char del)   
+  52          ///将数据字符ASCII码写入液晶
+  53          { 
+  54   1       while(Busy()); 
+  55   1      RS = 1; 
+C51 COMPILER V9.01   ZXCLCB                                                                04/10/2017 11:21:15 PAGE 2   
+
+  56   1      RW = 0; 
+  57   1      E = 0; 
+  58   1      delay(); 
+  59   1      P0 = del; 
+  60   1      delay(); 
+  61   1      E = 1; 
+  62   1      delay(); 
+  63   1      E = 0; 
+  64   1      } 
+  65          void L1602_init(void)   //初始化液晶模块 
+  66          { 
+  67   1       wcmd(0x38);  //功能设置8位字长2行5*7点阵 
+  68   1       wcmd(0x0c);  //显示设置显示屏右移 
+  69   1       wcmd(0x06);  //显示设置光标右移字符不移 
+  70   1       wcmd(0x01);     //清屏命令 
+  71   1      } 
+  72          
+  73          void L1602_string(unsigned char hang,unsigned char lie,unsigned char p)   
+  74          //将数据写入液晶模块 
+  75          { 
+  76   1      unsigned char a; 
+  77   1      if(hang == 1) a = 0x80;      //显示在第一行 
+  78   1      if(hang == 2) a = 0xc0;      //显示在第一行 
+  79   1      a = a + lie -1; 
+  80   1      wcmd(a); 
+  81   1      wdata(p); 
+  82   1      } 
+  83          void timer0_int() interrupt 1 using 3     //中断用于构成时钟 
+  84          { 
+  85   1       n++; 
+  86   1       if(n==100) 
+  87   1       { 
+  88   2       n=0; 
+  89   2        count++; 
+  90   2        second++; 
+  91   2        if(second>=60) 
+  92   2            {  
+  93   3              second=0; 
+  94   3               minute++; 
+  95   3             if(minute>=60) 
+  96   3            { 
+  97   4           minute=0; 
+  98   4            hour++; 
+  99   4            if(hour>=24) hour=0; 
+ 100   4          } 
+ 101   3         } 
+ 102   2        } 
+ 103   1         if(count==5) 
+ 104   1           {   
+ 105   2             count=0; 
+ 106   2          lengthvalue=(TL1+TH1*256)*215-lengthbuf; 
+ 107   2          lengthbuf=(TL1+TH1*256)*215; 
+ 108   2           } 
+ 109   1         TH0=0xd8; 
+ 110   1         TL0=0xf0; 
+ 111   1          }  
+ 112          
+ 113          int timer()             //以秒为单位计算运行总时间
+ 114          { 
+ 115   1         unsigned char a=100; 
+ 116   1         unsigned char b; 
+ 117   1         b=second+minute*60+hour*60*60; 
+C51 COMPILER V9.01   ZXCLCB                                                                04/10/2017 11:21:15 PAGE 3   
+
+ 118   1       return b; 
+ 119   1      } 
+ 120           void Delay0(int Time)                      //延时子程序 
+ 121          {
+ 122   1       int i; 
+ 123   1       unsigned char j; 
+ 124   1         for(i=0;i<Time;i++) 
+ 125   1            { 
+ 126   2             for(j=0;j<150;j++)  
+ 127   2               { 
+ 128   3                } 
+ 129   2             } 
+ 130   1      } 
+ 131          void Display(unsigned int x)       //在LED七段管中显示最高速度
+ 132          {
+ 133   1       unsigned  char slc;  
+ 134   1       unsigned char a,b,c,d; 
+ 135   1       slc=0xef;           //LED七段管选通
+ 136   1       a= x/1000; 
+ 137   1       b=( x-a*1000)/100; 
+ 138   1       c=( x-a*1000-b*100)/10; 
+ 139   1       d= x%10; 
+ 140   1        {  
+ 141   2           P2=slc;           //分别将最大速度的各个位扫描显示
+ 142   2        slc=slc<<1; 
+ 143   2        P1=Table[a]; 
+ 144   2        Delay0(10); 
+ 145   2        P2=slc; 
+ 146   2        slc=slc<<1; 
+ 147   2        P1=Table1[b]; 
+ 148   2        Delay0(10); 
+ 149   2        P2=slc; 
+ 150   2        slc=slc<<1; 
+ 151   2        P1=Table[c]; 
+ 152   2        Delay0(10); 
+ 153   2        P2=slc; 
+ 154   2      
+ 155   2        slc=slc<<1; 
+ 156   2        P1=Table[d]; 
+ 157   2        Delay0(10); 
+ 158   2        }
+ 159   1       return; 
+ 160   1      } 
+ 161          void main() 
+ 162          { 
+ 163   1       unsigned char i=0 ; 
+ 164   1       unsigned int v=0;      //运行速度
+ 165   1       unsigned int vnow;      //当前速度
+ 166   1       unsigned int a,b,c,d;     //分别显示速度的十位个位十分位 百分位 
+ 167   1       unsigned long quanshu;     //定义车轮转动圈数 
+ 168   1       unsigned long 
+ 169   1      length,length1,length2,length3,length4,length5,length6;  
+ 170   1      unsigned int second1,second2,minute1,minute2,hour1,hour2; 
+ 171   1       L1602_init(); 
+ 172   1       TMOD=0x51;    //定时器T0计数器T1允许外部中断T1工作方式01
+ 173   1          TH1=0x00;    //计数器T1高位装初值 
+ 174   1          TL1=0x00;    //计数器T1低位装初值 
+ 175   1          ET1=1;     //计数器0开中断 
+ 176   1          TR1=1;     //计数器0开始工作        
+ 177   1       TH0=0XD8;    //T0设置时间常数 
+ 178   1       TL0=0XF0; 
+ 179   1       ET0=1; 
+C51 COMPILER V9.01   ZXCLCB                                                                04/10/2017 11:21:15 PAGE 4   
+
+ 180   1       EA=1; 
+ 181   1       TR0=1; 
+ 182   1       IT1=1;     //外部中断1请求触发方式 
+ 183   1       EX1=1; 
+ 184   1       P1=0X00;     //P1、P2口装初值用于LED七段管显示用 
+ 185   1       P2=0xff; 
+ 186   1       while(1) 
+ 187   1      {
+ 188   2      quanshu=TL1+TH1*256;  //计算车轮旋转圈数 
+ 189   2       length=quanshu*215;  //骑行距离 
+ 190   2                        //计算里程各个进位
+ 191   2       length1=length/100000; 
+ 192   2       length2=(length-length1*100000)/10000; 
+ 193   2       length3=(length-length1*100000-length2*10000)/1000;
+ 194   2       length4=(length-length1*100000-length2*10000-length3*1000)/100; 
+ 195   2       length5=(length-length1*100000-length2*10000-length3*1000-length4
+ 196   2      *100)/10; 
+ 197   2       length6=length%10; 
+ 198   2       if(timer()>0) 
+ 199   2       v=length/timer();       //计算速度 
+ 200   2          vnow=lengthvalue/5;       //计算当前速度5秒内
+ 201   2       if(vnow>=695) LED=0;else LED=1;    //速度超过6.95m/s(即 
+ 202   2       Display(vnow);        //在LED七段管上显示当前速度5秒内速度
+ 203   2       Delay0(20); 
+ 204   2       a=(v/1000);               //计算速度的各个进位 
+ 205   2       b=(v-a*1000)/100; 
+ 206   2       c=(v-a*1000-b*100)/10; 
+ 207   2       d=v%10; 
+ 208   2       second1=second/10;       //计算分秒时的十位与个位 
+ 209   2       second2=second%10;
+ 210   2       minute1=minute/10; 
+ 211   2       minute2=minute%10; 
+ 212   2       hour1=hour/10; 
+ 213   2       hour2=hour%10; 
+ 214   2       L1602_string(1,1,'s');         //在LCD相应位置显示变量或者常量
+ 215   2       L1602_string(1,2,'p'); 
+ 216   2       L1602_string(1,3,'e'); 
+ 217   2       L1602_string(1,4,'e'); 
+ 218   2       L1602_string(1,5,'d'); 
+ 219   2       L1602_string(1,6,' '); 
+ 220   2       L1602_string(1,7,'L'); 
+ 221   2       L1602_string(1,8,'='); 
+ 222   2       L1602_string(1,9,length1+48); 
+ 223   2       L1602_string(1,10,length2+48); 
+ 224   2       L1602_string(1,11,length3+48); 
+ 225   2       L1602_string(1,12,length4+48); 
+ 226   2       L1602_string(1,13,'.'); 
+ 227   2       L1602_string(1,14,length5+48); 
+ 228   2       L1602_string(1,15,length6+48); 
+ 229   2       L1602_string(1,16,'m'); 
+ 230   2       L1602_string(2,1,a+48);      
+ 231   2       L1602_string(2,2,b+48); 
+ 232   2       L1602_string(2,3,'.'); 
+ 233   2       L1602_string(2,4,c+48); 
+ 234   2       L1602_string(2,5,d+48); 
+ 235   2       L1602_string(2,6,'m'); 
+ 236   2       L1602_string(2,7,'/'); 
+ 237   2       L1602_string(2,8,'s'); 
+ 238   2       L1602_string(2,9,hour1+48); 
+ 239   2       L1602_string(2,10,hour2+48); 
+ 240   2       L1602_string(2,11,':'); 
+ 241   2       L1602_string(2,12,minute1+48); 
+C51 COMPILER V9.01   ZXCLCB                                                                04/10/2017 11:21:15 PAGE 5   
+
+ 242   2       L1602_string(2,13,minute2+48); 
+ 243   2       L1602_string(2,14,':'); 
+ 244   2       L1602_string(2,15,second1+48); 
+ 245   2       L1602_string(2,16,second2+48); 
+ 246   2       while(i<2)           //LCD显示延迟 
+ 247   2       {delay(); 
+ 248   3       i++; } 
+ 249   2       i=0;
+ 250   2       } 
+ 251   1       }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1699    ----
+   CONSTANT SIZE    =     20    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     13      60
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       1
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

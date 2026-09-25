@@ -1,0 +1,16 @@
+<html>
+<body>
+<pre>
+<h1>礦ision Build Log</h1>
+<h2>Project:</h2>
+E:\QQDownload\201基于单片机简易自行车码表设计\程序\mabiao.uvproj
+Project File Date:  04/06/2017
+
+<h2>Output:</h2>
+compiling mabiao.c...
+mabiao.c - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+linking...
+Program Size: data=20.1 xdata=0 code=1159
+creating hex file from "mabiao"...
+"mabiao" - 0 Error(s), 0 Warning(s).

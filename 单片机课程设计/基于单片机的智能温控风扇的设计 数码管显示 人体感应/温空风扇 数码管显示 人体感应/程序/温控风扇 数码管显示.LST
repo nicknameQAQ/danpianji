@@ -1,0 +1,412 @@
+C51 COMPILER V9.01   蝊控风扇_数_牍_显示                                                   05/16/2015 22:36:13 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE 蝊控风扇_数_牍_显示
+OBJECT MODULE PLACED IN 温控风扇 数码管显示.OBJ
+COMPILER INVOKED BY: D:\Program Files (x86)\KEIL4\C51\BIN\C51.EXE 温控风扇 数码管显示.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include <reg52.h>               //调用单片机头文件
+   2          #define uchar unsigned char  //无符号字符型 宏定义      变量范围0~255
+   3          #define uint  unsigned int       //无符号整型 宏定义    变量范围0~65535
+   4          
+   5          //数码管段选定义      0     1    2    3    4    5       6        7        8        9    
+   6          uchar code smg_du[]={0x28,0xe4,0x42,0x72,0xe5,0xa8,0x41,0x77,0x20,0xa0,
+   7                                                   0x60,0x25,0x39,0x26,0x31,0x71,0xff};    //断码
+   8          //数码管位选定义
+   9          uchar code smg_we[]={0xef,0xdf,0xbf,0x7f};
+  10          uchar dis_smg[8] = {0}; 
+  11          uchar smg_i = 3;    //显示数码管的个位数
+  12          sbit dq   = P2^4;       //18b20 IO口的定义
+  13          sbit hw = P2^5;
+  14          uchar miao = 30;
+  15          uchar flag_en;
+  16          
+  17          bit flag_lj_en;          //按键连加使能
+  18          bit flag_lj_3_en;        //按键连3次连加后使能  加的数就越大了 
+  19          uchar key_time,key_value;      //用做连加的中间变量
+  20          bit key_500ms  ;
+  21          sbit pwm = P2^3;  
+  22          uchar f_pwm_l ;   //越小越慢
+  23          
+  24          uint temperature ;  //
+  25          bit flag_200ms ;
+  26          uchar menu_1;       //菜单设计的变量
+  27          uint t_high = 200,t_low = 100;     //温度上下限报警值 
+  28          
+  29          /***********************1ms延时函数*****************************/
+  30          void delay_1ms(uint q)
+  31          {
+  32   1              uint i,j;
+  33   1              for(i=0;i<q;i++)
+  34   1                      for(j=0;j<120;j++);
+  35   1      }
+  36          
+  37          /***********************小延时函数*****************************/
+  38          void delay_uint(uint q)
+  39          {
+  40   1              while(q--);
+  41   1      }
+  42          
+  43          
+  44          /***********************数码显示函数*****************************/
+  45          void display()
+  46          {
+  47   1              static uchar i;   
+  48   1              i++;
+  49   1              if(i >= smg_i)
+  50   1                      i = 0;  
+  51   1              P1 = 0xff;                       //消隐 
+  52   1              P3 = smg_we[i];                  //位选
+  53   1              P1 = dis_smg[i];                 //段选         
+  54   1      
+  55   1      }
+C51 COMPILER V9.01   蝊控风扇_数_牍_显示                                                   05/16/2015 22:36:13 PAGE 2   
+
+  56          
+  57          /***********************18b20初始化函数*****************************/
+  58          void init_18b20()
+  59          {
+  60   1              bit q;
+  61   1              dq = 1;                         //把总线拿高
+  62   1              delay_uint(1);      //15us
+  63   1              dq = 0;                         //给复位脉冲
+  64   1              delay_uint(80);         //750us
+  65   1              dq = 1;                         //把总线拿高 等待
+  66   1              delay_uint(10);         //110us
+  67   1              q = dq;                         //读取18b20初始化信号
+  68   1              delay_uint(20);         //200us
+  69   1              dq = 1;                         //把总线拿高 释放总线
+  70   1      }
+  71          
+  72          /*************写18b20内的数据***************/
+  73          void write_18b20(uchar dat)
+  74          {
+  75   1              uchar i;
+  76   1              for(i=0;i<8;i++)
+  77   1              {                                        //写数据是低位开始
+  78   2                      dq = 0;                  //把总线拿低写时间隙开始 
+  79   2                      dq = dat & 0x01; //向18b20总线写数据了
+  80   2                      delay_uint(5);   // 60us
+  81   2                      dq = 1;                  //释放总线
+  82   2                      dat >>= 1;
+  83   2              }       
+  84   1      }
+  85          
+  86          /*************读取18b20内的数据***************/
+  87          uchar read_18b20()
+  88          {
+  89   1              uchar i,value;
+  90   1              for(i=0;i<8;i++)
+  91   1              {
+  92   2                      dq = 0;                  //把总线拿低读时间隙开始 
+  93   2                      value >>= 1;     //读数据是低位开始
+  94   2                      dq = 1;                  //释放总线
+  95   2                      if(dq == 1)              //开始读写数据 
+  96   2                              value |= 0x80;
+  97   2                      delay_uint(5);   //60us 读一个时间隙最少要保持60us的时间
+  98   2              }
+  99   1              return value;            //返回数据
+ 100   1      }
+ 101          
+ 102          /*************读取温度的值 读出来的是小数***************/
+ 103          uint read_temp()
+ 104          {
+ 105   1              uint value;
+ 106   1              uchar low;                         //在读取温度的时候如果中断的太频繁了，就应该把中断给关了，否则会影响到18b20的时序
+ 107   1              init_18b20();              //初始化18b20
+ 108   1              write_18b20(0xcc);         //跳过64位ROM
+ 109   1              write_18b20(0x44);         //启动一次温度转换命令
+ 110   1              delay_uint(50);            //500us
+ 111   1      
+ 112   1              init_18b20();              //初始化18b20
+ 113   1              
+ 114   1              write_18b20(0xcc);         //跳过64位ROM
+ 115   1              write_18b20(0xbe);         //发出读取暂存器命令
+ 116   1              
+ 117   1              low = read_18b20();        //读温度低字节
+C51 COMPILER V9.01   蝊控风扇_数_牍_显示                                                   05/16/2015 22:36:13 PAGE 3   
+
+ 118   1              value = read_18b20();  //读温度高字节
+ 119   1              value <<= 8;               //把温度的高位左移8位
+ 120   1              value |= low;              //把读出的温度低位放到value的低八位中
+ 121   1              value *= 0.625;        //转换到温度值 小数
+ 122   1              return value;              //返回读出的温度 带小数
+ 123   1      }
+ 124          
+ 125          /*************定时器0初始化程序***************/
+ 126          void time_init()          
+ 127          {
+ 128   1              EA   = 1;                 //开总中断
+ 129   1              TMOD = 0X21;      //定时器0、定时器1工作方式1
+ 130   1              ET0  = 1;                 //开定时器0中断 
+ 131   1              TR0  = 1;                 //允许定时器0定时
+ 132   1      
+ 133   1              ET1  = 1;                 //开定时器0中断 
+ 134   1              TR1  = 1;                 //允许定时器0定时
+ 135   1      }
+ 136          
+ 137          /********************独立按键程序*****************/
+ 138          uchar key_can;   //按键值
+ 139          
+ 140          void key()       //独立按键程序
+ 141          {
+ 142   1              static uchar key_new;
+ 143   1              key_can = 20;                   //按键值还原
+ 144   1              P2 |= 0x07;
+ 145   1              if((P2 & 0x07) != 0x07)         //按键按下
+ 146   1              {
+ 147   2                      if(key_500ms == 1)      //连加
+ 148   2                      {
+ 149   3                              key_500ms = 0;
+ 150   3                              key_new = 1;
+ 151   3                      }
+ 152   2                      delay_1ms(1);           //按键消抖动
+ 153   2                      if(((P2 & 0x07) != 0x07) && (key_new == 1))
+ 154   2                      {                                               //确认是按键按下
+ 155   3                              key_new = 0;
+ 156   3                              switch(P2 & 0x07)
+ 157   3                              {
+ 158   4                                      case 0x06: key_can = 1; break;     //得到k2键值
+ 159   4                                      case 0x04: key_can = 2; break;     //得到k3键值
+ 160   4                                      case 0x02: key_can = 3; break;     //得到k4键值
+ 161   4                              }
+ 162   3                              flag_lj_en = 1;  //连加使能
+ 163   3                      }                       
+ 164   2              }
+ 165   1              else 
+ 166   1              {
+ 167   2                      if(key_new == 0)
+ 168   2                      {
+ 169   3                              key_new = 1;
+ 170   3                              flag_lj_en = 0;         //关闭连加使能
+ 171   3                              flag_lj_3_en = 0;       //关闭3秒后使能
+ 172   3                              key_value = 0;          //清零
+ 173   3                              key_time = 0;
+ 174   3                              key_500ms = 0;
+ 175   3                      }
+ 176   2              }       
+ 177   1      }
+ 178          
+ 179          /****************按键处理数码管显示函数***************/
+C51 COMPILER V9.01   蝊控风扇_数_牍_显示                                                   05/16/2015 22:36:13 PAGE 4   
+
+ 180          void key_with()
+ 181          {
+ 182   1              if(key_can == 1)          //设置键
+ 183   1              {
+ 184   2                      f_pwm_l = 30; 
+ 185   2                      menu_1 ++;
+ 186   2                      if(menu_1 >= 3)
+ 187   2                      {
+ 188   3                              menu_1 = 0;
+ 189   3                              smg_i = 3;                //数码管显示3位
+ 190   3                      }
+ 191   2              }
+ 192   1              if(menu_1 == 1)                 //设置高温报警
+ 193   1              {
+ 194   2                      smg_i = 4;                //数码管显示4位
+ 195   2                      if(key_can == 2)
+ 196   2                      {
+ 197   3                              if(flag_lj_3_en == 0)
+ 198   3                                      t_high ++ ;             //按键按下未松开自动加三次      
+ 199   3                              else 
+ 200   3                                      t_high += 10;   //按键按下未松开自动加三次之后每次自动加10
+ 201   3                              if(t_high > 990)
+ 202   3                                      t_high = 990;
+ 203   3                      }
+ 204   2                      if(key_can == 3)
+ 205   2                      {
+ 206   3                              if(flag_lj_3_en == 0)
+ 207   3                                      t_high -- ;             //按键按下未松开自动减三次      
+ 208   3                              else 
+ 209   3                                      t_high -= 10;   //按键按下未松开自动减三次之后每次自动减10
+ 210   3                              if(t_high <= t_low)
+ 211   3                                      t_high = t_low + 1;
+ 212   3                      }
+ 213   2                      dis_smg[0] = smg_du[t_high % 10];                  //取小数显示
+ 214   2                      dis_smg[1] = smg_du[t_high / 10 % 10] & 0xdf;  //取个位显示
+ 215   2                      dis_smg[2] = smg_du[t_high / 100 % 10] ;           //取十位显示
+ 216   2                      dis_smg[3] = 0x64;       //H
+ 217   2              }       
+ 218   1              if(menu_1 == 2)                 //设置低温报警
+ 219   1              {
+ 220   2                      smg_i = 4;                //数码管显示4位
+ 221   2                      if(key_can == 2)
+ 222   2                      {
+ 223   3                              if(flag_lj_3_en == 0)
+ 224   3                                      t_low ++ ;                      //按键按下未松开自动加三次      
+ 225   3                              else 
+ 226   3                                      t_low += 10;            //按键按下未松开自动加三次之后每次自动加10
+ 227   3                              if(t_low >= t_high)
+ 228   3                                      t_low = t_high - 1;
+ 229   3                      }
+ 230   2                      if(key_can == 3)
+ 231   2                      {
+ 232   3                              if(flag_lj_3_en == 0)
+ 233   3                                      t_low -- ;                      //按键按下未松开自动减三次      
+ 234   3                              else 
+ 235   3                                      t_low -= 10;            //按键按下未松开自动加三次之后每次自动加10
+ 236   3                              if(t_low <= 10)
+ 237   3                                      t_low = 10;
+ 238   3                      }
+ 239   2                      dis_smg[0] = smg_du[t_low % 10];                   //取小数显示
+ 240   2                      dis_smg[1] = smg_du[t_low / 10 % 10] & 0xdf;   //取个位显示
+ 241   2                      dis_smg[2] = smg_du[t_low / 100 % 10] ;        //取十位显示
+C51 COMPILER V9.01   蝊控风扇_数_牍_显示                                                   05/16/2015 22:36:13 PAGE 5   
+
+ 242   2                      dis_smg[3] = 0x3D;        //L
+ 243   2              }       
+ 244   1      }  
+ 245          
+ 246          /****************风扇控制函数***************/
+ 247          void fengshan_kz()
+ 248          {
+ 249   1              if(flag_en == 1)
+ 250   1              {
+ 251   2                      if(temperature >= t_high)         //风扇全开
+ 252   2                      {       
+ 253   3                              TR1 = 1;
+ 254   3                              pwm = 0;
+ 255   3                      }
+ 256   2                      else if((temperature < t_high)  && (temperature >= t_low))                 //风扇缓慢
+ 257   2                      {
+ 258   3                              f_pwm_l = 60;   
+ 259   3                              TR1 = 1;
+ 260   3                      }
+ 261   2                      else if(temperature < t_low)     //关闭风扇
+ 262   2                      {
+ 263   3                              TR1 = 0;
+ 264   3                              pwm = 1;
+ 265   3                      }       
+ 266   2              }               
+ 267   1      }
+ 268                          
+ 269          
+ 270          /****************主函数***************/
+ 271          void main()
+ 272          {
+ 273   1              static uchar value;
+ 274   1              time_init();                    //初始化定时器 
+ 275   1              temperature = read_temp();              //先读出温度的值        
+ 276   1              delay_1ms(650);                         
+ 277   1              temperature = read_temp();                       //先读出温度的值
+ 278   1              dis_smg[0] = smg_du[temperature % 10];   //取温度的小数显示
+ 279   1              dis_smg[1] = smg_du[temperature / 10 % 10] & 0xdf; //取温度的个位显示
+ 280   1              dis_smg[2] = smg_du[temperature / 100 % 10] ;      //取温度的十位显示
+ 281   1              while(1)
+ 282   1              {               
+ 283   2                      key();                                  //按键程序
+ 284   2                      if(key_can < 10)
+ 285   2                      {
+ 286   3                              key_with();                     //设置报警温度  
+ 287   3                      }
+ 288   2                      if(flag_200ms == 1)         //200ms 处理一次温度程序
+ 289   2                      {          
+ 290   3                              flag_200ms = 0; 
+ 291   3                              temperature = read_temp();      //先读出温度的值
+ 292   3                              if(menu_1 == 0)
+ 293   3                              {       
+ 294   4                                      smg_i = 3;
+ 295   4                                      dis_smg[0] = smg_du[temperature % 10];   //取温度的小数显示
+ 296   4                                      dis_smg[1] = smg_du[temperature / 10 % 10] & 0xdf; //取温度的个位显示
+ 297   4                                      dis_smg[2] = smg_du[temperature / 100 % 10] ;      //取温度的十位显示
+ 298   4                              }
+ 299   3                              fengshan_kz();        //风扇控制函数
+ 300   3                              value ++;
+ 301   3                              if(value >= 4)
+ 302   3                              {
+ 303   4                                      value = 0;
+C51 COMPILER V9.01   蝊控风扇_数_牍_显示                                                   05/16/2015 22:36:13 PAGE 6   
+
+ 304   4                                      if(miao != 0)
+ 305   4                                      {
+ 306   5                                              miao --;    //时间减1
+ 307   5                                      }
+ 308   4                                      if(miao == 0)
+ 309   4                                              flag_en = 0;
+ 310   4      //                              dis_smg[3] = smg_du[miao % 10] ;
+ 311   4                              }
+ 312   3                              if(hw == 1)  //感应到人
+ 313   3                              {
+ 314   4                                      miao = 30;
+ 315   4                                      flag_en = 1;
+ 316   4                              }
+ 317   3                      }
+ 318   2      
+ 319   2                      display();              //数码管显示函数
+ 320   2              }
+ 321   1      }
+ 322          
+ 323          /*************定时器0中断服务程序***************/
+ 324          void time0_int() interrupt 1
+ 325          {       
+ 326   1              static uchar value;                      //定时2ms中断一次
+ 327   1              TH0 = 0xf8;
+ 328   1              TL0 = 0x30;     //2ms
+ 329   1              value++;          
+ 330   1              if(value >= 150)
+ 331   1              {
+ 332   2                      value = 0;        
+ 333   2                      flag_200ms = 1;
+ 334   2              }
+ 335   1              if(flag_lj_en == 1)        //按下按键使能
+ 336   1              {
+ 337   2                      key_time ++;
+ 338   2                      if(key_time >= 250) //500ms
+ 339   2                      {
+ 340   3                              key_time = 0;
+ 341   3                              key_500ms = 1; //500ms
+ 342   3                              key_value ++;
+ 343   3                              if(key_value > 3)
+ 344   3                              {
+ 345   4                                      key_value = 10;
+ 346   4                                      flag_lj_3_en = 1; //3次后1.5秒连加大些
+ 347   4                              }                                               
+ 348   3                      }
+ 349   2              }
+ 350   1      }
+ 351          
+ 352          
+ 353          /*******************定时器1用做单片机模拟PWM 调节***********************/
+ 354          void Timer1() interrupt 3  //调用定时器1
+ 355          {
+ 356   1              static uchar value_l;
+ 357   1              TH1=0xff;    //    定时中断一次
+ 358   1              TL1=0xec;        //
+ 359   1              if(pwm==1)
+ 360   1              {
+ 361   2                      value_l+=3;
+ 362   2                      if(value_l > f_pwm_l)   //高电平
+ 363   2                      {
+ 364   3                              value_l=0;
+ 365   3                                      pwm=0;   
+C51 COMPILER V9.01   蝊控风扇_数_牍_显示                                                   05/16/2015 22:36:13 PAGE 7   
+
+ 366   3                      }
+ 367   2              }
+ 368   1              else                            
+ 369   1              {
+ 370   2                      value_l+=3;
+ 371   2                      if(value_l  > 100 - f_pwm_l)              //低电平
+ 372   2                      {
+ 373   3                              value_l=0;
+ 374   3                              pwm=1;
+ 375   3                      }
+ 376   2          }
+ 377   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1249    ----
+   CONSTANT SIZE    =     21    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     27    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      4       1
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

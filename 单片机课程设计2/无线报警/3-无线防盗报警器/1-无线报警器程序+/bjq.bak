@@ -1,0 +1,103 @@
+#include <reg52.h>
+
+#define uc unsigned char
+#define ui unsigned int
+
+sbit SOS	=	P1^0;//布防
+sbit bufang	=	P1^1;//报警按键
+sbit chefang=	P1^2;//撤防
+sbit baojing=	P1^3;//蜂鸣器
+
+bit bdata flag,flag1;//flag布防标志，flag1布防倒计时标志 
+uc t,t1;			//定时器专用变量 
+
+void delay(ui x)	//延时函数1ms  
+{
+	ui i,j;
+	for(i=0;i<x;i++)
+	for(j=0;j<110;j++);
+}
+	
+void kongzhi()		//控制函数 
+{
+	if((bufang==1)&&(flag==0))	//在报警等待时按下布防键 
+	{
+		delay(10);
+		if((bufang==1)&&(flag==0))
+		{
+			t=0;
+			t1=0;			//清零计时器 
+			TR0=1;			//打开计时器 
+			P2=0x85;		//显示字母b 
+		}
+	}
+	if((flag==1)&&(SOS==1))	//报警按键按下
+	{
+		flag1=1;			//蜂鸣器鸣响 
+		P2=0xbf;			//显示数字1  
+		TR0=1;				//开启定时器 
+	}
+	if(chefang==1)			//撤防键按下 
+	{
+		delay(10);
+		if(chefang==1)
+		{
+			{
+				flag1=0;
+				baojing=1;	//关闭蜂鸣器 
+				flag=0;		//停止计时器计时
+				TR0=0;		//关闭计时器 
+				P2=0xa7;	//显示字母c 
+				delay(1000);//延时1s 
+				P2=0xff;	//关闭显示，进入等待布防状态  
+			}
+		}
+	}
+}
+
+void init()	//初始化函数 
+{
+	TH0=0x4b;
+	TL0=0xff;
+	TMOD=0x01;
+	EA=1;
+	ET0=1;
+	TR0=0;		//定时器初始化 
+	bufang=0;
+	SOS=0;
+	chefang=0;	//按键初始化 
+}
+
+void main()	//主函数
+{
+	init();	//调用初始化 
+	while(1)//循环
+	{
+		kongzhi();//控制函数 
+	}
+}
+
+void time() interrupt 1//定时器函数 
+{
+	TH0=0x4b;
+	TL0=0xff;		//重新赋初值 
+	t++;
+	if(t==20)
+	{
+		t=0;
+		t1++;
+		if(t1==30)//计时到30s时开启布防数码管停止显示  关闭定时器   
+		{
+			t1=0;
+			flag=1;
+			P2=0xff;
+			TR0=0;
+		}
+	}
+	if((t>=10)&&(flag1==1))//报警
+	{
+		baojing=~baojing;
+		t=0;
+	}
+}
+

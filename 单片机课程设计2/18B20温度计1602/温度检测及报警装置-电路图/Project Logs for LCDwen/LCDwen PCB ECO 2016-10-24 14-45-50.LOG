@@ -1,0 +1,9 @@
+Removed Pin From Net: NetName=VCC Pin=k-1
+Removed Pin From Net: NetName=GND Pin=mic-7
+Added Pin To Net: NetName=VCC Pin=k-3
+Added Pin To Net: NetName=GND Pin=mic-1
+Added Pin To Net: NetName=Netk_1 Pin=k-1
+Added Pin To Net: NetName=Netk_1 Pin=k-2
+Added Pin To Net: NetName=Netk_1 Pin=mic-5
+Added Net: Name=Netk_1
+Added Room: Name=LCDwen

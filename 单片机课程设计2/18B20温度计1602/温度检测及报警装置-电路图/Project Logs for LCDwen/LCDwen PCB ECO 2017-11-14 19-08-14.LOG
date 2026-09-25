@@ -1,0 +1,9 @@
+Added Component: Designator=l(LED´ó)
+Added Component: Designator=R22(µç×è)
+Added Pin To Net: NetName=VCC Pin=l-1
+Added Pin To Net: NetName=Net8550_1 Pin=R22-1
+Added Pin To Net: NetName=Netl_2 Pin=l-2
+Added Pin To Net: NetName=Netl_2 Pin=R22-2
+Added Net: Name=Netl_2
+Added Member To Class: ClassName=LCDwen Member=Component l LED´ó
+Added Member To Class: ClassName=LCDwen Member=Component R22 500

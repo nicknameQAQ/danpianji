@@ -1,9 +1,0 @@
-Output: Bill of Materials
-Type  : BOM
-From  : Project [基于51单片机超声波测距系统.PrjPcb]
-
-
-Files Generated   : 0
-Documents Printed : 0
-
-Finished Output Generation At 10:17:23 On 2015/8/20

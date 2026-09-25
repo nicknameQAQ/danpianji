@@ -1,0 +1,557 @@
+C51 COMPILER V9.01   MAIN                                                                  06/14/2020 15:22:09 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*------------------------------------------------------------------------------------------------
+   2          程序功能：采用LCD1602液晶显示，显示项目有：年月日、星期、时分秒，带按键调整功能。
+   3          按键操作说明：
+   4          1、S3按键：是调整时间日期键，该按键选择对秒、分、时、星期、日、月、年选中操作，
+   5          当其中一个被选中的时候，可以进行时间调整和日期的调整。每按一次调整一个时间或日期，直到"年"再按一次退出设置
+             -界面。
+   6          2、S1按键：是时间、日期增加操作。
+   7          3、S2按键：是时间、日期减少操作。
+   8          
+   9          ------------------------------------------------------------------------------------------------*/
+  10          
+  11          #include <reg51.h>
+  12          #include <intrins.h>
+  13          #define uchar unsigned char
+  14          #define uint unsigned int
+  15          sbit ds1302_sclk= P1^4;    //DS1302的Sclk时钟线位定义
+  16          sbit ds1302_io  = P1^5;    //DS1302的i/o数据线位定义
+  17          sbit ds1302_ce = P1^6;     //DS1302的ce片选线位定义
+  18          sbit lcd1602_rs = P1^2;          //位定义1602液晶数据命令选择端
+  19          sbit lcd1602_rw = P1^1;          //位定义1602液晶读写选择端
+  20          sbit lcd1602_en  = P1^0;         //位定义1602液晶使能端
+  21          sbit set = P3^4;               //定义S9按键_时间设置选择键
+  22          sbit up  = P3^2;               //定义S13按键_增加键
+  23          sbit down= P3^3;               //定义S17按键_减小键
+  24          
+  25          uchar write_add[]={0x8c,0x8a,0x88,0x86,0x84,0x82,0x80};  //年、周、月、日、时、分、秒的寄存器写入地址 
+  26          
+  27          uchar code table1[]={"20  -  -   Week"}; //液晶一直显示的字符
+  28          uchar code table2[]={"      :  :      "}; //用空格补齐16位
+  29          uchar miao,fen,shi,nian,yue,ri,week;
+  30          uchar flag=1,count=0,flag_up=0,flag_down=0,done=0;
+  31          
+  32          void delay(uchar x)  //延时函数
+  33          {
+  34   1              uchar y,z;
+  35   1              for(z=x;z>0;z--)
+  36   1                      for(y=110;y>0;y--);
+  37   1      }
+  38          
+  39          /*****************************与ds1302相关函数*********************************/
+  40          
+  41          void write_ds1302_byte(uchar dat)   //ds1302写一字节
+  42          {
+  43   1              uchar i;
+  44   1              for(i=0;i<8;i++)   //分8次循环，把（add）一位一位的写入
+  45   1              {
+  46   2                      ds1302_sclk=0;  
+  47   2                      ds1302_io =dat&0x01;   //dat和0x01进行按位与，保留最低位。即从低位开始写入
+  48   2                      dat=dat>>1;   //add右移一位
+  49   2                      ds1302_sclk=1; 
+  50   2              }
+  51   1      }
+  52          
+  53          void ds1302_write(uchar add,uchar date)  //单字节写操作函数（包含地址和数据）
+  54          {
+C51 COMPILER V9.01   MAIN                                                                  06/14/2020 15:22:09 PAGE 2   
+
+  55   1              ds1302_ce=0;      
+  56   1              ds1302_sclk=0;     
+  57   1              ds1302_ce=1;     //ce变为高电平，允许单片机向DS1302中的寄存器写入地址命令和数据
+  58   1              _nop_();         
+  59   1              write_ds1302_byte(add);    //写入控制命令（指明写入的寄存器地址及后续的操作为写操作）
+  60   1              write_ds1302_byte(date);   //写入一个字节数据
+  61   1              ds1302_ce=0;     //地址命令和数据写完之后，把ce拉低，防止对写入的数据进行误操作
+  62   1              _nop_();         
+  63   1              ds1302_io =1;    //释放IO数据线
+  64   1              ds1302_sclk=1;   //释放sclk时钟线
+  65   1      }
+  66           
+  67          uchar ds1302_read(uchar add)  //单字节读操作函数
+  68          {
+  69   1              uchar i,value;
+  70   1              ds1302_ce=0;     
+  71   1              ds1302_sclk=0;    
+  72   1              ds1302_ce=1;  //ce变为高电平，单片机向DS1302中的寄存器写入地址命令，并读出数据
+  73   1              _nop_();        //稍微延时（一个机器周期）
+  74   1              write_ds1302_byte(add);   //写入控制命令,（指明要读取的寄存器地址及后续的操作为读操作）
+  75   1              for(i=0;i<8;i++)   //分8次循环，把数据一位一位的读出
+  76   1              {
+  77   2                      value=value>>1;     //value右移一位
+  78   2                      ds1302_sclk=0;    //把sclk时钟置为低电平，开始读取数据
+  79   2                      if(ds1302_io)
+  80   2                      {
+  81   3                              value=value|0x80;    //把I0读到的值，放到value 的最高位
+  82   3                      }
+  83   2                      ds1302_sclk=1; 
+  84   2              }
+  85   1              ds1302_ce=0;      //一个字节的数据读完之后，把ce拉低
+  86   1              _nop_();
+  87   1              ds1302_sclk=0;     //释放sclk时钟线
+  88   1              _nop_();
+  89   1              ds1302_sclk=1;
+  90   1              ds1302_io=1;      //释放io数据线
+  91   1              return value;    //把 value值返回
+  92   1      }
+  93          
+  94          void set_rtc()   //设置时间初值函数
+  95          {
+  96   1              uchar i,j,k;
+  97   1              for(i=0;i<7;i++)  //把数组time_data[]中的7个十进制数转换成BCD码
+  98   1              {
+  99   2                      j=time_data[i]/10;
+*** ERROR C202 IN LINE 99 OF MAIN.C: 'time_data': undefined identifier
+ 100   2                      k=time_data[i]%10;
+*** ERROR C202 IN LINE 100 OF MAIN.C: 'time_data': undefined identifier
+ 101   2                      time_data[i]=k+j*16;
+*** ERROR C202 IN LINE 101 OF MAIN.C: 'time_data': undefined identifier
+ 102   2              }
+ 103   1              ds1302_write(0x8e,0x00);  //在往寄存器写之前，要去除写保护（8e为写保护寄存器的地址）
+ 104   1              for(i=0;i<7;i++)   //分7次循环，向年、周、月、日、时、分、秒的寄存器写入时间数据
+ 105   1              {
+ 106   2                      ds1302_write(write_add[i],time_data[i]);
+*** ERROR C202 IN LINE 106 OF MAIN.C: 'time_data': undefined identifier
+ 107   2              }
+ 108   1              ds1302_write(0x8e,0x80);  //加写保护
+ 109   1      }
+ 110          
+ 111          
+ 112          /***************************与lcd1602相关函数***************************/
+C51 COMPILER V9.01   MAIN                                                                  06/14/2020 15:22:09 PAGE 3   
+
+ 113          void lcd_write_com(uchar com)   //写命令函数
+ 114          {
+ 115   1              lcd1602_rs=0;     //数据命令选择端，写命令时设为0
+ 116   1              lcd1602_rw=0;    //读写选择端，写时设为0
+ 117   1              lcd1602_en=0;  
+ 118   1              P0=com;        //将要写的命令送到数据总线上
+ 119   1              lcd1602_en=1;   //使能端电平变换，形成一个高脉冲将命令写入到液晶控制器
+ 120   1              delay(5);       //延时
+ 121   1              lcd1602_en=0;           
+ 122   1      }
+ 123          
+ 124          void lcd_write_date(uchar date)    //写数据函数
+ 125          {
+ 126   1          lcd1602_rs=1;      //数据命令选择端，写数据时设为1
+ 127   1              lcd1602_rw=0;     //读写选择端，写时设为0
+ 128   1              lcd1602_en=0;
+ 129   1              P0=date;       //将要写的数据送到数据总线上
+ 130   1              lcd1602_en=1;  //使能端电平变换，形成一个高脉冲将命令写入到液晶控制器
+ 131   1              delay(5);       //延时
+ 132   1              lcd1602_en=0;   
+ 133   1      }
+ 134          
+ 135          void lcd1602_init()              //LCD1602初始化函数    
+ 136          {
+ 137   1              uchar lcdnum;
+ 138   1              lcd_write_com(0x38);  
+ 139   1              lcd_write_com(0x0c);   
+ 140   1              lcd_write_com(0x06);   
+ 141   1              lcd_write_com(0x01);   
+ 142   1      
+ 143   1              lcd_write_com(0x80);                 //写第一行数据 
+ 144   1              for(lcdnum=0;lcdnum<16;lcdnum++)              
+ 145   1              {
+ 146   2                      lcd_write_date(table1[lcdnum]);
+ 147   2                      delay(2);
+ 148   2              }
+ 149   1              lcd_write_com(0x80+0x40);                        //写入第二行数据 
+ 150   1              for(lcdnum=0;lcdnum<16;lcdnum++)
+ 151   1              {
+ 152   2                      lcd_write_date(table2[lcdnum]);
+ 153   2                      delay(2);
+ 154   2              }
+ 155   1      }
+ 156          
+ 157          /***********************************显示部分********************************/
+ 158          
+ 159          void write_time1(uchar add,uchar date)    //日期送显示
+ 160          {       
+ 161   1              uchar shi,ge;
+ 162   1              shi=date/10;
+ 163   1              ge=date%10;
+ 164   1              lcd_write_com(0x80+add);
+ 165   1              lcd_write_date(0x30+shi);
+ 166   1              lcd_write_date(0x30+ge);
+ 167   1      }
+ 168          
+ 169          void write_time2(uchar add,uchar date)    //时间送显示
+ 170          {       
+ 171   1              uchar shi,ge;
+ 172   1              shi=date/10;
+ 173   1              ge=date%10;
+ 174   1              lcd_write_com(0x80+0x44+add);
+C51 COMPILER V9.01   MAIN                                                                  06/14/2020 15:22:09 PAGE 4   
+
+ 175   1              lcd_write_date(0x30+shi);
+ 176   1              lcd_write_date(0x30+ge);
+ 177   1      }
+ 178          
+ 179          uchar bcd_decimal(uchar bcd)              //bcd转换十进制
+ 180          {
+ 181   1              uchar decimal;
+ 182   1              decimal=bcd>>4;
+ 183   1              decimal=decimal*10+(bcd&=0x0f);
+ 184   1              return decimal;         
+ 185   1      }
+ 186          
+ 187          void write_week(uchar we)        //星期送显示
+ 188          {
+ 189   1              lcd_write_com(0x80+0x0f);
+ 190   1      
+ 191   1      
+ 192   1              switch(we)
+ 193   1              {
+ 194   2                      case 1: lcd_write_date('1');
+ 195   2                                      break;
+ 196   2                      case 2: lcd_write_date('2');
+ 197   2                                      break;
+ 198   2                      case 3: lcd_write_date('3');
+ 199   2                                      break;
+ 200   2                      case 4: lcd_write_date('4');
+ 201   2                                      break;  
+ 202   2                      case 5: lcd_write_date('5');
+ 203   2                                      break;
+ 204   2                      case 6: lcd_write_date('6');
+ 205   2                                      break;
+ 206   2                      case 7: lcd_write_date('7');
+ 207   2                                      break;                                                                                                          
+ 208   2              }       
+ 209   1      }
+ 210          
+ 211          /******************************按键处理******************************/
+ 212          
+ 213          uchar key_bcd(uchar key_decimal)    //转成ds1302所需的BCD码 
+ 214          {
+ 215   1              uchar temp;
+ 216   1              temp=(((key_decimal/10)&0x0f)<<4)|(key_decimal%10);
+ 217   1              return temp;    
+ 218   1      }
+ 219          
+ 220          void key_up_down()     //加减键处理函数
+ 221          {
+ 222   1              if(up==0)   //加键处理
+ 223   1              {
+ 224   2                      delay(50);
+ 225   2                      flag_up=1;     //"加"更新标志
+ 226   2                      while(!up);
+ 227   2                      switch(count)
+ 228   2                      {
+ 229   3                              case 1:
+ 230   3                                              miao++;
+ 231   3                                              if(miao>59)
+ 232   3                                                      miao=0;
+ 233   3                                              break;
+ 234   3                              case 2:
+ 235   3                                              fen++;
+ 236   3                                              if(fen>59)
+C51 COMPILER V9.01   MAIN                                                                  06/14/2020 15:22:09 PAGE 5   
+
+ 237   3                                                      fen=0;
+ 238   3                                              break;
+ 239   3                              case 3:
+ 240   3                                              shi++;
+ 241   3                                              if(shi>23)
+ 242   3                                                      shi=0;
+ 243   3                                              break;                          
+ 244   3                              case 4:
+ 245   3                                              week++;
+ 246   3                                              if(week>7)
+ 247   3                                                      week=1;
+ 248   3                                              break;                          
+ 249   3                              case 5:
+ 250   3                                              ri++;
+ 251   3                                              if(ri>31)
+ 252   3                                                      ri=1;
+ 253   3                                              break;                                  
+ 254   3                              case 6:
+ 255   3                                              yue++;
+ 256   3                                              if(yue>12)
+ 257   3                                                      yue=1;
+ 258   3                                              break;                                  
+ 259   3                              case 7: 
+ 260   3                                              nian++;
+ 261   3                                              if(nian>99)
+ 262   3                                                      nian=0;
+ 263   3                                              break;                                                                                          
+ 264   3                      }
+ 265   2              }
+ 266   1              if(down==0)    //减键处理
+ 267   1              {
+ 268   2                      delay(50);
+ 269   2                      flag_down=1;       //"减"更新标志                       
+ 270   2                      while(!down);
+ 271   2                      switch(count)
+ 272   2                      {
+ 273   3                              case 1:
+ 274   3                                              miao--;
+ 275   3                                              if(miao==255)
+ 276   3                                                      miao=59;
+ 277   3                                              break;
+ 278   3                              case 2:
+ 279   3                                              fen--;
+ 280   3                                              if(fen==255)
+ 281   3                                                      fen=59;
+ 282   3                                              break;
+ 283   3                              case 3:
+ 284   3                                              shi--;
+ 285   3                                              if(miao==255)
+ 286   3                                                      shi=23;
+ 287   3                                              break;                          
+ 288   3                              case 4:
+ 289   3                                              week--;
+ 290   3                                              if(week<1)
+ 291   3                                                      week=7;
+ 292   3                                              break;                          
+ 293   3                              case 5:
+ 294   3                                              ri--;
+ 295   3                                              if(ri<1)
+ 296   3                                                      ri=31;
+ 297   3                                              break;                                  
+ 298   3                              case 6:
+C51 COMPILER V9.01   MAIN                                                                  06/14/2020 15:22:09 PAGE 6   
+
+ 299   3                                              yue--;
+ 300   3                                              if(yue<1)
+ 301   3                                                      yue=12;
+ 302   3                                              break;                                  
+ 303   3                              case 7: 
+ 304   3                                              nian--;
+ 305   3                                              if(nian==255)
+ 306   3                                                      nian=99;
+ 307   3                                              break;                                                                                          
+ 308   3                      }
+ 309   2              }                       
+ 310   1      }
+ 311          
+ 312          
+ 313          void key_set()   //ste键扫描函数
+ 314          {
+ 315   1              if(set==0 )
+ 316   1              {
+ 317   2                      delay(50);
+ 318   2                      if(set==0)
+ 319   2                      {       
+ 320   3                              while(!set);      //等待set释放
+ 321   3                              count++;        //按set一下，count加1，进入时间调速扫描程序  
+ 322   3                              lcd_write_com(0x0f);  //把1602液晶显示光标并闪烁
+ 323   3                              if(flag==1)
+ 324   3                                      {
+ 325   4                                              done=1;
+ 326   4                                              flag=0;
+ 327   4                                              ds1302_write(0x8e,0x00);        //写允许        
+ 328   4                                              ds1302_write(0x80,key_bcd(miao)|0x80); //BIT7为1，晶振停止工作
+ 329   4                                              ds1302_write(0x8e,0x80);        //写保护        
+ 330   4                                      }               
+ 331   3                      }
+ 332   2              }
+ 333   1      
+ 334   1      }
+ 335          
+ 336          void keyjpress()        //按键处理
+ 337          {       
+ 338   1              key_set();
+ 339   1              if(count!=0)           //count不为0，进入时间调整扫描
+ 340   1              {
+ 341   2                              
+ 342   2                      switch(count)
+ 343   2                      {
+ 344   3                              case 1:do    
+ 345   3                                         {
+ 346   4                                                      lcd_write_com(0x80+0x40+11);     //调整秒
+ 347   4                                                      key_up_down();
+ 348   4                                                      if(flag_up || flag_down)
+ 349   4                                                      {       
+ 350   5                                                              flag_up=0;
+ 351   5                                                              flag_down=0;
+ 352   5                                                              ds1302_write(0x8e,0x00);                        
+ 353   5                                                              ds1302_write(0x80,key_bcd(miao) | 0x80);
+ 354   5                                                              ds1302_write(0x8e,0x80);        
+ 355   5                                                      write_time2(6,miao);
+ 356   5                                                      lcd_write_com(0x80+0x40+7);  //液晶写字符后光标自动
+ 357   5                                                               //向右移动一位，把光标
+ 358   5                                                               //左移一位
+ 359   5                                              }
+ 360   4                                 }
+C51 COMPILER V9.01   MAIN                                                                  06/14/2020 15:22:09 PAGE 7   
+
+ 361   3                                      while(count==2);
+ 362   3                                              break;
+ 363   3      
+ 364   3                              case 2:do   
+ 365   3                                         {
+ 366   4                                                      lcd_write_com(0x80+0x40+8);      //调整分
+ 367   4                                                      key_up_down();                                          
+ 368   4                                                      if(flag_up || flag_down)
+ 369   4                                                      {       
+ 370   5                                                              flag_up=0;                                      
+ 371   5                                                              flag_down=0;
+ 372   5                                                              ds1302_write(0x8e,0x00);                        
+ 373   5                                                              ds1302_write(0x82,key_bcd(fen));
+ 374   5                                                              ds1302_write(0x8e,0x80);        
+ 375   5                                                      write_time2(3,fen);
+ 376   5                                                      lcd_write_com(0x80+0x40+4);
+ 377   5                                              }       
+ 378   4                                      }
+ 379   3                                      while(count==3);        
+ 380   3                                              break;
+ 381   3      
+ 382   3                              case 3:do                                 
+ 383   3                                         {    
+ 384   4                                                      lcd_write_com(0x80+0x40+5);   //调整时
+ 385   4                                                      key_up_down();
+ 386   4                                                      if(flag_up || flag_down)
+ 387   4                                                      {       
+ 388   5                                                              flag_up=0;                                      
+ 389   5                                                              flag_down=0;
+ 390   5                                                              ds1302_write(0x8e,0x00);                        
+ 391   5                                                              ds1302_write(0x84,key_bcd(shi));
+ 392   5                                                              ds1302_write(0x8e,0x80);        
+ 393   5                                                      write_time2(0,shi);
+ 394   5                                                      lcd_write_com(0x80+0x40+1);
+ 395   5                                              }
+ 396   4                                      }
+ 397   3                                      while(count==4);
+ 398   3                                              break;                  
+ 399   3                              case 4: do
+ 400   3                                         {
+ 401   4                                                      lcd_write_com(0x80+0x0f);    //调整星期
+ 402   4                                                      key_up_down();
+ 403   4                                                      if(flag_up || flag_down)
+ 404   4                                                      {       
+ 405   5                                                              flag_up=0;                                      
+ 406   5                                                              flag_down=0;                                            
+ 407   5                                                              ds1302_write(0x8e,0x00);                        
+ 408   5                                                              ds1302_write(0x8a,key_bcd(week));
+ 409   5                                                              ds1302_write(0x8e,0x80);        
+ 410   5                                                      write_week(week);
+ 411   5                                                      lcd_write_com(0x80+0x0e);
+ 412   5                                              }       
+ 413   4                                      }
+ 414   3                                      while(count==5);
+ 415   3                                              break;                  
+ 416   3                              case 5:do
+ 417   3                                         {    
+ 418   4                                                      lcd_write_com(0x80+9);   //调整日
+ 419   4                                                      key_up_down();
+ 420   4                                                      if(flag_up || flag_down)
+ 421   4                                                      {       
+ 422   5                                                              flag_up=0;                                      
+C51 COMPILER V9.01   MAIN                                                                  06/14/2020 15:22:09 PAGE 8   
+
+ 423   5                                                              flag_down=0;
+ 424   5                                                              ds1302_write(0x8e,0x00);                        
+ 425   5                                                              ds1302_write(0x86,key_bcd(ri));
+ 426   5                                                              ds1302_write(0x8e,0x80);        
+ 427   5                                                      write_time1(8,ri);
+ 428   5                                                      lcd_write_com(0x80+9);
+ 429   5                                              }
+ 430   4                                      }
+ 431   3                                              while(count==6);
+ 432   3                                              break;                  
+ 433   3                              case 6:do
+ 434   3                                         {                
+ 435   4                                                      lcd_write_com(0x80+6);   //调整月
+ 436   4                                                      key_up_down();
+ 437   4                                                      if(flag_up || flag_down)
+ 438   4                                                      {       
+ 439   5                                                              flag_up=0;                                      
+ 440   5                                                              flag_down=0;                                            
+ 441   5                                                              ds1302_write(0x8e,0x00);                        
+ 442   5                                                              ds1302_write(0x88,key_bcd(yue));
+ 443   5                                                              ds1302_write(0x8e,0x80);        
+ 444   5                                                      write_time1(5,yue);
+ 445   5                                                      lcd_write_com(0x80+6);
+ 446   5                                              }
+ 447   4                                      }
+ 448   3                                      while(count==7);
+ 449   3                                              break;                  
+ 450   3                              case 7:
+ 451   3                                                      lcd_write_com(0x80+3);     //调整年
+ 452   3                                                      key_up_down();
+ 453   3                                                      if(flag_up || flag_down)
+ 454   3                                                      {       
+ 455   4                                                              flag_up=0;                                      
+ 456   4                                                              flag_down=0;
+ 457   4                                                              ds1302_write(0x8e,0x00);                        
+ 458   4                                                              ds1302_write(0x8c,key_bcd(nian));
+ 459   4                                                              ds1302_write(0x8e,0x80);        
+ 460   4                                                      write_time1(2,nian);
+ 461   4                                                      lcd_write_com(0x80+3);
+ 462   4                                              }
+ 463   3                                      break;
+ 464   3                              case 8: 
+ 465   3                                              lcd_write_com(0x0c);     //调整结束，关闭显示光标
+ 466   3                                              flag=1;
+ 467   3                                              done=0;
+ 468   3                                              count=0;
+ 469   3                                              ds1302_write(0x8e,0x00);                        
+ 470   3                                              ds1302_write(0x80,key_bcd(miao)&0x7f); //BIT7为0,晶振开始工作
+ 471   3                                              ds1302_write(0x8e,0x80); 
+ 472   3                                              break;                                                  
+ 473   3                              default:break;                                                                                  
+ 474   3                      }       
+ 475   2              }
+ 476   1      
+ 477   1      }
+ 478          
+ 479          void xianshi()  //1602液显示函数
+ 480          {
+ 481   1        //读秒分时，日月年，星期              
+ 482   1              miao=bcd_decimal(ds1302_read(0x81));  
+ 483   1              fen =bcd_decimal(ds1302_read(0x83));
+ 484   1              shi =bcd_decimal(ds1302_read(0x85));
+C51 COMPILER V9.01   MAIN                                                                  06/14/2020 15:22:09 PAGE 9   
+
+ 485   1              ri  =bcd_decimal(ds1302_read(0x87));
+ 486   1              yue =bcd_decimal(ds1302_read(0x89));
+ 487   1              nian=bcd_decimal(ds1302_read(0x8d));
+ 488   1              week=bcd_decimal(ds1302_read(0x8b));
+ 489   1        //送液晶显示          
+ 490   1              write_time2(6,miao);
+ 491   1              write_time2(3,fen);
+ 492   1              write_time2(0,shi);
+ 493   1              write_time1(8,ri);
+ 494   1              write_time1(5,yue);
+ 495   1              write_time1(2,nian);
+ 496   1              write_week(week);       
+ 497   1       
+ 498   1      }
+ 499          
+ 500          main()  //主函数
+ 501          {
+ 502   1              uchar ch;  
+ 503   1              lcd1602_en=0;  //关闭1602液晶使能，防止1602数据端影响单片机P0口输出
+ 504   1              P0=0xff;        
+ 505   1              lcd1602_init();    //1602液晶初始化
+ 506   1      
+ 507   1              ch=ds1302_read(0x81)>>7;  //读取DS1302时钟的秒寄存器的值，并保留最高位
+ 508   1              if(ch)   //判断：若ch为0，不设置初值；若ch为1，重新设置初值
+ 509   1              {
+ 510   2              set_rtc();   //对DS1302设置时间初值
+ 511   2              }
+ 512   1              while(1)
+ 513   1              {
+ 514   2                      if(done==1)
+ 515   2                      {       
+ 516   3                              keyjpress();
+ 517   3                      }
+ 518   2                      if(done==0)
+ 519   2                      {
+ 520   3                              xianshi();        //取得并显示日历、时间
+ 521   3                              key_set();
+ 522   3                      
+ 523   3                      }                               
+ 524   2              }
+ 525   1      }  
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  4 ERROR(S)

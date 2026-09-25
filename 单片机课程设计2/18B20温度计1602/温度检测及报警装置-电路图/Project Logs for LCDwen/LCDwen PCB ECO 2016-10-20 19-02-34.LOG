@@ -1,0 +1,9 @@
+Removed Pin From Net: NetName=P10 Pin=89C52-1
+Removed Pin From Net: NetName=P11 Pin=89C52-2
+Removed Pin From Net: NetName=P12 Pin=89C52-3
+Removed Pin From Net: NetName=P13 Pin=89C52-4
+Added Pin To Net: NetName=P10 Pin=89C52-14
+Added Pin To Net: NetName=P11 Pin=89C52-15
+Added Pin To Net: NetName=P12 Pin=89C52-16
+Added Pin To Net: NetName=P13 Pin=89C52-17
+Added Room: Name=LCDwen

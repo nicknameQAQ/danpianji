@@ -1,0 +1,23 @@
+<html>
+<body>
+<pre>
+<h1>礦ision3 Build Log</h1>
+<h2>Project:</h2>
+F:\ZK-10 双L298N驱动模块\程序\5.小车PWM运行\小车前进.uv2
+Project File Date:  07/01/2012
+
+<h2>Output:</h2>
+Build target 'Target 1'
+compiling 小车前进.C...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DELAY?小车前絖
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?BACKRUN?小车前絖
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?LEFTRUN?小车前絖
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?RIGHTRUN?小车前絖
+Program Size: data=15.2 xdata=0 code=404
+creating hex file from "小车前进"...
+"小车前进" - 0 Error(s), 4 Warning(s).

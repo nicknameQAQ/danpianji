@@ -1,0 +1,339 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Project:</h2>
+D:\±ÏÉè\ÃÜÂëËø\ÃÜÂëËø.uvproj
+Project File Date:  06/11/2016
+
+<h2>Output:</h2>
+Build target 'Target 1'
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=81.0 xdata=0 code=1313
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=81.0 xdata=0 code=1313
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=81.0 xdata=0 code=1313
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(74): error C202: 'book': undefined identifier
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(68): warning C280: 'item': unreferenced local variable
+MAIN.C(121): warning C280: 'j': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=78.0 xdata=0 code=1231
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 3 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(69): warning C280: 'item': unreferenced local variable
+MAIN.C(122): warning C280: 'j': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=86.0 xdata=0 code=1225
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 3 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(69): warning C280: 'item': unreferenced local variable
+MAIN.C(122): warning C280: 'j': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=82.0 xdata=0 code=1243
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 3 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(69): warning C280: 'item': unreferenced local variable
+MAIN.C(122): warning C280: 'j': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=82.0 xdata=0 code=1340
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 3 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(119): error C141: syntax error near 'unsigned'
+MAIN.C(119): error C202: 'key_value': undefined identifier
+MAIN.C(120): error C141: syntax error near 'unsigned'
+MAIN.C(120): error C202: 'temp_key_value': undefined identifier
+MAIN.C(126): error C202: 'temp_key_value': undefined identifier
+MAIN.C(127): error C202: 'temp_key_value': undefined identifier
+MAIN.C(129): error C202: 'key_value': undefined identifier
+MAIN.C(137): error C202: 'key_value': undefined identifier
+MAIN.C(139): error C202: 'key_value': undefined identifier
+MAIN.C(152): error C202: 'key_value': undefined identifier
+MAIN.C(154): error C202: 'key_value': undefined identifier
+MAIN.C(163): error C202: 'key_value': undefined identifier
+MAIN.C(165): error C202: 'key_value': undefined identifier
+MAIN.C(171): error C202: 'key_value': undefined identifier
+MAIN.C(175): error C202: 'key_value': undefined identifier
+MAIN.C(177): error C202: 'p1': undefined identifier
+MAIN.C(185): error C202: 'key_value': undefined identifier
+MAIN.C(192): error C202: 'p1': undefined identifier
+MAIN.C(201): error C202: 'key_value': undefined identifier
+MAIN.C(204): error C202: 'key_value': undefined identifier
+MAIN.C(206): error C202: 'key_value': undefined identifier
+MAIN.C(210): error C202: 'key_value': undefined identifier
+MAIN.C(212): error C202: 'key_value': undefined identifier
+MAIN.C(214): error C202: 'p1': undefined identifier
+MAIN.C(220): error C208: 'display3': too many actual parameters
+MAIN.C(221): error C202: 'key_value': undefined identifier
+MAIN.C(223): error C202: 'key_value': undefined identifier
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(119): error C141: syntax error near 'unsigned'
+MAIN.C(119): error C202: 'key_value': undefined identifier
+MAIN.C(120): error C141: syntax error near 'unsigned'
+MAIN.C(120): error C202: 'temp_key_value': undefined identifier
+MAIN.C(126): error C202: 'temp_key_value': undefined identifier
+MAIN.C(127): error C202: 'temp_key_value': undefined identifier
+MAIN.C(129): error C202: 'key_value': undefined identifier
+MAIN.C(137): error C202: 'key_value': undefined identifier
+MAIN.C(139): error C202: 'key_value': undefined identifier
+MAIN.C(152): error C202: 'key_value': undefined identifier
+MAIN.C(154): error C202: 'key_value': undefined identifier
+MAIN.C(163): error C202: 'key_value': undefined identifier
+MAIN.C(165): error C202: 'key_value': undefined identifier
+MAIN.C(171): error C202: 'key_value': undefined identifier
+MAIN.C(175): error C202: 'key_value': undefined identifier
+MAIN.C(177): error C202: 'p1': undefined identifier
+MAIN.C(185): error C202: 'key_value': undefined identifier
+MAIN.C(192): error C202: 'p1': undefined identifier
+MAIN.C(201): error C202: 'key_value': undefined identifier
+MAIN.C(204): error C202: 'key_value': undefined identifier
+MAIN.C(206): error C202: 'key_value': undefined identifier
+MAIN.C(210): error C202: 'key_value': undefined identifier
+MAIN.C(212): error C202: 'key_value': undefined identifier
+MAIN.C(214): error C202: 'p1': undefined identifier
+MAIN.C(221): error C202: 'key_value': undefined identifier
+MAIN.C(223): error C202: 'key_value': undefined identifier
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(178): error C202: 'p1': undefined identifier
+MAIN.C(215): error C202: 'p1': undefined identifier
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(116): warning C280: 'j': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=49.0 xdata=0 code=1366
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 2 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(116): warning C280: 'j': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=49.0 xdata=0 code=1359
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 2 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(116): warning C280: 'j': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=49.0 xdata=0 code=1359
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 2 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(116): warning C280: 'j': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=49.0 xdata=0 code=1359
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 2 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(116): warning C280: 'j': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=49.0 xdata=0 code=1359
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 2 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(116): warning C280: 'j': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=49.0 xdata=0 code=1362
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 2 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(116): warning C280: 'j': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=49.0 xdata=0 code=1362
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 2 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(116): warning C280: 'j': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=49.0 xdata=0 code=1362
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 2 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(116): warning C280: 'j': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=49.0 xdata=0 code=1362
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 2 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(116): warning C280: 'i': unreferenced local variable
+MAIN.C(116): warning C280: 'j': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=49.0 xdata=0 code=1268
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 3 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(130): warning C280: 'i': unreferenced local variable
+MAIN.C(130): warning C280: 'j': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?DISPLAY4?MAIN
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=35.0 xdata=0 code=1305
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 4 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(130): warning C280: 'i': unreferenced local variable
+MAIN.C(130): warning C280: 'j': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=34.0 xdata=0 code=1305
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 3 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(136): warning C280: 'i': unreferenced local variable
+MAIN.C(136): warning C280: 'j': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=34.0 xdata=0 code=1307
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 3 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(136): warning C280: 'j': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=34.0 xdata=0 code=1428
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 2 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(136): warning C280: 'j': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=34.0 xdata=0 code=1437
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 2 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(136): warning C280: 'j': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=34.0 xdata=0 code=1437
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 2 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(141): warning C280: 'j': unreferenced local variable
+MAIN.C(251): error C202: 'waittime': undefined identifier
+MAIN.C(252): error C202: 'waittime': undefined identifier
+Target not created
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(141): warning C280: 'j': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLEAN?KEY
+Program Size: data=32.0 xdata=0 code=1419
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 2 Warning(s).
+Build target 'Target 1'
+compiling key.c...
+KEY.C(13): error C202: 'Key_clear': undefined identifier
+KEY.C(16): error C202: 'Key_clear': undefined identifier
+Target not created
+Build target 'Target 1'
+compiling key.c...
+linking...
+Program Size: data=32.0 xdata=0 code=1402
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling lcd1602.c...
+linking...
+Program Size: data=32.0 xdata=0 code=1402
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling lcd1602.c...
+linking...
+Program Size: data=32.0 xdata=0 code=1402
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+MAIN.C(139): warning C280: 'j': unreferenced local variable
+linking...
+Program Size: data=30.0 xdata=0 code=1396
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+linking...
+Program Size: data=29.0 xdata=0 code=1396
+creating hex file from "ÃÜÂëËø"...
+"ÃÜÂëËø" - 0 Error(s), 0 Warning(s).

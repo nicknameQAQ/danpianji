@@ -1,0 +1,23 @@
+C51 COMPILER V8.02   8只数码管筥动显蔩8_F                                                  07/31/2011 23:08:00 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE 8只数码管筥动显蔩8_F
+OBJECT MODULE PLACED IN 8只数码管滚动显示8~F.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 8只数码管滚动显示8~F.C BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     68    ----
+   CONSTANT SIZE    =      8    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

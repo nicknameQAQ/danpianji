@@ -1,0 +1,293 @@
+C51 COMPILER V6.12  QIANGDA                                                                01/13/2015 23:02:50 PAGE 1   
+
+
+C51 COMPILER V6.12, COMPILATION OF MODULE QIANGDA
+OBJECT MODULE PLACED IN .\output\qiangda.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE .\qiangda.c DEBUG OBJECTEXTEND OBJECT(.\output\qiangda.obj) 
+
+stmt level    source
+
+   1          #include <reg51.h>
+   2          #include <intrins.h>
+   3          #include <stdlib.h>
+   4          
+   5          sbit DG1 = P0^0; //二位数码管第一位选择脚
+   6          sbit DG2 = P0^1; //二位数码管第二位选择脚
+   7          sbit DG3 = P0^3;
+   8          
+   9          
+  10          //P2端口 数码管段选
+  11          //P1端口 八位选手抢答
+  12          sbit start_qd_pin = P3^7;//开始抢答按钮连接管脚
+  13          sbit end_qd_pin = P3^5;		//结束抢答按钮连接管脚
+  14          
+  15          
+  16          sbit beep=P3^3;//蜂鸣器连接管脚
+  17          
+  18          unsigned char weixuan[10]={0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90};//数码管段码：0123456789
+  19          
+  20          unsigned char qd_num=0;	//抢答选手号
+  21          unsigned char qd_time=0;	//抢答倒计时间
+  22          unsigned char timeout_num=0;	//定时器产生中断次数
+  23          
+  24          unsigned char work_status = 0;	//工作状态，下面几个为工作状态定义的宏
+  25          #define START_QD_STATUS 0
+  26          #define WAIT_QD_STATUS 1
+  27          #define ACK_QD_STATUS 2
+  28          
+  29          
+  30          /*------延时2ms函数------*/
+  31          void delay2ms(void)   //误差 0us
+  32          {
+  33   1          unsigned char a,b;
+  34   1          for(b=4;b>0;b--)
+  35   1              for(a=248;a>0;a--);
+  36   1          _nop_();  //if Keil,require use intrins.h
+  37   1      }
+  38          /*------延时50ms函数，参数num为延时多少个50ms------*/
+  39          void delay50ms(unsigned int num)   //误差 0us
+  40          {
+  41   1          unsigned char a,b;
+  42   1      	unsigned char i=0;
+  43   1      
+  44   1      	for(i=0; i<num; i++)
+  45   1      	{
+  46   2          for(b=173;b>0;b--)
+  47   2              for(a=143;a>0;a--);
+  48   2      	}
+  49   1      }
+  50          
+  51          /*---初始化定时器0---*/
+  52          void InitTimer0(void)//50ms
+  53          {
+  54   1          TMOD = 0x01;//定时器工作模式1
+  55   1          TH0 = 0x3C;	//定时器装值高8位
+C51 COMPILER V6.12  QIANGDA                                                                01/13/2015 23:02:50 PAGE 2   
+
+  56   1          TL0 = 0x0B0;//定时器装值低8位
+  57   1          EA = 1;		//使能总中断
+  58   1          ET0 = 1;	//使能定时器0中断
+  59   1          TR0 = 1;	//启动定时器
+  60   1      }
+  61          /*------关闭定时器0------*/
+  62          void end_Timer0(void)
+  63          {
+  64   1      	ET0 = 0;//关闭定时器0中断
+  65   1          TR0 = 0;//停止定时器0
+  66   1      }
+  67          /*----初始化函数-----*/
+  68          void init(void)
+  69          {
+  70   1      	DG1 = 0;
+  71   1      	DG2 = 0;
+  72   1      	DG3 = 0;
+  73   1      	
+  74   1      	beep = 0;//上电时由于该脚为高，而为高时蜂鸣器会叫，故初始化为低
+  75   1      }
+  76          /*----------等待开始抢答状态
+  77          该状态下一直等待主席台按下开始抢答按钮或随机抢答按钮，再进入相应的工作状态！
+  78          这种状态机的编程方式是当前单片机开发者的主流思想。
+  79          ---------*/
+  80          void start_qd_status(void)
+  81          {
+  82   1      	if(start_qd_pin == 0)//检测到开始抢答按钮按下
+  83   1      	{
+  84   2      		work_status = WAIT_QD_STATUS;//工作状态设置为等待答题状态
+  85   2      		qd_num = 0;			//回答选手号为0，等待选手按下
+  86   2      		qd_time = 20;		//20s抢答时间
+  87   2      		timeout_num=0;		//中断次数清0
+  88   2      		InitTimer0();		//开启定时器0
+  89   2      	}
+  90   1      }
+  91          /*-------开始按钮按下后，等待选手抢答状态函数------*/
+  92          void wait_qd_status(void)
+  93          {
+  94   1      	unsigned char i = 0;
+  95   1      	if(qd_time == 0)//无人抢答，抢答时间已到
+  96   1      	{
+  97   2      		end_Timer0();//停止定时器0
+  98   2      
+  99   2      		//蜂鸣器给出无人抢答警报
+ 100   2      		beep = 1;	//蜂鸣器响
+ 101   2      		delay50ms(40);
+ 102   2      		beep = 0;
+ 103   2      
+ 104   2      		work_status = START_QD_STATUS;//无人抢答后恢复原始状态，设置工作状态为开始抢答状态
+ 105   2      	}
+ 106   1      	if(end_qd_pin == 0)//检测到结束按键
+ 107   1      	{
+ 108   2      		end_Timer0();//停止定时器0
+ 109   2      		qd_num = 0;//回答选手号为0
+ 110   2      		qd_time = 0;//抢答时间清0
+ 111   2      		work_status = START_QD_STATUS;//工作状态置开始抢答状态
+ 112   2      	}
+ 113   1      	switch(P1)//检测哪位选手按下抢答按钮
+ 114   1      	{
+ 115   2      		case 0xfe://1号
+ 116   2      			qd_num = 1;//回答选手号为1
+ 117   2      			qd_time = 30;
+C51 COMPILER V6.12  QIANGDA                                                                01/13/2015 23:02:50 PAGE 3   
+
+ 118   2      			timeout_num=0;
+ 119   2      			InitTimer0();
+ 120   2      			work_status = ACK_QD_STATUS;
+ 121   2      			break;
+ 122   2      	    case 0xfd://2号
+ 123   2      			qd_num = 2;//回答选手号为2
+ 124   2      			qd_time = 30;
+ 125   2      			timeout_num=0;
+ 126   2      			InitTimer0();
+ 127   2      			work_status = ACK_QD_STATUS;
+ 128   2      			break;
+ 129   2      		case 0xfb://3号
+ 130   2      			qd_num = 3;//回答选手号为3
+ 131   2      			qd_time = 30;
+ 132   2      			timeout_num=0;
+ 133   2      			InitTimer0();
+ 134   2      			work_status = ACK_QD_STATUS;
+ 135   2      			break;
+ 136   2      		case 0xf7://4号
+ 137   2      			qd_num = 4;//回答选手号为4
+ 138   2      			qd_time = 30;
+ 139   2      			timeout_num=0;
+ 140   2      			InitTimer0();
+ 141   2      			work_status = ACK_QD_STATUS;
+ 142   2      			break;
+ 143   2      		case 0xef://5号
+ 144   2      			qd_num = 5;//回答选手号为5
+ 145   2      			qd_time = 30;
+ 146   2      			timeout_num=0;
+ 147   2      			InitTimer0();
+ 148   2      			work_status = ACK_QD_STATUS;
+ 149   2      			break;
+ 150   2      		case 0xdf://6号
+ 151   2      			qd_num = 6;//回答选手号为6
+ 152   2      			qd_time = 30;
+ 153   2      			timeout_num=0;
+ 154   2      			InitTimer0();
+ 155   2      			work_status = ACK_QD_STATUS;
+ 156   2      			break;
+ 157   2      		case 0xbf://7号
+ 158   2      			qd_num = 7;//回答选手号为7
+ 159   2      			qd_time = 30;
+ 160   2      			timeout_num=0;
+ 161   2      			InitTimer0();
+ 162   2      			work_status = ACK_QD_STATUS;
+ 163   2      			break;
+ 164   2      		case 0x7f://8号
+ 165   2      			qd_num = 8;//回答选手号为8
+ 166   2      			qd_time = 30;
+ 167   2      			timeout_num=0;
+ 168   2      			InitTimer0();
+ 169   2      			work_status = ACK_QD_STATUS;
+ 170   2      			break;
+ 171   2      		default:
+ 172   2      			break;
+ 173   2      	}
+ 174   1      }
+ 175          /*------选手回答问题状态------*/
+ 176          void ack_qd_status()
+ 177          {
+ 178   1      	unsigned char i = 0;
+ 179   1      	if(qd_time == 0)//答题超时
+C51 COMPILER V6.12  QIANGDA                                                                01/13/2015 23:02:50 PAGE 4   
+
+ 180   1      	{
+ 181   2      		end_Timer0();//结束定时器0
+ 182   2      		qd_num = 0;
+ 183   2      		qd_time = 0;
+ 184   2      
+ 185   2      		for(i=0;i<3;i++)//选手回答问题超时警报
+ 186   2      		{
+ 187   3      			beep = 1;
+ 188   3      			delay50ms(5);
+ 189   3      			beep = 0;
+ 190   3      			delay50ms(5);
+ 191   3      		}
+ 192   2      
+ 193   2      		work_status = START_QD_STATUS;//设置工作状态为开始抢答状态
+ 194   2      	}
+ 195   1      	if(end_qd_pin == 0)//结束按键按下
+ 196   1      	{
+ 197   2      		end_Timer0();//结束定时器0
+ 198   2      		qd_num = 0;
+ 199   2      		qd_time = 0;
+ 200   2      		work_status = START_QD_STATUS;//设置工作状态为开始抢答状态
+ 201   2      	}
+ 202   1      }
+ 203          
+ 204          /*-----数码管显示函数
+ 205          二位数码管显示倒计时时间
+ 206          一位数码管显示抢答选手号------*/
+ 207          void display(unsigned char qd_time, unsigned char qd_num)
+ 208          {
+ 209   1      	P2 = weixuan[qd_time/10];//显示时间十位
+ 210   1      	DG1 = 1;		//打开第一位数码管位选
+ 211   1      	delay2ms();
+ 212   1      	DG1 = 0;
+ 213   1      
+ 214   1      	P2 = weixuan[qd_time%10];//显示时间个位
+ 215   1      	DG2 = 1;		//打开第二位数码管位选
+ 216   1      	delay2ms();
+ 217   1      	DG2 = 0;
+ 218   1      
+ 219   1      	P2 = weixuan[qd_num%10];//显示选手号
+ 220   1      	DG3 = 1;		//打开第三位数码管位选
+ 221   1      	delay2ms();
+ 222   1      	DG3 = 0;
+ 223   1      }
+ 224          
+ 225          /*-------主函数-----*/
+ 226          void main()
+ 227          {
+ 228   1      	init();//初始化
+ 229   1      
+ 230   1      	while(1)
+ 231   1      	{
+ 232   2      		switch(work_status)//工作状态判断
+ 233   2      		{
+ 234   3      			case START_QD_STATUS://开始抢答状态
+ 235   3      				start_qd_status();
+ 236   3      				break;
+ 237   3      			case WAIT_QD_STATUS://等待选手抢答状态
+ 238   3      				wait_qd_status();
+ 239   3      				break;
+ 240   3      			case ACK_QD_STATUS://选手回答状态
+ 241   3      				ack_qd_status();
+C51 COMPILER V6.12  QIANGDA                                                                01/13/2015 23:02:50 PAGE 5   
+
+ 242   3      				break;
+ 243   3      			default:
+ 244   3      				break;
+ 245   3      		}
+ 246   2      		display(qd_time, qd_num);//数码管显示
+ 247   2      	}
+ 248   1      }
+ 249          
+ 250          /*定时器0中断处理函数*/
+ 251          void Timer0Interrupt(void) interrupt 1
+ 252          {
+ 253   1      	timeout_num++;
+ 254   1          TH0 = 0x3C;
+ 255   1          TL0 = 0x0B0;
+ 256   1      
+ 257   1      	if(timeout_num==20)
+ 258   1      	{
+ 259   2      		timeout_num=0;
+ 260   2      		qd_time--;
+ 261   2      	}
+ 262   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    408    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     14       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

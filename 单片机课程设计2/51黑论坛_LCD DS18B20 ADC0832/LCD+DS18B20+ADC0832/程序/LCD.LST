@@ -1,0 +1,188 @@
+C51 COMPILER V9.01   LCD                                                                   04/23/2013 12:11:37 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE LCD
+OBJECT MODULE PLACED IN LCD.OBJ
+COMPILER INVOKED BY: E:\KEIL4\C51\BIN\C51.EXE LCD.C BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include"LCD.h"
+   2          #include<intrins.h>
+   3          void CheckBusy(void)
+   4          {
+   5   1              char i;
+   6   1              while(i&0x80)
+   7   1              {
+   8   2              E=1;
+   9   2              RS=0;
+  10   2              RW=1;
+  11   2              i=DataPort;
+  12   2              E=0;
+  13   2              }
+  14   1      
+  15   1      }
+  16          
+  17          void WriteData(unsigned char dat)
+  18          {
+  19   1              CheckBusy();
+  20   1              E=1;
+  21   1              RS=1;
+  22   1              RW=0;
+  23   1              DataPort=dat;
+  24   1              E=0;
+  25   1      }
+  26          
+  27          void WriteCMD(unsigned char cmd)
+  28          {
+  29   1              
+  30   1              CheckBusy();
+  31   1              E=1;
+  32   1              RS=0;
+  33   1              RW=0;
+  34   1              DataPort=cmd;
+  35   1              E=0;
+  36   1      }
+  37          
+  38          void LCD_Init(void)
+  39          {               _nop_();
+  40   1              _nop_();
+  41   1              _nop_();
+  42   1              _nop_();
+  43   1              WriteCMD(0x30);
+  44   1              _nop_();
+  45   1              _nop_();
+  46   1              _nop_();
+  47   1              _nop_();
+  48   1              WriteCMD(0x30);
+  49   1              WriteCMD(0x8);
+  50   1              WriteCMD(0x38);
+  51   1              _nop_();
+  52   1              _nop_();
+  53   1              _nop_();
+  54   1              _nop_();
+  55   1              WriteCMD(0x01);
+C51 COMPILER V9.01   LCD                                                                   04/23/2013 12:11:37 PAGE 2   
+
+  56   1              _nop_();
+  57   1              _nop_();
+  58   1              _nop_();
+  59   1              _nop_();
+  60   1              WriteCMD(0x0c);
+  61   1              WriteCMD(0x06); 
+  62   1              _nop_();
+  63   1              _nop_();
+  64   1              _nop_();
+  65   1              _nop_();
+  66   1      }
+  67          
+  68          void WriteStringToLcd(unsigned char x,unsigned char y,unsigned char *s)
+  69          {       unsigned char i;
+  70   1              if(y)
+  71   1              {
+  72   2              i=0xc0+x;
+  73   2              WriteCMD(i);
+  74   2              }
+  75   1              else
+  76   1              {
+  77   2               i=0x80+x;
+  78   2              WriteCMD(i);
+  79   2              }
+  80   1              _nop_();
+  81   1              _nop_();
+  82   1              _nop_();
+  83   1              _nop_();
+  84   1              _nop_();
+  85   1              _nop_();
+  86   1              _nop_();
+  87   1              _nop_();
+  88   1              _nop_();
+  89   1              _nop_();
+  90   1              _nop_();
+  91   1              _nop_();
+  92   1      
+  93   1              while(*s!='\0')
+  94   1              {
+  95   2              WriteData(*s);
+  96   2              _nop_();
+  97   2              _nop_();
+  98   2              _nop_();
+  99   2              _nop_();
+ 100   2              s++;
+ 101   2              }
+ 102   1                      _nop_();
+ 103   1              _nop_();
+ 104   1              _nop_();
+ 105   1              _nop_();
+ 106   1      }
+ 107          
+ 108          void Write_self(unsigned char *s)
+ 109          {char i;
+ 110   1      WriteCMD(0x40);
+ 111   1              _nop_();
+ 112   1              _nop_();
+ 113   1              _nop_();
+ 114   1              _nop_();
+ 115   1              _nop_();
+ 116   1              _nop_();
+ 117   1              _nop_();
+C51 COMPILER V9.01   LCD                                                                   04/23/2013 12:11:37 PAGE 3   
+
+ 118   1              _nop_();
+ 119   1              _nop_();
+ 120   1              _nop_();
+ 121   1              _nop_();
+ 122   1              _nop_();
+ 123   1      for(i=0;i<8;i++)
+ 124   1      {
+ 125   2              WriteData(*s);
+ 126   2              _nop_();
+ 127   2              _nop_();
+ 128   2              _nop_();
+ 129   2              _nop_();
+ 130   2              s++;
+ 131   2      }
+ 132   1              _nop_();
+ 133   1              _nop_();
+ 134   1              _nop_();
+ 135   1              _nop_();
+ 136   1      }
+ 137          
+ 138           void Write_selfString(unsigned char x,unsigned char y,unsigned char Num)
+ 139           {
+ 140   1              if(y)
+ 141   1              WriteCMD(0xc0+x);
+ 142   1              else
+ 143   1              WriteCMD(0x80+x);
+ 144   1              _nop_();
+ 145   1              _nop_();
+ 146   1              _nop_();
+ 147   1              _nop_();
+ 148   1              _nop_();
+ 149   1              _nop_();
+ 150   1              _nop_();
+ 151   1              _nop_();
+ 152   1              _nop_();
+ 153   1              _nop_();
+ 154   1              _nop_();
+ 155   1              _nop_();
+ 156   1               WriteData(Num);
+ 157   1                      _nop_();
+ 158   1              _nop_();
+ 159   1              _nop_();
+ 160   1              _nop_();
+ 161   1       }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    243    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

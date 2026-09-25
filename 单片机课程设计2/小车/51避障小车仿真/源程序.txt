@@ -1,0 +1,247 @@
+#include <reg51.h>
+#include <stdio.h>
+#include <intrins.h>
+
+#define  TX  P1_3
+#define  RX  P1_2
+
+#define Forward_L_DATA  180
+#define Forward_R_DATA  180        
+                            
+
+/*****°′???-í??ó???¨ò?******/
+sbit L293D_IN1=P0^0; 
+sbit L293D_IN2=P0^1;
+sbit L293D_IN3=P0^2;
+sbit L293D_IN4=P0^3;
+
+sbit L293D_EN1=P0^4;
+sbit L293D_EN2=P0^5;
+
+sbit BUZZ=P0^6;
+
+
+void Delay400Ms(void);
+
+
+unsigned char disbuff[4]={0,0,0,0};
+
+void Count(void);
+                          
+unsigned int  time=0;
+unsigned long S=0;
+bit  flag =0; 
+bit  turn_right_flag;
+
+
+//********************************************************** 
+//oˉêy??3?:Delay1ms(unsigned int i) 
+//oˉêy1|?ü:?óê±i*1msμ?×ó3ìDò(??ó|óú22.1184Mhz?§??)   
+//D?ê?2?êy:unsigned int i 
+//DD2??μ?÷:?T 
+//·μ??2?êy:?T 
+//ê1ó??μ?÷:i?aòa?óê±μ?ê±??3¤?è￡?μ￥??ê?MS￡?×?′ó?éò??óê±65536 ms 
+//********************************************************** 
+void Delay1ms(unsigned int i) 
+{ 
+unsigned char j,k; 
+do{ 
+  j = 10; 
+  do{ 
+   k = 50; 
+   do{ 
+    _nop_(); 
+   }while(--k);     
+  }while(--j); 
+}while(--i); 
+
+} 
+//********************************************************** 
+//oˉêy??3?:Delay10us(unsigned char i) 
+//oˉêy1|?ü:?óê±i*10usμ?×ó3ìDò(??ó|óú22.1184Mhz?§??)   
+//D?ê?2?êy:?T 
+//DD2??μ?÷:?T 
+//·μ??2?êy:?T 
+//ê1ó??μ?÷:i?aòa?óê±μ?ê±??3¤?è￡?μ￥??ê?US￡?×?′ó?éò??óê±250 ms 
+//********************************************************** 
+void Delay10us(unsigned char i) 
+{ 
+   unsigned char j; 
+do{ 
+  j = 10; 
+  do{ 
+   _nop_(); 
+   }while(--j); 
+}while(--i); 
+}  
+
+//=========================================================================================================================
+void Forward()//           ?°??
+{
+
+         L293D_IN1=1; 
+         L293D_IN2=0;
+         L293D_IN3=1;
+         L293D_IN4=0;
+//     PWM_Set(255-Speed_Right,255-Speed_Left);
+}
+void Stop(void)        //é23μ
+{
+
+     L293D_IN1=0; 
+         L293D_IN2=0;
+         L293D_IN3=0;
+         L293D_IN4=0;
+//         PWM_Set(0,0);
+}
+void Turn_Retreat()         //oó
+{
+    L293D_IN1=0; 
+        L293D_IN2=1;
+        L293D_IN3=0;
+        L293D_IN4=1;
+//        PWM_Set(255-Speed_Right,255-Speed_Left);
+}
+
+void Turn_left()         //×ó
+{
+    L293D_IN1=0; 
+        L293D_IN2=1;
+        L293D_IN3=1;
+        L293D_IN4=0;
+//        PWM_Set(255-Speed_Right,255-Speed_Left);
+}
+
+//=========================================================================================================================
+/********?àà?????3ìDò***************/
+    void Conut(void)
+        {
+         time=TH1*256+TL1;
+         TH1=0;
+         TL1=0;
+        
+         
+                    
+                                
+                                
+                                
+                                
+                                
+
+        S=time*2;
+           S=S*0.17;
+         if(S<=300)         
+         {        
+            if(turn_right_flag!=1)
+                {
+                    Stop();
+                    Delay1ms(5);
+                }
+                turn_right_flag=1;
+                
+                P1_7=0;
+                P2_0=0;
+                P0_6=0;
+
+                Delay1ms(10);
+                
+                P1_7=1;
+                P2_0=1;
+                P0_6=1;
+
+           
+           
+           Delay1ms(5);         
+         
+           Turn_left();
+           Delay1ms(10);           
+
+         }
+         else
+         {
+            turn_right_flag=0;
+            
+                Forward();
+
+
+         }
+         
+         if((S>=5000)||flag==1) 
+         {        
+          flag=0;
+      
+         }
+         else
+         {
+      disbuff[0]=S%10;
+          disbuff[1]=S/10%10;
+          disbuff[2]=S/100%10;
+          disbuff[3]=S/1000;
+         }
+        }
+
+/********************************************************/
+     void zd0() interrupt 3                  
+  {
+    flag=1;                         
+        RX=0;
+  }
+
+/********3?éù2¨??μ?????3??í?è????3ìDò***************/
+void Timer_Count(void)
+{
+                 TR1=1;                            
+             while(RX);                        
+             TR1=0;                                
+         Conut();                        
+
+}
+/********************************************************/
+   void  StartModule()                          
+  {
+          TX=1;                                             
+      Delay10us(2);
+          TX=0;
+  }
+/********************************************************/ 
+
+/*************?÷3ìDò********************/
+void main(void)
+{
+    unsigned char i;
+        unsigned int a;
+        
+        Delay1ms(400); 
+//        LCMInit()
+        Delay1ms(5);
+   TMOD=TMOD|0x10;
+    EA=1;
+    TH1=0;
+    TL1=0;          
+    ET1=1;             
+                                   
+        
+        
+        
+        turn_right_flag=0;
+        
+        BUZZ=0;        
+        Delay1ms(50);
+        BUZZ=1;
+        
+        while(1)
+          {
+                RX=1;
+            StartModule();
+        for(a=951;a>0;a--)
+            {
+                   
+               if(RX==1)
+                   {
+           Timer_Count();
+                   }
+             }
+           }
+} 
+
+}

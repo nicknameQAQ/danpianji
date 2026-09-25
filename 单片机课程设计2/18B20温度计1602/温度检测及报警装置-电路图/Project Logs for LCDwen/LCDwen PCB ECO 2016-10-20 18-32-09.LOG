@@ -1,0 +1,6 @@
+Added Component: Designator=mic(MICRO)
+Added Pin To Net: NetName=VCC Pin=mic-6
+Added Pin To Net: NetName=GND Pin=mic-7
+Added Member To Class: ClassName=LCDwen Member=Component K1 ¿ª¹Ø
+Added Member To Class: ClassName=LCDwen Member=Component mic micro
+Added Room: Name=LCDwen

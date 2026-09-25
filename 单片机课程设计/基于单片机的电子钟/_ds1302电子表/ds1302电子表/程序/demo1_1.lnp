@@ -1,0 +1,4 @@
+"STARTUP.obj",
+"first.obj" 
+TO "demo1_1" 
+RAMSIZE(256) 

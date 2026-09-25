@@ -1,0 +1,389 @@
+BL51 BANKED LINKER/LOCATER V6.22                                                        04/19/2015  01:30:37  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE .\Output\STARTUP.obj, .\Output\qiangdaqi.obj TO .\Output\qiangdaqi3 PRINT (.\qiangdaqi3.m51)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  .\Output\STARTUP.obj (?C_STARTUP)
+  .\Output\qiangdaqi.obj (QIANGDAQI)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_INIT)
+
+
+LINK MAP OF MODULE:  .\Output\qiangdaqi3 (?C_STARTUP)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     000EH     UNIT         ?DT?QIANGDAQI
+            IDATA   0016H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+                    0003H     0008H                  *** GAP ***
+            CODE    000BH     0003H     ABSOLUTE     
+                    000EH     07F2H                  *** GAP ***
+            CODE    0800H     008CH     UNIT         ?C_C51STARTUP
+            CODE    088CH     0077H     UNIT         ?PR?QD_STATUS?QIANGDAQI
+            CODE    0903H     0066H     UNIT         ?PR?_DISPLAY?QIANGDAQI
+            CODE    0969H     0028H     UNIT         ?PR?MAIN?QIANGDAQI
+            CODE    0991H     001EH     UNIT         ?PR?_DELAY1MS?QIANGDAQI
+            CODE    09AFH     001BH     UNIT         ?PR?TIMER0INTERRUPT?QIANGDAQI
+            CODE    09CAH     001AH     UNIT         ?PR?ACK_QD_STATUS?QIANGDAQI
+            CODE    09E4H     0019H     UNIT         ?C_INITSEG
+            CODE    09FDH     0012H     UNIT         ?PR?INIT_STATUS?QIANGDAQI
+            CODE    0A0FH     0010H     UNIT         ?PR?INITTIMER0?QIANGDAQI
+            CODE    0A1FH     0009H     UNIT         ?PR?INIT?QIANGDAQI
+            CODE    0A28H     0005H     UNIT         ?PR?END_TIMER0?QIANGDAQI
+            CODE    0A2DH     0005H     UNIT         ?PR?START_TIMER0?QIANGDAQI
+
+
+
+OVERLAY MAP OF MODULE:   .\Output\qiangdaqi3 (?C_STARTUP)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?QIANGDAQI
+  +--> ?C_INITSEG
+
+?PR?MAIN?QIANGDAQI
+  +--> ?PR?INIT?QIANGDAQI
+  +--> ?PR?INIT_STATUS?QIANGDAQI
+BL51 BANKED LINKER/LOCATER V6.22                                                      04/19/2015  01:30:37  PAGE 2
+
+
+  +--> ?PR?QD_STATUS?QIANGDAQI
+  +--> ?PR?ACK_QD_STATUS?QIANGDAQI
+  +--> ?PR?_DISPLAY?QIANGDAQI
+
+?PR?INIT_STATUS?QIANGDAQI
+  +--> ?PR?INITTIMER0?QIANGDAQI
+
+?PR?QD_STATUS?QIANGDAQI
+  +--> ?PR?END_TIMER0?QIANGDAQI
+  +--> ?PR?_DELAY1MS?QIANGDAQI
+
+?PR?ACK_QD_STATUS?QIANGDAQI
+  +--> ?PR?END_TIMER0?QIANGDAQI
+  +--> ?PR?START_TIMER0?QIANGDAQI
+
+
+
+SYMBOL TABLE OF MODULE:  .\Output\qiangdaqi3 (?C_STARTUP)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        ?C_STARTUP
+  C:0800H         SEGMENT       ?C_C51STARTUP
+  I:0016H         SEGMENT       ?STACK
+  C:0000H         PUBLIC        ?C_STARTUP
+  D:00E0H         SYMBOL        ACC
+  D:00F0H         SYMBOL        B
+  D:0083H         SYMBOL        DPH
+  D:0082H         SYMBOL        DPL
+  N:0000H         SYMBOL        IBPSTACK
+  N:0100H         SYMBOL        IBPSTACKTOP
+  N:0080H         SYMBOL        IDATALEN
+  C:0803H         SYMBOL        IDATALOOP
+  N:0000H         SYMBOL        PBPSTACK
+  N:0100H         SYMBOL        PBPSTACKTOP
+  N:0000H         SYMBOL        PDATALEN
+  N:0000H         SYMBOL        PDATASTART
+  N:0000H         SYMBOL        PPAGE
+  N:0000H         SYMBOL        PPAGEENABLE
+  D:00A0H         SYMBOL        PPAGE_SFR
+  D:0081H         SYMBOL        SP
+  C:0800H         SYMBOL        STARTUP1
+  N:0000H         SYMBOL        XBPSTACK
+  N:0000H         SYMBOL        XBPSTACKTOP
+  N:0000H         SYMBOL        XDATALEN
+  N:0000H         SYMBOL        XDATASTART
+  C:0000H         LINE#         126
+  C:0800H         LINE#         133
+  C:0802H         LINE#         134
+  C:0803H         LINE#         135
+  C:0804H         LINE#         136
+  C:0806H         LINE#         185
+  C:0809H         LINE#         196
+  -------         ENDMOD        ?C_STARTUP
+
+  -------         MODULE        QIANGDAQI
+BL51 BANKED LINKER/LOCATER V6.22                                                      04/19/2015  01:30:37  PAGE 3
+
+
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  D:0090H         PUBLIC        P1
+  D:00A0H         PUBLIC        P2
+  D:00B0H         PUBLIC        P3
+  D:0008H         PUBLIC        weixuan
+  B:00A8H.7       PUBLIC        EA
+  D:0012H         PUBLIC        qd_num
+  C:09AFH         PUBLIC        Timer0Interrupt
+  B:00B0H.6       PUBLIC        qd_error_pin
+  B:00B0H.7       PUBLIC        start_qd_pin
+  B:00B0H.3       PUBLIC        beep
+  B:00B0H.5       PUBLIC        qd_true_pin
+  C:0991H         PUBLIC        _delay1ms
+  C:0A2DH         PUBLIC        Start_Timer0
+  C:0969H         PUBLIC        main
+  D:0089H         PUBLIC        TMOD
+  C:0A1FH         PUBLIC        init
+  B:0080H.0       PUBLIC        DG1
+  B:0080H.1       PUBLIC        DG2
+  D:0013H         PUBLIC        timeout_num
+  B:0080H.3       PUBLIC        DG3
+  C:09FDH         PUBLIC        init_status
+  B:00A8H.1       PUBLIC        ET0
+  C:0A0FH         PUBLIC        InitTimer0
+  D:008CH         PUBLIC        TH0
+  C:0A28H         PUBLIC        end_Timer0
+  D:0014H         PUBLIC        work_status
+  D:008AH         PUBLIC        TL0
+  B:0088H.4       PUBLIC        TR0
+  C:088CH         PUBLIC        qd_status
+  D:0015H         PUBLIC        qd_time
+  C:09CAH         PUBLIC        ack_qd_status
+  C:0903H         PUBLIC        _display
+  -------         PROC          MAIN
+  C:0969H         LINE#         39
+  C:0969H         LINE#         40
+  C:0969H         LINE#         41
+  C:096CH         LINE#         42
+  C:096FH         LINE#         43
+  C:096FH         LINE#         44
+  C:096FH         LINE#         45
+  C:097BH         LINE#         46
+  C:097BH         LINE#         47
+  C:097BH         LINE#         48
+  C:097EH         LINE#         49
+  C:0980H         LINE#         50
+  C:0980H         LINE#         51
+  C:0983H         LINE#         52
+  C:0985H         LINE#         53
+  C:0985H         LINE#         54
+  C:0988H         LINE#         55
+  C:0988H         LINE#         56
+  C:0988H         LINE#         57
+  C:0988H         LINE#         58
+  C:0988H         LINE#         59
+  C:098FH         LINE#         60
+BL51 BANKED LINKER/LOCATER V6.22                                                      04/19/2015  01:30:37  PAGE 4
+
+
+  -------         ENDPROC       MAIN
+  -------         PROC          INIT_STATUS
+  C:09FDH         LINE#         62
+  C:09FDH         LINE#         63
+  C:09FDH         LINE#         64
+  C:0A00H         LINE#         65
+  C:0A02H         LINE#         66
+  C:0A05H         LINE#         67
+  C:0A05H         LINE#         68
+  C:0A08H         LINE#         69
+  C:0A0BH         LINE#         70
+  C:0A0EH         LINE#         71
+  C:0A0EH         LINE#         72
+  -------         ENDPROC       INIT_STATUS
+  -------         PROC          QD_STATUS
+  C:088CH         LINE#         73
+  C:088CH         LINE#         74
+  C:088CH         LINE#         75
+  C:08AEH         LINE#         76
+  C:08AEH         LINE#         77
+  C:08AEH         LINE#         78
+  C:08B1H         LINE#         79
+  C:08B1H         LINE#         80
+  C:08B1H         LINE#         81
+  C:08B3H         LINE#         82
+  C:08B3H         LINE#         83
+  C:08B6H         LINE#         84
+  C:08B6H         LINE#         85
+  C:08B6H         LINE#         86
+  C:08B8H         LINE#         87
+  C:08B8H         LINE#         88
+  C:08BBH         LINE#         89
+  C:08BBH         LINE#         90
+  C:08BBH         LINE#         91
+  C:08BDH         LINE#         92
+  C:08BDH         LINE#         93
+  C:08C0H         LINE#         94
+  C:08C0H         LINE#         95
+  C:08C0H         LINE#         96
+  C:08C2H         LINE#         97
+  C:08C2H         LINE#         98
+  C:08C5H         LINE#         99
+  C:08C5H         LINE#         100
+  C:08C5H         LINE#         101
+  C:08C7H         LINE#         102
+  C:08C7H         LINE#         103
+  C:08CAH         LINE#         104
+  C:08CAH         LINE#         105
+  C:08CAH         LINE#         106
+  C:08CCH         LINE#         107
+  C:08CCH         LINE#         108
+  C:08CFH         LINE#         109
+  C:08CFH         LINE#         110
+  C:08CFH         LINE#         111
+  C:08D1H         LINE#         112
+  C:08D1H         LINE#         113
+  C:08D4H         LINE#         114
+BL51 BANKED LINKER/LOCATER V6.22                                                      04/19/2015  01:30:37  PAGE 5
+
+
+  C:08D7H         LINE#         115
+  C:08DAH         LINE#         116
+  C:08DAH         LINE#         117
+  C:08DAH         LINE#         118
+  C:08DAH         LINE#         119
+  C:08DAH         LINE#         121
+  C:08E1H         LINE#         122
+  C:08E1H         LINE#         123
+  C:08E4H         LINE#         124
+  C:08E7H         LINE#         125
+  C:08E9H         LINE#         126
+  C:08F0H         LINE#         127
+  C:08F2H         LINE#         128
+  C:08F5H         LINE#         129
+  C:08F5H         LINE#         130
+  C:08F8H         LINE#         131
+  C:08F8H         LINE#         132
+  C:08FBH         LINE#         133
+  C:08FEH         LINE#         134
+  C:0900H         LINE#         135
+  C:0902H         LINE#         136
+  C:0902H         LINE#         137
+  -------         ENDPROC       QD_STATUS
+  -------         PROC          ACK_QD_STATUS
+  C:09CAH         LINE#         138
+  C:09CAH         LINE#         139
+  C:09CAH         LINE#         140
+  C:09CDH         LINE#         141
+  C:09CDH         LINE#         142
+  C:09D0H         LINE#         143
+  C:09D3H         LINE#         144
+  C:09D5H         LINE#         145
+  C:09D7H         LINE#         146
+  C:09D7H         LINE#         147
+  C:09DAH         LINE#         148
+  C:09DAH         LINE#         149
+  C:09DDH         LINE#         150
+  C:09E0H         LINE#         151
+  C:09E3H         LINE#         152
+  C:09E3H         LINE#         153
+  -------         ENDPROC       ACK_QD_STATUS
+  -------         PROC          INITTIMER0
+  C:0A0FH         LINE#         156
+  C:0A0FH         LINE#         157
+  C:0A0FH         LINE#         158
+  C:0A12H         LINE#         159
+  C:0A15H         LINE#         160
+  C:0A18H         LINE#         161
+  C:0A1AH         LINE#         162
+  C:0A1CH         LINE#         163
+  C:0A1EH         LINE#         164
+  -------         ENDPROC       INITTIMER0
+  -------         PROC          END_TIMER0
+  C:0A28H         LINE#         166
+  C:0A28H         LINE#         167
+  C:0A28H         LINE#         168
+  C:0A2AH         LINE#         169
+BL51 BANKED LINKER/LOCATER V6.22                                                      04/19/2015  01:30:37  PAGE 6
+
+
+  C:0A2CH         LINE#         170
+  -------         ENDPROC       END_TIMER0
+  -------         PROC          START_TIMER0
+  C:0A2DH         LINE#         171
+  C:0A2DH         LINE#         172
+  C:0A2DH         LINE#         173
+  C:0A2FH         LINE#         174
+  C:0A31H         LINE#         175
+  -------         ENDPROC       START_TIMER0
+  -------         PROC          INIT
+  C:0A1FH         LINE#         177
+  C:0A1FH         LINE#         178
+  C:0A1FH         LINE#         179
+  C:0A21H         LINE#         180
+  C:0A23H         LINE#         181
+  C:0A25H         LINE#         183
+  C:0A27H         LINE#         184
+  -------         ENDPROC       INIT
+  -------         PROC          _DELAY1MS
+  D:0006H         SYMBOL        num
+  -------         DO            
+  D:0001H         SYMBOL        a
+  D:0002H         SYMBOL        b
+  D:0003H         SYMBOL        c
+  D:0004H         SYMBOL        i
+  -------         ENDDO         
+  C:0991H         LINE#         187
+  C:0991H         LINE#         188
+  C:0991H         LINE#         191
+  C:099BH         LINE#         192
+  C:099DH         LINE#         193
+  C:099FH         LINE#         194
+  C:09AEH         LINE#         195
+  -------         ENDPROC       _DELAY1MS
+  -------         PROC          _DISPLAY
+  D:0007H         SYMBOL        qd_time
+  D:0005H         SYMBOL        qd_num
+  -------         DO            
+  D:0002H         SYMBOL        j
+  -------         ENDDO         
+  C:0903H         LINE#         197
+  C:0903H         LINE#         198
+  C:0903H         LINE#         201
+  C:0905H         LINE#         202
+  C:0910H         LINE#         203
+  C:0914H         LINE#         204
+  C:091FH         LINE#         205
+  C:0922H         LINE#         206
+  C:0924H         LINE#         208
+  C:0926H         LINE#         209
+  C:0933H         LINE#         210
+  C:0937H         LINE#         211
+  C:0941H         LINE#         212
+  C:0944H         LINE#         213
+  C:0946H         LINE#         215
+  C:0948H         LINE#         216
+  C:0955H         LINE#         217
+BL51 BANKED LINKER/LOCATER V6.22                                                      04/19/2015  01:30:37  PAGE 7
+
+
+  C:0959H         LINE#         218
+  C:0963H         LINE#         219
+  C:0966H         LINE#         220
+  C:0968H         LINE#         222
+  -------         ENDPROC       _DISPLAY
+  -------         PROC          TIMER0INTERRUPT
+  C:09AFH         LINE#         225
+  C:09B3H         LINE#         227
+  C:09B5H         LINE#         228
+  C:09B8H         LINE#         229
+  C:09BBH         LINE#         231
+  C:09C0H         LINE#         232
+  C:09C0H         LINE#         233
+  C:09C3H         LINE#         234
+  C:09C5H         LINE#         235
+  C:09C5H         LINE#         236
+  -------         ENDPROC       TIMER0INTERRUPT
+  -------         ENDMOD        QIANGDAQI
+
+******************************************************************************
+* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 01B7H BYTE (21%) *
+******************************************************************************
+
+Program Size: data=23.0 xdata=0 code=568
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

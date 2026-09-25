@@ -1,6 +1,0 @@
-"STARTUP.obj",
-"main.obj",
-"ds12cr887.obj",
-"1602.obj" 
-TO "多功能数字时钟" 
-RAMSIZE(256) 

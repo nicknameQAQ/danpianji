@@ -1,0 +1,222 @@
+BL51 BANKED LINKER/LOCATER V6.22                                                        05/30/2018  19:40:45  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22, INVOKED BY:
+C:\PROGRAM FILES (X86)\LABCENTER ELECTRONICS\KEIL\C51\BIN\BL51.EXE 红外报警.obj TO 红外报警
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  红外报警.obj (红蚠报綺)
+  C:\PROGRAM FILES (X86)\LABCENTER ELECTRONICS\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+  C:\PROGRAM FILES (X86)\LABCENTER ELECTRONICS\KEIL\C51\LIB\C51S.LIB (?C_INIT)
+
+
+LINK MAP OF MODULE:  红外报警 (红蚠报綺)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0003H     UNIT         ?DT?红蚠报綺
+                    000BH     0015H                  *** GAP ***
+            BIT     0020H.0   0000H.2   UNIT         ?BI?红蚠报綺
+                    0020H.2   0000H.6                *** GAP ***
+            IDATA   0021H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+                    0003H     07FDH                  *** GAP ***
+            CODE    0800H     00B6H     UNIT         ?PR?MAIN?红蚠报綺
+            CODE    08B6H     008CH     UNIT         ?C_C51STARTUP
+            CODE    0942H     0022H     UNIT         ?PR?_DELAY?红蚠报綺
+            CODE    0964H     0016H     UNIT         ?PR?DI?红蚠报綺
+            CODE    097AH     000BH     UNIT         ?C_INITSEG
+
+
+
+OVERLAY MAP OF MODULE:   红外报警 (红蚠报綺)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?红蚠报綺
+  +--> ?C_INITSEG
+
+?PR?MAIN?红蚠报綺
+  +--> ?PR?_DELAY?红蚠报綺
+  +--> ?PR?DI?红蚠报綺
+
+?PR?DI?红蚠报綺
+  +--> ?PR?_DELAY?红蚠报綺
+
+
+
+SYMBOL TABLE OF MODULE:  红外报警 (红蚠报綺)
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/30/2018  19:40:45  PAGE 2
+
+
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        红蚠报綺
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  D:0090H         PUBLIC        P1
+  B:0090H.3       PUBLIC        Feng
+  D:00A0H         PUBLIC        P2
+  D:00B0H         PUBLIC        P3
+  D:0008H         PUBLIC        Mode
+  D:00A8H         PUBLIC        IE
+  B:0020H.0       PUBLIC        alarm
+  C:0946H         PUBLIC        _delay
+  B:00A0H.1       PUBLIC        LG
+  D:00B8H         PUBLIC        IP
+  B:0080H.3       PUBLIC        HR
+  B:00A0H.0       PUBLIC        LR
+  B:0090H.0       PUBLIC        s1
+  B:00A0H.2       PUBLIC        LY
+  B:0090H.2       PUBLIC        s2
+  B:0090H.1       PUBLIC        s3
+  C:0800H         PUBLIC        main
+  D:0098H         PUBLIC        SCON
+  D:0088H         PUBLIC        TCON
+  B:0020H.1       PUBLIC        kai
+  D:0009H         PUBLIC        Mode1
+  C:0964H         PUBLIC        di
+  D:00C8H         PUBLIC        T2CON
+  D:000AH         PUBLIC        t
+  D:00D0H         PUBLIC        PSW
+  C:0942H         SYMBOL        L?0036
+  -------         PROC          L?0035
+  -------         ENDPROC       L?0035
+  C:0942H         SYMBOL        L?0036
+  -------         PROC          _DELAY
+  D:0006H         SYMBOL        x
+  -------         DO            
+  D:0006H         SYMBOL        i
+  D:0004H         SYMBOL        j
+  -------         ENDDO         
+  C:0946H         LINE#         22
+  C:0946H         LINE#         23
+  C:0946H         LINE#         25
+  C:094FH         LINE#         26
+  C:0963H         LINE#         27
+  -------         ENDPROC       _DELAY
+  -------         PROC          DI
+  C:0964H         LINE#         29
+  C:0964H         LINE#         30
+  C:0964H         LINE#         31
+  C:0966H         LINE#         32
+  C:0968H         LINE#         33
+  C:096FH         LINE#         34
+  C:0971H         LINE#         35
+  C:0973H         LINE#         36
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/30/2018  19:40:45  PAGE 3
+
+
+  -------         ENDPROC       DI
+  -------         PROC          MAIN
+  C:0800H         LINE#         38
+  C:0800H         LINE#         39
+  C:0800H         LINE#         40
+  C:0802H         LINE#         41
+  C:0804H         LINE#         42
+  C:0806H         LINE#         43
+  C:080BH         LINE#         44
+  C:080BH         LINE#         45
+  C:080BH         LINE#         46
+  C:080EH         LINE#         47
+  C:080EH         LINE#         48
+  C:0811H         LINE#         49
+  C:0814H         LINE#         50
+  C:0814H         LINE#         51
+  C:0817H         LINE#         52
+  C:081AH         LINE#         53
+  C:081CH         LINE#         54
+  C:081EH         LINE#         55
+  C:0820H         LINE#         56
+  C:0822H         LINE#         57
+  C:0825H         LINE#         58
+  C:0828H         LINE#         59
+  C:0828H         LINE#         61
+  C:0828H         LINE#         62
+  C:082BH         LINE#         63
+  C:082BH         LINE#         65
+  C:082EH         LINE#         66
+  C:0831H         LINE#         67
+  C:0831H         LINE#         68
+  C:0834H         LINE#         69
+  C:0837H         LINE#         70
+  C:0839H         LINE#         71
+  C:083BH         LINE#         72
+  C:083EH         LINE#         73
+  C:0841H         LINE#         74
+  C:0843H         LINE#         75
+  C:0849H         LINE#         76
+  C:0849H         LINE#         77
+  C:0849H         LINE#         78
+  C:084CH         LINE#         79
+  C:084CH         LINE#         80
+  C:0851H         LINE#         81
+  C:0851H         LINE#         82
+  C:0853H         LINE#         83
+  C:0855H         LINE#         85
+  C:0855H         LINE#         86
+  C:0858H         LINE#         87
+  C:0858H         LINE#         88
+  C:085AH         LINE#         89
+  C:0861H         LINE#         90
+  C:086AH         LINE#         91
+  C:086CH         LINE#         92
+  C:086EH         LINE#         93
+  C:0871H         LINE#         94
+  C:0873H         LINE#         95
+BL51 BANKED LINKER/LOCATER V6.22                                                      05/30/2018  19:40:45  PAGE 4
+
+
+  C:0879H         LINE#         96
+  C:0879H         LINE#         98
+  C:0879H         LINE#         99
+  C:087CH         LINE#         100
+  C:087CH         LINE#         101
+  C:087FH         LINE#         102
+  C:0886H         LINE#         103
+  C:0889H         LINE#         104
+  C:0890H         LINE#         105
+  C:0890H         LINE#         106
+  C:0897H         LINE#         107
+  C:0897H         LINE#         108
+  C:0899H         LINE#         109
+  C:089BH         LINE#         111
+  C:089BH         LINE#         112
+  C:089EH         LINE#         113
+  C:089EH         LINE#         114
+  C:08A0H         LINE#         115
+  C:08A2H         LINE#         116
+  C:08A2H         LINE#         117
+  C:08A2H         LINE#         118
+  C:08A5H         LINE#         119
+  C:08A5H         LINE#         120
+  C:08A7H         LINE#         121
+  C:08AEH         LINE#         122
+  C:08B1H         LINE#         124
+  C:08B1H         LINE#         125
+  C:08B3H         LINE#         126
+  C:08B3H         LINE#         127
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        红蚠报綺
+
+******************************************************************************
+* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 00F8H BYTE (12%) *
+******************************************************************************
+
+Program Size: data=12.2 xdata=0 code=392
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

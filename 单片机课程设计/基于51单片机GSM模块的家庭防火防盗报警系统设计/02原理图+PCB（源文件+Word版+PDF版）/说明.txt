@@ -1,0 +1,7 @@
+说明：上面3个文件夹内容是一样的，只是用不同的软件打开而已。
+
+1、Altium Designer格式：需要安装软件 Altium Designer。
+
+2、PDF格式：用PDF软件打开即可，如福昕PDF阅读器、Adobe Reader 等软件。
+
+3、word格式：用 word 或 WPS 软件即可打开。

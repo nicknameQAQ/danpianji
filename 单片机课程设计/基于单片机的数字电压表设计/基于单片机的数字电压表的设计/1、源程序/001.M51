@@ -1,0 +1,374 @@
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                    06/16/2020  15:25:56  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22.2.0, INVOKED BY:
+D:\KEIL5\C51\BIN\BL51.EXE 001.obj, 002.obj, LCD1602.obj TO 001
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  001.obj (001)
+  002.obj (002)
+  LCD1602.obj (LCD1602)
+  D:\KEIL5\C51\LIB\C51S.LIB (?C_STARTUP)
+  D:\KEIL5\C51\LIB\C51S.LIB (?C?CLDOPTR)
+  D:\KEIL5\C51\LIB\C51S.LIB (?C?IMUL)
+  D:\KEIL5\C51\LIB\C51S.LIB (?C?UIDIV)
+  D:\KEIL5\C51\LIB\C51S.LIB (?C_INIT)
+
+
+LINK MAP OF MODULE:  001 (001)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0005H     UNIT         _DATA_GROUP_
+            DATA    000DH     0001H     UNIT         ?DT?001
+                    000EH     0012H                  *** GAP ***
+            BIT     0020H.0   0000H.1   UNIT         ?BI?001
+                    0020H.1   0000H.7                *** GAP ***
+            IDATA   0021H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     0006H     UNIT         ?C_INITSEG
+                    0009H     0002H                  *** GAP ***
+            CODE    000BH     0003H     ABSOLUTE     
+            CODE    000EH     029DH     UNIT         ?PR?_VSHOWONECHAR?LCD1602
+            CODE    02ABH     0094H     UNIT         ?C?LIB_CODE
+            CODE    033FH     008CH     UNIT         ?C_C51STARTUP
+            CODE    03CBH     0076H     UNIT         ?PR?_VSHOWVOLTAGE?001
+            CODE    0441H     004CH     UNIT         ?PR?MAIN?001
+            CODE    048DH     0033H     UNIT         ?PR?_VSHOWCHAR?LCD1602
+            CODE    04C0H     0018H     UNIT         ?PR?T0?001
+            CODE    04D8H     0017H     UNIT         ?PR?UIADTRANSFORM?002
+            CODE    04EFH     0011H     UNIT         ?PR?_VWRITECMD?LCD1602
+            CODE    0500H     0011H     UNIT         ?PR?_VWRITEDATA?LCD1602
+            CODE    0511H     000FH     UNIT         ?PR?VDELAY?LCD1602
+            CODE    0520H     000CH     UNIT         ?CO?001
+
+
+
+OVERLAY MAP OF MODULE:   001 (001)
+
+
+SEGMENT                             DATA_GROUP 
+  +--> CALLED SEGMENT             START    LENGTH
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  06/16/2020  15:25:56  PAGE 2
+
+
+-------------------------------------------------
+?C_C51STARTUP                     -----    -----
+  +--> ?PR?MAIN?001
+  +--> ?C_INITSEG
+
+?PR?MAIN?001                      -----    -----
+  +--> ?PR?_VWRITECMD?LCD1602
+  +--> ?CO?001
+  +--> ?PR?_VSHOWCHAR?LCD1602
+  +--> ?PR?UIADTRANSFORM?002
+  +--> ?PR?_VSHOWVOLTAGE?001
+
+?PR?_VWRITECMD?LCD1602            0008H    0001H
+  +--> ?PR?VDELAY?LCD1602
+
+?PR?_VSHOWCHAR?LCD1602            0008H    0004H
+  +--> ?PR?_VSHOWONECHAR?LCD1602
+
+?PR?_VSHOWONECHAR?LCD1602         -----    -----
+  +--> ?PR?_VWRITEDATA?LCD1602
+
+?PR?_VWRITEDATA?LCD1602           000CH    0001H
+  +--> ?PR?VDELAY?LCD1602
+
+?PR?_VSHOWVOLTAGE?001             0008H    0004H
+  +--> ?PR?_VSHOWONECHAR?LCD1602
+
+
+
+SYMBOL TABLE OF MODULE:  001 (001)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        001
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:00B0H         PUBLIC        P3
+  B:00A8H.7       PUBLIC        EA
+  B:0020H.0       PUBLIC        b_DATransform
+  C:04C0H         PUBLIC        t0
+  C:0441H         PUBLIC        main
+  D:000DH         PUBLIC        uc_Clock
+  D:0089H         PUBLIC        TMOD
+  B:00A8H.1       PUBLIC        ET0
+  D:008CH         PUBLIC        TH0
+  D:008AH         PUBLIC        TL0
+  B:0088H.4       PUBLIC        TR0
+  C:03CBH         PUBLIC        _vShowVoltage
+  -------         PROC          _VSHOWVOLTAGE
+  D:0002H         SYMBOL        uiNumber
+  -------         DO            
+  D:0008H         SYMBOL        ucaNumber
+  D:000BH         SYMBOL        ucCount
+  -------         ENDDO         
+  C:03CBH         LINE#         11
+  C:03CFH         LINE#         12
+  C:03CFH         LINE#         14
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  06/16/2020  15:25:56  PAGE 3
+
+
+  C:03D8H         LINE#         15
+  C:03DCH         LINE#         16
+  C:03E9H         LINE#         17
+  C:0400H         LINE#         18
+  C:0417H         LINE#         19
+  C:0425H         LINE#         20
+  C:0425H         LINE#         21
+  C:0431H         LINE#         22
+  C:0437H         LINE#         23
+  C:043CH         LINE#         24
+  C:0440H         LINE#         25
+  -------         ENDPROC       _VSHOWVOLTAGE
+  -------         PROC          MAIN
+  C:0441H         LINE#         31
+  C:0441H         LINE#         32
+  C:0441H         LINE#         33
+  C:0444H         LINE#         34
+  C:0447H         LINE#         35
+  C:044AH         LINE#         36
+  C:044CH         LINE#         37
+  C:044EH         LINE#         38
+  C:0450H         LINE#         39
+  C:045FH         LINE#         40
+  C:0464H         LINE#         41
+  C:046DH         LINE#         42
+  C:0472H         LINE#         43
+  C:047BH         LINE#         44
+  C:047BH         LINE#         45
+  C:047BH         LINE#         46
+  C:047EH         LINE#         47
+  C:047EH         LINE#         48
+  C:0480H         LINE#         49
+  C:0485H         LINE#         50
+  C:048BH         LINE#         51
+  C:048BH         LINE#         52
+  -------         ENDPROC       MAIN
+  -------         PROC          T0
+  C:04C0H         LINE#         57
+  C:04C2H         LINE#         59
+  C:04C6H         LINE#         60
+  C:04C6H         LINE#         61
+  C:04C9H         LINE#         62
+  C:04CBH         LINE#         63
+  C:04CDH         LINE#         65
+  C:04CFH         LINE#         66
+  C:04D2H         LINE#         67
+  C:04D5H         LINE#         68
+  -------         ENDPROC       T0
+  -------         ENDMOD        001
+
+  -------         MODULE        002
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:00A0H         PUBLIC        P2
+  D:00B0H         PUBLIC        P3
+  B:00B0H.4       PUBLIC        START
+  C:04D8H         PUBLIC        uiADTransform
+  B:00B0H.3       PUBLIC        EOC
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  06/16/2020  15:25:56  PAGE 4
+
+
+  -------         PROC          UIADTRANSFORM
+  -------         DO            
+  D:0006H         SYMBOL        uiResult
+  -------         ENDDO         
+  C:04D8H         LINE#         7
+  C:04D8H         LINE#         8
+  C:04D8H         LINE#         10
+  C:04DAH         LINE#         11
+  C:04DCH         LINE#         12
+  C:04DFH         LINE#         13
+  C:04E3H         LINE#         14
+  -------         ENDPROC       UIADTRANSFORM
+  -------         ENDMOD        002
+
+  -------         MODULE        LCD1602
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  C:0500H         PUBLIC        _vWriteData
+  D:00B0H         PUBLIC        P3
+  B:00B0H.7       PUBLIC        LCDE
+  C:048DH         PUBLIC        _vShowChar
+  C:000EH         PUBLIC        _vShowOneChar
+  C:04EFH         PUBLIC        _vWriteCMD
+  C:0511H         PUBLIC        vDelay
+  B:00B0H.5       PUBLIC        LCDRS
+  B:00B0H.6       PUBLIC        LCDRW
+  -------         PROC          _VWRITECMD
+  D:0008H         SYMBOL        ucCommand
+  C:04EFH         LINE#         2
+  C:04F1H         LINE#         3
+  C:04F1H         LINE#         4
+  C:04F4H         LINE#         5
+  C:04F6H         LINE#         6
+  C:04F8H         LINE#         7
+  C:04FAH         LINE#         8
+  C:04FDH         LINE#         9
+  C:04FFH         LINE#         10
+  -------         ENDPROC       _VWRITECMD
+  -------         PROC          _VWRITEDATA
+  D:000CH         SYMBOL        ucData
+  C:0500H         LINE#         14
+  C:0502H         LINE#         15
+  C:0502H         LINE#         16
+  C:0505H         LINE#         17
+  C:0507H         LINE#         18
+  C:0509H         LINE#         19
+  C:050BH         LINE#         20
+  C:050EH         LINE#         21
+  C:0510H         LINE#         22
+  -------         ENDPROC       _VWRITEDATA
+  -------         PROC          _VSHOWONECHAR
+  D:0007H         SYMBOL        ucChar
+  C:000EH         LINE#         23
+  C:000EH         LINE#         24
+  C:000EH         LINE#         25
+  C:0138H         LINE#         26
+  C:0138H         LINE#         27
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  06/16/2020  15:25:56  PAGE 5
+
+
+  C:013AH         LINE#         28
+  C:013FH         LINE#         29
+  C:0144H         LINE#         30
+  C:0149H         LINE#         31
+  C:014EH         LINE#         32
+  C:0153H         LINE#         33
+  C:0158H         LINE#         34
+  C:015DH         LINE#         35
+  C:0162H         LINE#         36
+  C:0167H         LINE#         37
+  C:016CH         LINE#         38
+  C:0171H         LINE#         39
+  C:0176H         LINE#         40
+  C:017BH         LINE#         41
+  C:0180H         LINE#         42
+  C:0185H         LINE#         43
+  C:018AH         LINE#         44
+  C:018FH         LINE#         45
+  C:0194H         LINE#         47
+  C:0199H         LINE#         48
+  C:019EH         LINE#         49
+  C:01A3H         LINE#         50
+  C:01A8H         LINE#         51
+  C:01ADH         LINE#         52
+  C:01B2H         LINE#         53
+  C:01B7H         LINE#         54
+  C:01BCH         LINE#         55
+  C:01C1H         LINE#         56
+  C:01C6H         LINE#         58
+  C:01CBH         LINE#         59
+  C:01D0H         LINE#         60
+  C:01D5H         LINE#         61
+  C:01DAH         LINE#         62
+  C:01DFH         LINE#         63
+  C:01E4H         LINE#         64
+  C:01E9H         LINE#         65
+  C:01EEH         LINE#         66
+  C:01F3H         LINE#         67
+  C:01F8H         LINE#         68
+  C:01FDH         LINE#         69
+  C:0202H         LINE#         70
+  C:0207H         LINE#         71
+  C:020CH         LINE#         72
+  C:0211H         LINE#         73
+  C:0216H         LINE#         74
+  C:021BH         LINE#         75
+  C:0220H         LINE#         76
+  C:0225H         LINE#         77
+  C:0229H         LINE#         78
+  C:022DH         LINE#         79
+  C:0231H         LINE#         80
+  C:0235H         LINE#         81
+  C:0239H         LINE#         82
+  C:023DH         LINE#         83
+  C:0241H         LINE#         85
+  C:0245H         LINE#         86
+  C:0249H         LINE#         87
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  06/16/2020  15:25:56  PAGE 6
+
+
+  C:024DH         LINE#         88
+  C:0251H         LINE#         89
+  C:0255H         LINE#         90
+  C:0259H         LINE#         91
+  C:025DH         LINE#         92
+  C:0261H         LINE#         93
+  C:0265H         LINE#         94
+  C:0269H         LINE#         95
+  C:026DH         LINE#         96
+  C:0271H         LINE#         97
+  C:0275H         LINE#         98
+  C:0279H         LINE#         99
+  C:027DH         LINE#         100
+  C:0281H         LINE#         101
+  C:0285H         LINE#         102
+  C:0289H         LINE#         103
+  C:028DH         LINE#         104
+  C:0291H         LINE#         105
+  C:0295H         LINE#         106
+  C:0299H         LINE#         107
+  C:029DH         LINE#         108
+  C:02A1H         LINE#         109
+  C:02A5H         LINE#         110
+  C:02AAH         LINE#         111
+  C:02AAH         LINE#         112
+  C:02AAH         LINE#         113
+  -------         ENDPROC       _VSHOWONECHAR
+  -------         PROC          _VSHOWCHAR
+  D:0008H         SYMBOL        ucaChar
+  -------         DO            
+  D:000BH         SYMBOL        ucCount
+  -------         ENDDO         
+  C:048DH         LINE#         114
+  C:0493H         LINE#         115
+  C:0493H         LINE#         117
+  C:0496H         LINE#         118
+  C:0496H         LINE#         119
+  C:04A9H         LINE#         120
+  C:04BBH         LINE#         121
+  C:04BBH         LINE#         122
+  C:04BFH         LINE#         123
+  -------         ENDPROC       _VSHOWCHAR
+  -------         PROC          VDELAY
+  -------         DO            
+  D:0006H         SYMBOL        uiCount
+  -------         ENDDO         
+  C:0511H         LINE#         127
+  C:0511H         LINE#         128
+  C:0511H         LINE#         130
+  C:051FH         LINE#         131
+  -------         ENDPROC       VDELAY
+  -------         ENDMOD        LCD1602
+
+  -------         MODULE        ?C?CLDOPTR
+  C:02ABH         PUBLIC        ?C?CLDOPTR
+  -------         ENDMOD        ?C?CLDOPTR
+
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  06/16/2020  15:25:56  PAGE 7
+
+
+  -------         MODULE        ?C?IMUL
+  C:02D8H         PUBLIC        ?C?IMUL
+  -------         ENDMOD        ?C?IMUL
+
+  -------         MODULE        ?C?UIDIV
+  C:02EAH         PUBLIC        ?C?UIDIV
+  -------         ENDMOD        ?C?UIDIV
+
+Program Size: data=15.1 xdata=0 code=1322
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

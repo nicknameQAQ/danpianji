@@ -1,0 +1,376 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              06/20/2020 17:04:53 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\keil5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main.l
+                    -st) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include<reg52.h>  //包含52单片机的库
+   2          #define uchar unsigned char
+   3          #define uint unsigned int   
+   4            
+   5          
+   6          bit quanju=0;     //两干道控制引脚定义
+   7          bit ruo=0;      //闪烁标志位
+   8          sbit guan=P3^2; //定义按键的管脚
+   9          
+  10          
+  11          //初始时定义南北为主干道，东西方向为次干道//
+  12          
+  13          sbit shumaguan0 = P3^1; //次干道个位
+  14          sbit shumaguan1= P1^7; //次干道十位
+  15          sbit shumaguan2 = P3^6; //主干道个位
+  16          sbit shumaguan3= P3^7; //主干道十位
+  17          
+  18          sbit LE0=P1^6;    //南北方向红灯定义
+  19          sbit LE1=P1^5;  //南北方向黄灯定义
+  20          sbit LE2=P1^4;     //南北方向绿灯定义
+  21          
+  22          sbit LE3=P1^3;    //东西方向红灯定义
+  23          sbit LE4=P1^2;  //东西方向黄灯定义
+  24          sbit LE5=P1^1;    //东西方向绿灯定义
+  25          
+  26          
+  27          
+  28          uint SFD=0,SFD1=0,SFD2=0,SFD3;  //类型切换变量
+  29          
+  30          uchar data xianshi[4];        //秒显示数组
+  31          uchar data sec_zhu=63;        //东西数默认
+  32          uchar data sec_ci=60;     //南北默认值
+  33          
+  34          uchar data set0=63;   //设置东西方向的时间
+  35          uchar data set1=60;   //设置南北方向的时间
+  36          
+  37          uchar data set01=33;    //设置东西方向的时间
+  38          uchar data set11=30;    //设置南北方向的时间
+  39          
+  40          uchar data jishu;//定时器0中断次数计数
+  41          
+  42          uchar code tab[12]={0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f,0x00,0x71};//段码
+  43          
+  44          
+  45          void delay(uint ms)   //延时函数
+  46          {
+  47   1          uint j,k;
+  48   1          for(j=0;j<ms;j++)     //延时ms
+  49   1          for(k=0;k<110;k++);   //大约1毫秒的延时
+  50   1      }
+  51          
+  52          void Inc()
+  53          {
+  54   1         TMOD=0x01;         //定时器设置
+C51 COMPILER V9.60.0.0   MAIN                                                              06/20/2020 17:04:53 PAGE 2   
+
+  55   1          TH0=0x3C;             //重赋初值
+  56   1          TL0=0xB0;             //重赋初值50ms
+  57   1          EA=1;           //开总中断
+  58   1          ET0=1;            //定时器0中断开启
+  59   1          TR0=1;
+  60   1      }
+  61          
+  62          void panduan()  //判断函数
+  63          {
+  64   1          if(guan==0)
+  65   1          {
+  66   2          SFD3=0;
+  67   2          }
+  68   1          if(guan==1)
+  69   1          {
+  70   2          SFD3=1;
+  71   2          }
+  72   1      }
+  73            
+  74          void shumaguan()  //数码管显示
+  75          {
+  76   1        switch(SFD2)
+  77   1        {
+  78   2          case 0:      //开关打开时显示的内容
+  79   2          {
+  80   3          xianshi[0]=sec_ci/10;     //东西秒十位
+  81   3          xianshi[1]=sec_ci%10;     //东西秒个位
+  82   3          xianshi[2]=sec_zhu/10;    //南北秒十位
+  83   3          xianshi[3]=sec_zhu%10;    //南北秒个位
+  84   3      
+  85   3          shumaguan0=0;
+  86   3          shumaguan1=1;
+  87   3          shumaguan2=1;
+  88   3          shumaguan3=1;  
+  89   3      
+  90   3          P2=tab[xianshi[0]];   //送东西时间十位的数码管编码
+  91   3          delay(1);       //延时
+  92   3          shumaguan0=1;
+  93   3          shumaguan1=0;
+  94   3          shumaguan2=1;
+  95   3          shumaguan3=1;       
+  96   3          P2=tab[xianshi[1]];    //送东西时间个位的数码管编码
+  97   3          delay(1);        //延时
+  98   3          shumaguan0=1;
+  99   3          shumaguan1=1;
+ 100   3          shumaguan2=0;
+ 101   3          shumaguan3=1;         
+ 102   3          P2=tab[xianshi[2]];   //送南北时间十位的数码管编码
+ 103   3          delay(1);       //延时
+ 104   3          shumaguan0=1;
+ 105   3          shumaguan1=1;
+ 106   3          shumaguan2=1;
+ 107   3          shumaguan3=0;            
+ 108   3          P2=tab[xianshi[3]];   //送南北时间个位的数码管编码
+ 109   3          delay(1);       //延时
+ 110   3          };break;
+ 111   2          
+ 112   2          case 1:    //开关闭合时显示的内容
+ 113   2          {
+ 114   3          shumaguan0=0;
+ 115   3          shumaguan1=1;
+ 116   3          shumaguan2=1;
+C51 COMPILER V9.60.0.0   MAIN                                                              06/20/2020 17:04:53 PAGE 3   
+
+ 117   3          shumaguan3=1;             
+ 118   3          P2=tab[11];   //显示F值
+ 119   3          delay(1);       //延时
+ 120   3          shumaguan0=1;
+ 121   3          shumaguan1=0;
+ 122   3          shumaguan2=1;
+ 123   3          shumaguan3=1;       
+ 124   3          P2=tab[11];    //显示F值
+ 125   3          delay(1);        //延时
+ 126   3          shumaguan0=1;
+ 127   3          shumaguan1=1;
+ 128   3          shumaguan2=0;
+ 129   3          shumaguan3=1;         
+ 130   3          P2=tab[11];   //显示F值
+ 131   3          delay(1);       //延时
+ 132   3          shumaguan0=1;
+ 133   3          shumaguan1=1;
+ 134   3          shumaguan2=1;
+ 135   3          shumaguan3=0;         
+ 136   3          P2=tab[11];   //显示F值
+ 137   3          delay(1);       //延时
+ 138   3          };break;
+ 139   2          
+ 140   2          default : break;
+ 141   2          
+ 142   2        }
+ 143   1      }
+ 144          
+ 145          
+ 146          
+ 147          //主程序
+ 148          void main()
+ 149          {
+ 150   1          Inc();   //初始化定时器
+ 151   1          guan=1;   //初始开关
+ 152   1          LE5=0;    //初始化让南北绿灯亮
+ 153   1          LE2=1;    //东西红灯亮
+ 154   1          LE0=0;
+ 155   1          LE3=1;
+ 156   1          LE4=0;
+ 157   1          LE1=0;
+ 158   1        
+ 159   1          while(1)            //主循环
+ 160   1          {
+ 161   2           panduan();//判断函数
+ 162   2           shumaguan();  //数码管显示
+ 163   2          }
+ 164   1      }
+ 165          
+ 166          
+ 167          
+ 168          void time0(void) interrupt 1    //定时中断子程序
+ 169          {
+ 170   1        TH0=0x3C;             //重赋初值
+ 171   1        TL0=0xB0;             //12m晶振50ms//重赋初值
+ 172   1        TR0=1;                //重新启动定时器
+ 173   1        jishu++;              //软件计数加1 //20个计数周期为1秒
+ 174   1      
+ 175   1      switch(SFD3)
+ 176   1      {
+ 177   2        case 0:
+ 178   2        {
+C51 COMPILER V9.60.0.0   MAIN                                                              06/20/2020 17:04:53 PAGE 4   
+
+ 179   3          SFD2=1;       //定义为类型一为1
+ 180   3          SFD=0;
+ 181   3          LE5=0;   //两通道都亮红灯
+ 182   3          LE2=0;
+ 183   3          LE0=1;
+ 184   3          LE3=1;
+ 185   3          LE4=0;
+ 186   3          LE1=0;
+ 187   3          sec_zhu=set0;     //重赋南北方向的起始值
+ 188   3          sec_ci=set1;    //重赋东西方向的起始值  
+ 189   3          
+ 190   3          jishu=0;   //暂停计数
+ 191   3          SFD1=1;   //数码管显示标志位
+ 192   3         }; break;
+ 193   2        
+ 194   2         //东西通行时
+ 195   2        case 1:
+ 196   2        { 
+ 197   3         SFD2=0;
+ 198   3        if(SFD1==1)   //再次初始状态
+ 199   3        {
+ 200   4          LE5=0;
+ 201   4          LE2=1;
+ 202   4          LE0=0;
+ 203   4          LE3=1;
+ 204   4          LE4=0;
+ 205   4          LE1=0;
+ 206   4          SFD1--;
+ 207   4          jishu=0;
+ 208   4        }
+ 209   3        
+ 210   3        if(SFD==0)    //当主干道通行时
+ 211   3      {
+ 212   4        if(jishu==5)            //加到10也就是半秒
+ 213   4        {
+ 214   5          if((sec_ci<=3)&&(quanju==0)&&(ruo==1))      //东西黄灯闪
+ 215   5          {
+ 216   6            LE5=0;
+ 217   6            LE4=0;
+ 218   6          }
+ 219   5          if((sec_zhu<=3)&&(quanju==1)&&(ruo==1))     //南北黄灯闪
+ 220   5          {
+ 221   6            LE2=0;
+ 222   6            LE1=0;
+ 223   6          }
+ 224   5        }
+ 225   4      if(jishu==20)   // 定时器中断次数=20时（即1秒时）
+ 226   4      {   jishu=0;            //清零计数器
+ 227   5          sec_zhu--;            //东西时间减1
+ 228   5          sec_ci--;           //南北时间减1
+ 229   5      
+ 230   5        if((sec_ci<=3)&&(quanju==0)&&(ruo==1))      //东西黄灯闪
+ 231   5        {
+ 232   6              LE2=0;
+ 233   6          LE1=1;
+ 234   6          
+ 235   6      
+ 236   6        }
+ 237   5        if((sec_zhu<=3)&&(quanju==1)&&(ruo==1))     //南北黄灯闪
+ 238   5        {
+ 239   6          LE5=0;
+ 240   6          LE4=1;
+C51 COMPILER V9.60.0.0   MAIN                                                              06/20/2020 17:04:53 PAGE 5   
+
+ 241   6        }
+ 242   5        
+ 243   5        if(sec_zhu==0&&sec_ci==3)     //当东西倒计时到0时，重置3秒，用于黄灯闪烁时间
+ 244   5        {
+ 245   6          sec_zhu=3;
+ 246   6          ruo=1;
+ 247   6        }
+ 248   5          if(sec_zhu==3&&sec_ci==0)     //当东西倒计时到0时，重置3秒，用于黄灯闪烁时间
+ 249   5        {
+ 250   6          sec_ci=3;
+ 251   6          ruo=1;
+ 252   6        }
+ 253   5          if(sec_ci==0&&sec_zhu==0)     //当黄灯闪烁时间倒计时到0时，
+ 254   5        {
+ 255   6            P2=0x00;          //重置东西南背方向的红绿灯
+ 256   6          
+ 257   6            LE0=1;
+ 258   6            LE5=1;
+ 259   6            LE2=0;
+ 260   6            LE3=0;
+ 261   6            LE4=0;
+ 262   6            LE1=0;
+ 263   6            quanju=!quanju;
+ 264   6            ruo=0;
+ 265   6            sec_zhu=set01;      //重赋南北方向的起始值
+ 266   6            sec_ci=set11;   //重赋东西方向的起始值
+ 267   6            SFD++;
+ 268   6        }
+ 269   5       }
+ 270   4      }
+ 271   3      if(SFD==1)   //当次干道通行时
+ 272   3      {
+ 273   4        if(jishu==10)           //加到10也就是半秒
+ 274   4        {
+ 275   5          if((sec_ci<=3)&&(quanju==0)&&(ruo==1))      //东西黄灯闪
+ 276   5          {
+ 277   6            LE2=0;
+ 278   6            LE1=0;
+ 279   6          }
+ 280   5          if((sec_zhu<=3)&&(quanju==1)&&(ruo==1))     //南北黄灯闪
+ 281   5          {
+ 282   6      
+ 283   6            LE5=0;
+ 284   6            LE4=0;
+ 285   6          }
+ 286   5        }
+ 287   4      if(jishu==20)   // 定时器中断次数=20时（即1秒时）
+ 288   4      {  
+ 289   5          jishu=0;            //清零计数器
+ 290   5          sec_zhu--;            //东西时间减1
+ 291   5          sec_ci--;           //南北时间减1
+ 292   5      
+ 293   5        if((sec_ci<=3)&&(quanju==0)&&(ruo==1))      //东西黄灯闪
+ 294   5        {
+ 295   6              LE2=0;
+ 296   6          LE1=1;
+ 297   6          
+ 298   6      
+ 299   6        }
+ 300   5        if((sec_zhu<=3)&&(quanju==1)&&(ruo==1))     //南北黄灯闪
+ 301   5        {
+ 302   6          LE5=0;
+C51 COMPILER V9.60.0.0   MAIN                                                              06/20/2020 17:04:53 PAGE 6   
+
+ 303   6          LE4=1;
+ 304   6        }
+ 305   5        
+ 306   5        if(sec_zhu==0&&sec_ci==3)     //当东西倒计时到0时，重置3秒，用于黄灯闪烁时间
+ 307   5        {
+ 308   6          sec_zhu=3;
+ 309   6          ruo=1;
+ 310   6        }
+ 311   5          if(sec_zhu==3&&sec_ci==0)     //当东西倒计时到0时，重置3秒，用于黄灯闪烁时间
+ 312   5        {
+ 313   6          sec_ci=3;
+ 314   6          ruo=1;
+ 315   6        }
+ 316   5          if(sec_ci==0&&sec_zhu==0)     //当黄灯闪烁时间倒计时到0时，
+ 317   5        {
+ 318   6            P2=0x00;          //重置东西南背方向的红绿灯
+ 319   6            LE2=1;
+ 320   6            LE3=1;
+ 321   6          
+ 322   6            LE0=0;
+ 323   6            LE5=0;
+ 324   6            LE4=0;
+ 325   6            LE1=0;
+ 326   6          
+ 327   6            quanju=!quanju;
+ 328   6            ruo=0;
+ 329   6            sec_zhu=set0;     //重赋南北方向的起始值
+ 330   6            sec_ci=set1;    //重赋东西方向的起始值
+ 331   6            SFD--;
+ 332   6        }
+ 333   5        }
+ 334   4        }
+ 335   3       };break;
+ 336   2        
+ 337   2        default : break;
+ 338   2      
+ 339   2      }
+ 340   1      
+ 341   1      }
+ 342          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    805    ----
+   CONSTANT SIZE    =     12    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     19    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      2    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

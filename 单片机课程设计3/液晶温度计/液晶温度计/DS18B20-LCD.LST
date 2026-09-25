@@ -1,0 +1,786 @@
+C51 COMPILER V9.01   DS18B20_LCD                                                           01/03/2021 21:22:59 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE DS18B20_LCD
+OBJECT MODULE PLACED IN DS18B20-LCD.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE DS18B20-LCD.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include<reg52.h>
+   2          #include<intrins.h>
+   3          #include<math.h>
+   4          
+   5          typedef unsigned char uchar;
+   6          typedef unsigned int  uint;
+   7          
+   8          sbit DS = P2^2;//DS18B20接口
+   9          sbit BP = P2^3;//蜂鸣器
+  10          sbit key_s1 = P3^0;
+  11          sbit key_s2 = P3^1;
+  12          sbit key_s3 = P3^2;
+  13          sbit EN = P1^2;//LCD使能端
+  14          sbit RS = P1^0;//LCD数据命令选择端
+  15          sbit RW = P1^1;//LCD读写选择端
+  16          sbit IO_18B20 = P3^3;  //DS18B20通信引脚   、、32
+  17          
+  18          
+  19          uint FF;
+  20          uint DD,LL;
+  21          uint K=0;
+  22          uint M=0;
+  23          uint s=0;
+  24          float t;
+  25          uint gao=33,di=27;
+  26          uint j=0;
+  27          uchar low,High;
+  28          uint i,h;
+  29          float intT, decT;  //温度值的整数和小数部分
+  30          unsigned char str_wd[5];   //温度缓冲区
+  31          uchar TestStr2[] = {"           "};     //填充字符串
+  32          
+  33          void delayus(uchar us)
+  34          {
+  35   1              while(us--);//us--要6.5us,进入一次函数11.95us;
+  36   1      } //微秒延时    
+  37          
+  38           
+  39          
+  40          
+  41          /* 软件延时函数，延时时间(t*10)us */
+  42          void DelayX10us(unsigned char t)
+  43          {
+  44   1          do {
+  45   2              _nop_();                                                
+  46   2              _nop_();
+  47   2              _nop_();
+  48   2              _nop_();
+  49   2              _nop_();
+  50   2              _nop_();
+  51   2              _nop_();
+  52   2              _nop_();
+  53   2          } while (--t);
+  54   1      }
+  55          bit Get18B20Ack()
+C51 COMPILER V9.01   DS18B20_LCD                                                           01/03/2021 21:22:59 PAGE 2   
+
+  56          {
+  57   1              bit ack;
+  58   1      
+  59   1              EA = 0;
+  60   1              IO_18B20 = 0;
+  61   1              DelayX10us(50);
+  62   1              IO_18B20 = 1;
+  63   1              DelayX10us(6);
+  64   1              ack = IO_18B20;
+  65   1              while(!IO_18B20);
+  66   1              EA = 1;
+  67   1      
+  68   1              return ack;
+  69   1      }
+  70          
+  71          void  Write18B20(unsigned char dat)
+  72          {
+  73   1              unsigned char mask;
+  74   1              EA = 0;
+  75   1              for(mask=0x01; mask!= 0; mask<<=1)
+  76   1              {
+  77   2                      IO_18B20 = 0;
+  78   2                      _nop_();
+  79   2                      _nop_();
+  80   2                      if((mask&dat) == 0)
+  81   2                              IO_18B20 = 0;
+  82   2                      else
+  83   2                              IO_18B20 = 1;
+  84   2                      DelayX10us(6);
+  85   2                      IO_18B20 = 1;
+  86   2              }
+  87   1              EA = 1;
+  88   1      }
+  89          
+  90          unsigned char Read18B20()
+  91          {
+  92   1              unsigned char dat;
+  93   1              unsigned char mask;
+  94   1      
+  95   1              EA = 0;
+  96   1              for(mask=0x01; mask!=0; mask<<=1)
+  97   1              {
+  98   2                      IO_18B20 = 0;
+  99   2                      _nop_();
+ 100   2                      _nop_();
+ 101   2                      IO_18B20 = 1;
+ 102   2                      _nop_();
+ 103   2                      _nop_();
+ 104   2                      if(!IO_18B20)
+ 105   2                              dat &= ~mask;
+ 106   2                      else
+ 107   2                              dat |= mask;
+ 108   2                      DelayX10us(6);
+ 109   2              }
+ 110   1              EA = 1;
+ 111   1      
+ 112   1              return dat;
+ 113   1      }
+ 114          
+ 115          bit Start18B20()
+ 116          {
+ 117   1              bit ack;
+C51 COMPILER V9.01   DS18B20_LCD                                                           01/03/2021 21:22:59 PAGE 3   
+
+ 118   1      
+ 119   1              ack = Get18B20Ack();
+ 120   1              if(ack == 0)
+ 121   1              {
+ 122   2                      Write18B20(0xCC);
+ 123   2                      Write18B20(0x44);
+ 124   2              }
+ 125   1              return ~ack;
+ 126   1      }
+ 127          
+ 128          bit Get18B20Temp(int *temp)
+ 129          {
+ 130   1              bit ack;
+ 131   1              unsigned char LSB, MSB;
+ 132   1      
+ 133   1              ack = Get18B20Ack();
+ 134   1              if(ack == 0)
+ 135   1              {
+ 136   2                      Write18B20(0xCC);
+ 137   2                      Write18B20(0xBE);
+ 138   2                      LSB = Read18B20();
+ 139   2                      MSB = Read18B20();
+ 140   2                      *temp = ((int)MSB<<8) + LSB;
+ 141   2              }
+ 142   1              return ~ack;
+ 143   1              }
+ 144           unsigned char IntToString(unsigned char *str, int dat)
+ 145          {
+ 146   1          signed char i = 0;
+ 147   1          unsigned char len = 0;
+ 148   1          unsigned char buf[6];
+ 149   1          
+ 150   1          if (dat < 0)  //如果为负数，首先
+ 151   1              
+ 152   1          {
+ 153   2              dat = -dat;
+ 154   2              *str++ = '-';
+ 155   2              len++;
+ 156   2          }
+ 157   1          do {          //先转换为低位在前的十进制数组
+ 158   2              buf[i++] = dat % 10;
+ 159   2              dat /= 10;
+ 160   2          } while (dat > 0);
+ 161   1          len += i;     //i最后的值就是有效字符的个数
+ 162   1          while (i-- > 0)   //将数组值转换为ASCII码反向拷贝到接收指针上
+ 163   1          {
+ 164   2              *str++ = buf[i] + '0';
+ 165   2          }
+ 166   1      
+ 167   1          *str = '\0';  //添加字符串结束符
+ 168   1          
+ 169   1          return len;   //返回字符串长度
+ 170   1      }
+ 171          
+ 172          
+ 173          
+ 174          
+ 175          
+ 176          
+ 177          
+ 178          
+ 179          
+C51 COMPILER V9.01   DS18B20_LCD                                                           01/03/2021 21:22:59 PAGE 4   
+
+ 180          
+ 181          
+ 182          void LCD_READ_BUSY() //忙不忙
+ 183          {
+ 184   1              uchar busy;
+ 185   1              P0 = 0XFF;
+ 186   1              RS = 0;
+ 187   1              RW = 1;
+ 188   1              do
+ 189   1              {
+ 190   2                      EN = 1;
+ 191   2                      busy = P0;
+ 192   2                      EN = 0;
+ 193   2              }while(busy&0X80);
+ 194   1              EN = 1;
+ 195   1      }         
+ 196          void LCD_WRITE_CMD(uchar cmd)//写一个字节命令流程
+ 197          {
+ 198   1              LCD_READ_BUSY();//判断忙不忙
+ 199   1              RS = 0;
+ 200   1              RW = 0;
+ 201   1              P0 = cmd;
+ 202   1              EN = 1;
+ 203   1              EN = 0;
+ 204   1      }
+ 205          void LCD_WRITE_DATE(uchar dat)//写一个字节数据
+ 206          {
+ 207   1              LCD_READ_BUSY();
+ 208   1              RS = 1;
+ 209   1              RW = 0;
+ 210   1              P0 = dat;
+ 211   1              EN = 1;
+ 212   1              EN = 0;
+ 213   1      }
+ 214          void LCD_OneChar(uchar x, uchar y,uchar dat)//指定位置显示字符
+ 215          {
+ 216   1              if(y)   
+ 217   1              x |= 0x40;//位选或
+ 218   1              x |= 0x80;
+ 219   1              LCD_WRITE_CMD(x);
+ 220   1              LCD_WRITE_DATE(dat);            
+ 221   1      }
+ 222          void LCD_Str(uchar x, uchar y, uchar *str)//指定位置显示字符串
+ 223          {
+ 224   1              if(y) 
+ 225   1              x |= 0x40;
+ 226   1              x |= 0x80;
+ 227   1              LCD_WRITE_CMD(x);
+ 228   1              while(*str != '\0')
+ 229   1              {
+ 230   2                      LCD_WRITE_DATE(*str++);
+ 231   2              }
+ 232   1      }
+ 233          void LCD_Init()  //     初始化
+ 234          {
+ 235   1              LCD_WRITE_CMD(0x38); // 设置16*2显示，5*7点阵，8位数据接口
+ 236   1              LCD_WRITE_CMD(0x0c); //开显示
+ 237   1              LCD_WRITE_CMD(0x06); //读写一字节后地址指针加1
+ 238   1              LCD_WRITE_CMD(0x01); //清除显示
+ 239   1      }
+ 240          
+ 241          bit ds_init()//单总线初始化程序
+C51 COMPILER V9.01   DS18B20_LCD                                                           01/03/2021 21:22:59 PAGE 5   
+
+ 242          {
+ 243   1              bit  i;
+ 244   1              DS = 1;
+ 245   1              _nop_();
+ 246   1              DS = 0;
+ 247   1              delayus(75);//拉低总线;保持480us以上，75*6.5+11.95=499.45ms
+ 248   1              DS = 1;//释放总线
+ 249   1              delayus(1);//1*6.5+11.95=18.45us等待发回信号(15-60us)
+ 250   1              i = DS;
+ 251   1              delayus(20);//读取存在信号的时间20*6.5+11.95=141.95us
+ 252   1              DS = 1; //释放总线
+ 253   1              _nop_(); 
+ 254   1              return(i);//i=0代表DS18B20已经准备好了
+ 255   1      }
+ 256          
+ 257          
+ 258          //正常摄氏度
+ 259          void displayN(int c)//温度正常显示
+ 260          {       
+ 261   1              uint i;
+ 262   1              uchar M1,M2,M3,M4;
+ 263   1              uchar TestStr[] = {"Tem:"};
+ 264   1              uchar TestStr1[] = {"DB:WYX"};
+ 265   1      
+ 266   1              i = abs(c);
+ 267   1              M1 = i/1000;//千位
+ 268   1              M2 = i%1000/100;//百位
+ 269   1              M3 = i%1000%100/10;//十位 
+ 270   1              M4 = i%10;      //个位
+ 271   1                              
+ 272   1      
+ 273   1              LCD_Str(0, 0, &TestStr[0]);     //显示字符串
+ 274   1      //      LCD_Str(0, 1, &TestStr1[0]);    //显示字符串
+ 275   1              LCD_Str(4, 0, str_wd);  //摄氏度
+ 276   1      
+ 277   1              LCD_OneChar(8, 0, 67);
+ 278   1              LCD_OneChar(15, 0, 78+DD*10);  //显示蜂鸣器开关
+ 279   1              LCD_OneChar(15, 1, 78+LL*10);  //显示指示灯开关
+ 280   1      }
+ 281          //转化为华氏度
+ 282          void displayNF(int c)
+ 283          {       
+ 284   1              uchar M1,M2,M3,M4;
+ 285   1              uchar TestStr[] = {"Tem:"};
+ 286   1              uchar TestStr1[] = {"DB:WYX"};
+ 287   1              uint p,i;
+ 288   1          i = abs(c);
+ 289   1      
+ 290   1              p = intT*90/5+320;
+ 291   1      
+ 292   1              M1 = p/1000;
+ 293   1              M2 = p%1000/100;//百位
+ 294   1              M3 = p%1000%100/10;//十位 
+ 295   1              M4 = p%10;      //个位
+ 296   1              LCD_Str(0, 0, &TestStr[0]);     //显示字符串
+ 297   1      //      LCD_Str(0, 1, &TestStr1[0]);    //显示字符串
+ 298   1      
+ 299   1              LCD_OneChar(4, 0, M2+48); //显示温度
+ 300   1              LCD_OneChar(5, 0, M3+48);
+ 301   1              LCD_OneChar(7, 0, M4+48);       
+ 302   1      
+ 303   1              LCD_OneChar(8, 0, 67+FF);
+C51 COMPILER V9.01   DS18B20_LCD                                                           01/03/2021 21:22:59 PAGE 6   
+
+ 304   1      
+ 305   1      
+ 306   1              LCD_OneChar(15, 0, 78+DD*10);  //显示蜂鸣器开关
+ 307   1              LCD_OneChar(15, 1, 78+LL*10);  //显示指示灯开关
+ 308   1      }
+ 309          //摄氏度调节最高温度时
+ 310          void displayM(int c)
+ 311          {       
+ 312   1              uchar M1,M2,M3,M4;
+ 313   1              int i,m;
+ 314   1              uchar TestStr[] = {"Tem:"}; 
+ 315   1              uchar TestStr1[] = {"High"};
+ 316   1              if(c<0)
+ 317   1              {m = 2;}
+ 318   1              else if(c>=0)
+ 319   1              {m = 0;}
+ 320   1              i =gao*10;
+ 321   1      
+ 322   1              M1 = i/1000;//千位
+ 323   1              M2 = i%1000/100;//百位
+ 324   1              M3 = i%1000%100/10;//十位 
+ 325   1              M4 = i%10;      //个位
+ 326   1                              
+ 327   1              LCD_Str(0, 0, &TestStr[0]);     //显示字符串
+ 328   1                      LCD_Str(0, 1, &TestStr1[0]);    //显示字符串
+ 329   1              LCD_OneChar(6, 1, M2+48);
+ 330   1              LCD_OneChar(7, 1, M3+48);
+ 331   1              LCD_OneChar(8, 1, 46);
+ 332   1              LCD_OneChar(9, 1, M4+48);
+ 333   1              LCD_OneChar(10, 1, 67);
+ 334   1      
+ 335   1              LCD_OneChar(15, 0, 78+DD*10); //显示蜂鸣器开关
+ 336   1              LCD_OneChar(15, 1, 78+LL*10);  //显示指示灯开关
+ 337   1      }
+ 338          //摄氏度调最低温度时
+ 339          void displayL(int c)
+ 340          {       
+ 341   1              uchar M1,M2,M3,M4;
+ 342   1              int i,m;
+ 343   1              uchar TestStr[] = {"Tem:"}; 
+ 344   1              uchar TestStr1[] = {"Low "};
+ 345   1              if(c<0)
+ 346   1              {m = 2;}
+ 347   1              else if(c>=0)
+ 348   1              {m = 0;}
+ 349   1      
+ 350   1              i = di*10;
+ 351   1              M1 = i/1000;//千位
+ 352   1              M2 = i%1000/100;//百位
+ 353   1              M3 = i%1000%100/10;//十位 
+ 354   1              M4 = i%10;      //个位
+ 355   1              LCD_Str(0, 0, &TestStr[0]);     //显示字符串
+ 356   1              LCD_Str(0, 1, &TestStr1[0]);    //显示字符串
+ 357   1              LCD_OneChar(6, 1, M2+48);
+ 358   1              LCD_OneChar(7, 1, M3+48);
+ 359   1              LCD_OneChar(8, 1, 46);
+ 360   1              LCD_OneChar(9, 1, M4+48);
+ 361   1              LCD_OneChar(10, 1, 67);
+ 362   1              LCD_OneChar(15, 0, 78+DD*10); //显示蜂鸣器开关
+ 363   1              LCD_OneChar(15, 1, 78+LL*10);  //显示指示灯开关
+ 364   1      }
+ 365          //华氏度调高温度时
+C51 COMPILER V9.01   DS18B20_LCD                                                           01/03/2021 21:22:59 PAGE 7   
+
+ 366          void displayMF(int c)
+ 367          {       
+ 368   1              uchar M1,M2,M3,M4;
+ 369   1              uchar TestStr[] = {"Tem:"}; 
+ 370   1              uchar TestStr1[] = {"High"};
+ 371   1              uint p,m,i;
+ 372   1              if(c<0)
+ 373   1              {m = 2;}
+ 374   1              else
+ 375   1              {m = 0;}
+ 376   1              i = abs(c);
+ 377   1      
+ 378   1              p = gao*10;
+ 379   1              M1 = p/1000;
+ 380   1              M2 = p%1000/100;//百位
+ 381   1              M3 = p%1000%100/10;//十位 
+ 382   1              M4 = p%10;      //个位
+ 383   1      
+ 384   1              LCD_Str(0, 0, &TestStr[0]);     //显示字符串
+ 385   1              LCD_Str(0, 1, &TestStr1[0]);    //显示字符串
+ 386   1      //      LCD_OneChar(6 , 0, 43+m);//显示正负
+ 387   1      ////    LCD_OneChar(7, 0, M1+48); //显示温度
+ 388   1              LCD_OneChar(6, 1, M2+48);
+ 389   1              LCD_OneChar(7, 1, M3+48);
+ 390   1              LCD_OneChar(8, 1, 46);
+ 391   1              LCD_OneChar(9, 1, M4+48);
+ 392   1                      LCD_OneChar(10, 1, 67+FF) ;
+ 393   1      //      LCD_OneChar(12, 0, 39);
+ 394   1      
+ 395   1              LCD_OneChar(15, 0, 78+DD*10); //显示蜂鸣器开关
+ 396   1              LCD_OneChar(15, 1, 78+LL*10);  //显示指示灯开关
+ 397   1      }
+ 398          
+ 399          //华氏度调低温度时
+ 400          void displayLF(int c)
+ 401          {       
+ 402   1              uchar M1,M2,M3,M4;
+ 403   1              uchar TestStr[] = {"Tem:"}; 
+ 404   1              uchar TestStr1[] = {"Low "};
+ 405   1              uint p,m,i;
+ 406   1              if(c<0)
+ 407   1              {m = 2;}
+ 408   1              else
+ 409   1              {m = 0;}
+ 410   1              i = abs(c);
+ 411   1              p = di*10;
+ 412   1              M1 = p/1000;
+ 413   1              M2 = p%1000/100;//百位
+ 414   1              M3 = p%1000%100/10;//十位 
+ 415   1              M4 = p%10;      //个位
+ 416   1                              
+ 417   1              LCD_Str(0, 0, &TestStr[0]);     //显示字符串
+ 418   1              LCD_Str(0, 1, &TestStr1[0]);    //显示字符串
+ 419   1      //      LCD_OneChar(6 , 0, 43+m);//显示正负
+ 420   1      ////    LCD_OneChar(7, 0, M1+48); //显示温度
+ 421   1              LCD_OneChar(6, 1, M2+48);
+ 422   1              LCD_OneChar(7, 1, M3+48);
+ 423   1              LCD_OneChar(8, 1, 46);
+ 424   1              LCD_OneChar(9, 1, M4+48);
+ 425   1              LCD_OneChar(10, 1, 67+FF) ;
+ 426   1      
+ 427   1              LCD_OneChar(15, 0, 78+DD*10);//X或者N
+C51 COMPILER V9.01   DS18B20_LCD                                                           01/03/2021 21:22:59 PAGE 8   
+
+ 428   1              LCD_OneChar(15, 1, 78+LL*10);  //显示指示灯开关
+ 429   1      }
+ 430          void displayLE()
+ 431          {
+ 432   1               uchar TestSt1[] = {"Error"};
+ 433   1               uchar TestSt2[] = {"Low#High"};
+ 434   1               LCD_Init();
+ 435   1               LCD_Str(5, 0, &TestSt1[0]);
+ 436   1               LCD_Str(4, 1, &TestSt2[0]);
+ 437   1               LCD_OneChar(15, 0, 78+DD*10); //显示蜂鸣器开关
+ 438   1               LCD_OneChar(15, 1, 78+LL*10);  //显示指示灯开关
+ 439   1               
+ 440   1      }
+ 441          void write_byte(uchar dat)//写一个字节
+ 442          {
+ 443   1              uchar i;
+ 444   1              for(i=0;i<8;i++)//一次写一位，一个字节循环8次
+ 445   1              {
+ 446   2                      DS = 0;
+ 447   2                      _nop_();//产生写时序（15US内满足要求）
+ 448   2                      DS = dat&0X01; //与
+ 449   2                      delayus(9);//延时大于60US 9*6.5+11.95=70.45us 同时满足写0写1
+ 450   2                      DS = 1;//释放总线
+ 451   2                      _nop_();
+ 452   2                      dat>>=1;//右移一位
+ 453   2              }
+ 454   1      }
+ 455          
+ 456          uchar read_byte()//读一个字节
+ 457          {
+ 458   1              uchar i,j,dat;
+ 459   1              for(i=0;i<8;i++)
+ 460   1              {
+ 461   2                      DS = 0;
+ 462   2                      _nop_();//产生读时序
+ 463   2                      DS = 1;
+ 464   2                      _nop_();//释放总线
+ 465   2                      j = DS;
+ 466   2                      delayus(9);//读取数据大于60US 9*6.5+11.95=70.45us
+ 467   2                      DS = 1;
+ 468   2                      _nop_();
+ 469   2                      dat = (j<<7)|(dat>>1);
+ 470   2              }
+ 471   1              return(dat);
+ 472   1      }
+ 473          
+ 474          
+ 475          
+ 476          
+ 477          void beep(int m,gao,di)//按键与警报程序
+ 478          {       
+ 479   1              if(m>=gao)
+ 480   1              {
+ 481   2                      if(di<=gao)       //判断最低报警温度是否低于最高报警温度
+ 482   2                      {
+ 483   3                              BP = DD;
+ 484   3                              P1 = 0XEE+LL*0X11;
+ 485   3                      }
+ 486   2                      else if(di>gao)
+ 487   2                      {
+ 488   3                              BP = 1;
+ 489   3                              P1 = 0X7E+LL*0X81;
+C51 COMPILER V9.01   DS18B20_LCD                                                           01/03/2021 21:22:59 PAGE 9   
+
+ 490   3                      }
+ 491   2              }
+ 492   1              else if(m<=di) 
+ 493   1              {
+ 494   2                      if(di<=gao)       //判断最低报警温度是否低于最高报警温度
+ 495   2                      {
+ 496   3                              BP = DD;
+ 497   3                              P1=0X77+LL*0X88;
+ 498   3                      }
+ 499   2                      else if(di>gao)
+ 500   2                      {
+ 501   3                              BP = 1;
+ 502   3                              P1 = 0X7E+LL*0X81;
+ 503   3                      }
+ 504   2      
+ 505   2              }
+ 506   1              else
+ 507   1              {
+ 508   2                      if(di<=gao)      //判断最低报警温度是否低于最高报警温度
+ 509   2                      {
+ 510   3                              BP = 1;
+ 511   3                              P1=0XBB+LL*0X44;
+ 512   3                      }
+ 513   2                      else if(di>gao)
+ 514   2                      {
+ 515   3                              BP = 1;
+ 516   3                              P1 = 0X7E+LL*0X81;
+ 517   3                      }
+ 518   2              }
+ 519   1      }
+ 520          
+ 521          
+ 522          
+ 523          
+ 524          
+ 525          
+ 526          
+ 527          
+ 528          
+ 529          void wendu() //温度显示函数
+ 530          { 
+ 531   1        bit res;
+ 532   1        int temp;  //读取到的当前温度值
+ 533   1        
+ 534   1        unsigned char len;
+ 535   1      
+ 536   1                  Get18B20Temp(&temp);  //读取当前温度
+ 537   1                  res = Get18B20Temp(&temp);  //读取当前温度
+ 538   1                  if (res)                    //读取成功时，刷新当前温度显示
+ 539   1                  {           
+ 540   2                                  intT = temp >> 4;          //分离出温度值整数部分
+ 541   2                      decT = temp & 0xF;         //分离出温度值小数部分
+ 542   2                      len = IntToString(str_wd, intT); //整数部分转换为字符串
+ 543   2                      str_wd[len++] = '.';             //添加小数点
+ 544   2                      decT = (decT*10) / 16;        //二进制的小数部分转换为1位十进制位
+ 545   2                      str_wd[len++] = decT + '0';   //十进制小数位再转换为ASCII字符
+ 546   2                      str_wd[len] = '\0';              //添加字符串结束符
+ 547   2      
+ 548   2                                      
+ 549   2      //                LcdShowStr(2, 0, str_wd);        //显示到液晶屏上
+ 550   2                               }
+ 551   1                      Start18B20();
+C51 COMPILER V9.01   DS18B20_LCD                                                           01/03/2021 21:22:59 PAGE 10  
+
+ 552   1      }
+ 553          
+ 554          
+ 555          
+ 556          
+ 557          
+ 558          
+ 559          void main()
+ 560          {
+ 561   1      
+ 562   1              ds_init();//初始化DS18B20
+ 563   1              ds_init();//初始化函数
+ 564   1              LCD_Init();//1602初始化
+ 565   1              while(1)
+ 566   1              {
+ 567   2                      wendu();
+ 568   2      
+ 569   2      
+ 570   2                      write_byte(0XCC);//发送跳跃ROM指令(0xcc)
+ 571   2                      write_byte(0X44);//发送温度转换指令（0X44）
+ 572   2              
+ 573   2                      write_byte(0XCC);//发送跳跃ROM指令(0xcc)
+ 574   2                      write_byte(0XBE);//读取DS18B20暂存器的值（0Xbe）
+ 575   2                      low = read_byte(); //温度低字节
+ 576   2                      High = read_byte();//温度高字节
+ 577   2                      i = High;
+ 578   2                      i <<=8;
+ 579   2                      i|=low;//与，把L写到低字节里
+ 580   2                      if(High >= 0x08)        //判断是否为负数
+ 581   2                      { 
+ 582   3                              i = ~i + 1;//负数是以补码的形式存放的需要我们需要取反加1
+ 583   3                              s = 2;  //显示负数符号
+ 584   3                      }
+ 585   2                      else s = 0;
+ 586   2                      t=i*0.0625;
+ 587   2                      i = t*10;//10.125--101.25--101.75--10.2（四舍五入)
+ 588   2                      
+ 589   2                      if(key_s1 == 0) //第一位选程序
+ 590   2                      {
+ 591   3                              delayus(10);//防抖
+ 592   3                              if(key_s1 == 0)
+ 593   3                              {
+ 594   4                                      j=j+1 ;
+ 595   4                                      if(j>=3)
+ 596   4                                      j=0;
+ 597   4                              }
+ 598   3                              while(!key_s1);
+ 599   3                      }
+ 600   2                      if(j==1) //调最高温度
+ 601   2                      {
+ 602   3                              h = gao;
+ 603   3                              if(key_s2 == 0)//按键2增加温度
+ 604   3                              {
+ 605   4                                      delayus(20);//防抖
+ 606   4                                      if(key_s2 == 0)
+ 607   4                                      {
+ 608   5                                              h=h+1 ;
+ 609   5                                      }
+ 610   4                                      while(!key_s2);
+ 611   4                              }
+ 612   3                              else if(key_s3 == 0)//按键3减小温度
+ 613   3                              {
+C51 COMPILER V9.01   DS18B20_LCD                                                           01/03/2021 21:22:59 PAGE 11  
+
+ 614   4                                      delayus(20);
+ 615   4                                      if(key_s3 == 0)
+ 616   4                                      {
+ 617   5                                              h=h-1;
+ 618   5                                      }
+ 619   4                                      while(!key_s3);
+ 620   4                              }
+ 621   3                              if(K==0)
+ 622   3                              {
+ 623   4                                      displayM(h);
+ 624   4                              }
+ 625   3                              else if(K==1)
+ 626   3                              {
+ 627   4                              //      p = h*(5/9)+320;
+ 628   4                                      displayMF(h);
+ 629   4                              }
+ 630   3                              gao = h;
+ 631   3                      }       
+ 632   2                      else if(j==2)//调最低温度               
+ 633   2                      {
+ 634   3                              h = di;
+ 635   3                              if(key_s2 == 0)//按键2增加温度
+ 636   3                              {
+ 637   4                                      delayus(20);//防抖
+ 638   4                                      if(key_s2 == 0)
+ 639   4                                      {
+ 640   5                                              h=h+1 ;
+ 641   5                                      }
+ 642   4                                      while(!key_s2);
+ 643   4                              }
+ 644   3                              else if(key_s3 == 0)//按键3减小温度
+ 645   3                              {
+ 646   4                                      delayus(20);
+ 647   4                                      if(key_s3 == 0)
+ 648   4                                      {
+ 649   5                                              h=h-1;
+ 650   5                                      }
+ 651   4                                      while(!key_s3);
+ 652   4                              }
+ 653   3                              if(K==0)
+ 654   3                              {
+ 655   4                                      displayL(h);
+ 656   4                              }
+ 657   3                              else if(K==1)
+ 658   3                              {
+ 659   4                              //      p = h*(5/9)+320;
+ 660   4                                      displayLF(h);
+ 661   4                              }
+ 662   3                              di = h;
+ 663   3                       }
+ 664   2                      else if(j==0) //显示温度
+ 665   2                      {       
+ 666   3                              LCD_Str(0, 1, &TestStr2[0]);    //显示字符串
+ 667   3      
+ 668   3                              if(key_s2 == 0)//温度转化
+ 669   3                              {
+ 670   4                                      delayus(20);//防抖
+ 671   4                                      if(key_s2 == 0)
+ 672   4                                      {
+ 673   5                                              K=K+1 ;
+ 674   5                                              if(K>1)
+ 675   5                                              K=0;
+C51 COMPILER V9.01   DS18B20_LCD                                                           01/03/2021 21:22:59 PAGE 12  
+
+ 676   5                                      }
+ 677   4                                      while(!key_s2);
+ 678   4                              }
+ 679   3                              if(key_s3 == 0)//蜂鸣器与指示灯开关
+ 680   3                              {
+ 681   4                                      delayus(20);//防抖
+ 682   4                                      if(key_s3 == 0)
+ 683   4                                      {
+ 684   5                                              M=M+1 ;
+ 685   5                                              if(M>3)
+ 686   5                                              M=0;
+ 687   5                                      }
+ 688   4                                      while(!key_s3);
+ 689   4                              }
+ 690   3                              if(K==0)
+ 691   3                              {
+ 692   4                                      FF=0;      //摄氏度
+ 693   4                              }
+ 694   3                              else if(K==1)
+ 695   3                              {
+ 696   4                                      FF=3;      //华氏
+ 697   4                              }
+ 698   3      
+ 699   3      /****************判断蜂鸣器与指示灯开关程序*******************/
+ 700   3                              if(M==0)           //蜂鸣器关指示灯开
+ 701   3                              {
+ 702   4                                      DD=1;
+ 703   4                                      LL=0;      //蜂鸣器关
+ 704   4                              }
+ 705   3                              else if(M==1)  //蜂鸣器开指示灯开
+ 706   3                              {
+ 707   4                                      DD=0;
+ 708   4                                      LL=0;      
+ 709   4                              }
+ 710   3                              else if(M==2)  //蜂鸣器开指示灯关
+ 711   3                              {
+ 712   4                                      DD=0;
+ 713   4                                      LL=1;
+ 714   4                              }
+ 715   3                              else if(M==3)  //蜂鸣器关指示灯关
+ 716   3                              {
+ 717   4                                      DD=1;
+ 718   4                                      LL=1;
+ 719   4                              }
+ 720   3      /*****************温度显示及判断程序执行*****************/
+ 721   3                              if(K==0)           //选择显示摄氏度
+ 722   3                              {
+ 723   4                                      if(di>gao)
+ 724   4                                      displayLE();
+ 725   4                                      else if(di<=gao)
+ 726   4                                      displayN(i);
+ 727   4                              }
+ 728   3                              else if(K==1)  //选择显示华氏
+ 729   3                              {
+ 730   4                                      if(di>gao)
+ 731   4                                      displayLE();
+ 732   4                                      else if(di<=gao)
+ 733   4                                      displayNF(i);
+ 734   4                              }
+ 735   3                              beep(i,gao,di);//报警判断
+ 736   3                      }
+ 737   2              }
+C51 COMPILER V9.01   DS18B20_LCD                                                           01/03/2021 21:22:59 PAGE 13  
+
+ 738   1      }
+ 739          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   3201    ----
+   CONSTANT SIZE    =     79    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     53     150
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       5
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

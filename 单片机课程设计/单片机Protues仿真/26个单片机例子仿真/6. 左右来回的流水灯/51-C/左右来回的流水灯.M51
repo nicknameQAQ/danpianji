@@ -1,0 +1,97 @@
+BL51 BANKED LINKER/LOCATER V6.00                                                        07/30/2011  16:35:32  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.00, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE 左右来回的流水灯.obj TO 左右来回的流水灯 RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  左右来回的流水灯.obj (左觃来籣的羅水灯)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+
+
+LINK MAP OF MODULE:  左右来回的流水灯 (左觃来籣的羅水灯)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            IDATA   0008H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     003BH     UNIT         ?PR?MAIN?左觃来籣的羅水灯
+            CODE    003EH     000EH     UNIT         ?PR?_DELAY?左觃来籣的羅水灯
+            CODE    004CH     000CH     UNIT         ?C_C51STARTUP
+
+
+
+OVERLAY MAP OF MODULE:   左右来回的流水灯 (左觃来籣的羅水灯)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?左觃来籣的羅水灯
+
+?PR?MAIN?左觃来籣的羅水灯
+  +--> ?PR?_DELAY?左觃来籣的羅水灯
+
+
+
+SYMBOL TABLE OF MODULE:  左右来回的流水灯 (左觃来籣的羅水灯)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        左觃来籣的羅水灯
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  C:0003H         PUBLIC        main
+  C:003EH         PUBLIC        _delay
+  -------         PROC          _DELAY
+  D:0006H         SYMBOL        x
+  -------         DO            
+  D:0007H         SYMBOL        i
+BL51 BANKED LINKER/LOCATER V6.00                                                      07/30/2011  16:35:32  PAGE 2
+
+
+  D:0006H         SYMBOL        j
+  -------         ENDDO         
+  C:003EH         LINE#         8
+  C:003EH         LINE#         9
+  C:003EH         LINE#         11
+  C:0044H         LINE#         12
+  C:004BH         LINE#         13
+  -------         ENDPROC       _DELAY
+  -------         PROC          MAIN
+  -------         DO            
+  D:0005H         SYMBOL        b
+  D:0004H         SYMBOL        way
+  -------         ENDDO         
+  C:0003H         LINE#         15
+  C:0003H         LINE#         16
+  C:0003H         LINE#         17
+  C:0006H         LINE#         18
+  C:0006H         LINE#         19
+  C:0006H         LINE#         20
+  C:0009H         LINE#         21
+  C:0015H         LINE#         23
+  C:0023H         LINE#         25
+  C:0028H         LINE#         26
+  C:0028H         LINE#         27
+  C:002AH         LINE#         28
+  C:0035H         LINE#         29
+  C:0035H         LINE#         30
+  C:003CH         LINE#         31
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        左觃来籣的羅水灯
+
+Program Size: data=9.0 xdata=0 code=88
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

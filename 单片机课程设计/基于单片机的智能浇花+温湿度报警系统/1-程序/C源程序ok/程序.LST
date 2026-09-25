@@ -1,0 +1,557 @@
+C51 COMPILER V9.00   程序                                                                  06/08/2020 10:11:17 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE 程序
+OBJECT MODULE PLACED IN 程序.OBJ
+COMPILER INVOKED BY: F:\Keil\C51\BIN\C51.EXE 程序.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include <reg52.h>
+   2          #include <intrins.h>
+   3          #define uchar unsigned char             //宏定义
+   4          #define uint unsigned int
+   5          #include"eeprom.h"
+   6          typedef unsigned char unint8;
+   7          typedef unsigned char unint16;
+   8          typedef unsigned int   U16; 
+   9          uchar code table[] = {"moisture:       "};
+  10          uchar code table1[] ={"                "};
+  11          uchar code table3[] ={" H:  %   H:   C "};
+  12          uchar code table2[] ={"Set The:         "};
+  13          sbit TRH = P1^4;//温湿度传感器DHT11数据接入
+  14          sbit rs = P2^6;             
+  15          sbit en = P2^7;
+  16          sbit beep=P2^0;//蜂鸣器控制端
+  17          
+  18          sbit k1=P3^1;
+  19          sbit k2=P3^2;
+  20          sbit k3=P3^3;
+  21          
+  22          sbit jdq=P3^4;
+  23          
+  24          sbit CS   = P1^0; 
+  25          sbit Clk = P1^1; 
+  26          sbit DATI = P1^2; 
+  27          sbit DATO = P1^2;
+  28          uchar stemp=35,shr=50,tr=80;       //温湿度上下线初始化
+  29          bit yyp=1,lalarm=0;                                             //设置标志位，报警标志位
+  30          int key_delay=0;
+  31          const int key_count=400; 
+  32          unsigned char dat = 0x00;       
+  33          unsigned char CH;   
+  34          uchar s1num,num,shis,shig,wens,weng;
+  35          unint8 TH_data,TL_data,RH_data,RL_data,CK_data;
+  36          unint8 TH_temp,TL_temp,RH_temp,RL_temp,CK_temp;
+  37          unint8 com_data,untemp,temp;
+  38          unint8 respond;
+  39          void delay(uint x) //毫秒级延时函数
+  40          {
+  41   1        uint i,j;
+  42   1        for(i=x;i>0;i--)
+  43   1           for(j=110;j>0;j--);
+  44   1      }
+  45          void di()                        //蜂鸣器报警
+  46          {
+  47   1              beep=0;
+  48   1              delay(100);
+  49   1              beep=1;
+  50   1      }
+  51          void write_com(uchar com)
+  52          {
+  53   1              rs=0;//命令
+  54   1              P0=com;
+  55   1              delay(5);
+C51 COMPILER V9.00   程序                                                                  06/08/2020 10:11:17 PAGE 2   
+
+  56   1              en=1;
+  57   1              delay(5);
+  58   1              en=0;
+  59   1      }
+  60          void write_date(uchar date)
+  61          {
+  62   1              rs=1;//数据
+  63   1              P0=date;
+  64   1              delay(5);
+  65   1              en=1;
+  66   1              delay(5);
+  67   1              en=0;
+  68   1      }
+  69          void init1602()
+  70          {
+  71   1              write_com(0x38);        //设置工作方式
+  72   1              write_com(0x0c);        //设置光标
+  73   1              write_com(0x06);        //设置输入方式
+  74   1              write_com(0x01);        //清屏
+  75   1              write_com(0x80);
+  76   1              for(num=0;num<16;num++)
+  77   1              {
+  78   2                      write_date(table[num]);
+  79   2              }
+  80   1              write_com(0x80+0x40);
+  81   1              for(num=0;num<16;num++)
+  82   1              {
+  83   2                      write_date(table1[num]);
+  84   2              }
+  85   1      }
+  86          void init16021()                //设置温度上下限显示初始化函数
+  87          {
+  88   1              write_com(0x80);
+  89   1              for(num=0;num<16;num++)
+  90   1              {
+  91   2                      write_date(table2[num]);
+  92   2              }
+  93   1              write_com(0x80+0x40);
+  94   1              for(num=0;num<16;num++)
+  95   1              {
+  96   2                      write_date(table3[num]);
+  97   2              }
+  98   1              write_com(0x80+0x40+13);
+  99   1              write_date(0xdf);                
+ 100   1              
+ 101   1      }
+ 102          void write_H(uchar add,uchar date)
+ 103          {
+ 104   1              uchar shi,ge;
+ 105   1              shi=date/10;
+ 106   1              ge=date%10;
+ 107   1              write_com(0x80+0x40+add);
+ 108   1              write_date(0x30+shi);
+ 109   1              write_date(0x30+ge);
+ 110   1      }
+ 111          void write_tr(uchar add,uchar Data)
+ 112          {
+ 113   1              uchar bai,shi,ge;
+ 114   1              bai=Data/100;
+ 115   1              shi=Data/10%10;
+ 116   1              ge=Data%10;
+ 117   1              write_com(0x80+add);
+C51 COMPILER V9.00   程序                                                                  06/08/2020 10:11:17 PAGE 3   
+
+ 118   1              write_date(0X30+bai);
+ 119   1              write_date(0X30+shi);
+ 120   1              write_date(0X30+ge);
+ 121   1      }
+ 122          /////////////////////////////////
+ 123          /***********DHT11子程序*************************/
+ 124          /*********************************************************************************/
+ 125          
+ 126          /*********************************************************************************/
+ 127          // 毫秒级延时子程序
+ 128          /*********************************************************************************/
+ 129          void delay_ms(U16 j)
+ 130          {      unint8 i;
+ 131   1                  for(;j>0;j--)
+ 132   1                {     
+ 133   2                      for(i=0;i<27;i++);
+ 134   2      
+ 135   2                }
+ 136   1      }
+ 137          /*********************************************************************************/
+ 138          
+ 139          /*********************************************************************************/
+ 140          //5us级延时程序
+ 141          /*********************************************************************************/
+ 142          void delay_us()
+ 143          {
+ 144   1                unint8 i;
+ 145   1                i--;
+ 146   1                i--;
+ 147   1                i--;
+ 148   1                i--;
+ 149   1                i--;
+ 150   1                i--;
+ 151   1      } 
+ 152          /********************************************************************************/
+ 153          
+ 154          /****************************************************************************/
+ 155          //收发信号检测，数据读取
+ 156          /****************************************************************************/
+ 157          char receive()
+ 158          {    
+ 159   1                unint8 i;
+ 160   1                for(i=0;i<8;i++)    
+ 161   1               {
+ 162   2                          respond=2;
+ 163   2                          while((!TRH)&&respond++);
+ 164   2                          delay_us();
+ 165   2                          delay_us();
+ 166   2                          delay_us();
+ 167   2      
+ 168   2                                              temp=0;
+ 169   2      
+ 170   2      
+ 171   2                          if(TRH)temp=1;
+ 172   2                           respond=2;
+ 173   2                           while((TRH)&&respond++); 
+ 174   2                                               //超时则跳出for循环              
+ 175   2                                               if(respond==1)break;
+ 176   2      
+ 177   2                                                      //判断数据位是0还是1     
+ 178   2                         
+ 179   2                      // 如果高电平高过预定0高电平值则数据位为 1 
+C51 COMPILER V9.00   程序                                                                  06/08/2020 10:11:17 PAGE 4   
+
+ 180   2                          com_data<<=1;
+ 181   2                          com_data|=temp;    
+ 182   2                }
+ 183   1                return(com_data);  
+ 184   1      }
+ 185          /****************************************************************************/
+ 186          
+ 187          /****************************************************************************/
+ 188          //湿度读取子程序 
+ 189          //温度高8位== TL_data
+ 190          //温度低8位== TH_data
+ 191          //湿度高8位== RH_data
+ 192          //湿度低8位== RH_data
+ 193          //校验 8位 == CK_data
+ 194          //调用的程序有 delay();, Delay_5us();,RECEIVE(); 
+ 195          /***************************************************************************/
+ 196          void GET_TRH()
+ 197          {
+ 198   1               //主机拉低18ms 
+ 199   1               TRH=0;
+ 200   1               delay_ms(180);
+ 201   1               TRH=1;
+ 202   1               //DATA总线由上拉电阻拉高 主机延时20us
+ 203   1               delay_us();
+ 204   1               delay_us();
+ 205   1               delay_us();
+ 206   1               delay_us();
+ 207   1               //主机设为输入 判断从机响应信号 
+ 208   1               TRH=1;
+ 209   1               //判断DHT11是否有低电平响应信号 如不响应则跳出，响应则向下运行   
+ 210   1               if(!TRH)   
+ 211   1               {
+ 212   2                      respond=2;
+ 213   2                      //判断DHT11发出 80us 的低电平响应信号是否结束 
+ 214   2                      while((!TRH)&& respond++);
+ 215   2                      respond=2;
+ 216   2                      //判断从机是否发出 80us 的高电平，如发出则进入数据接收状态
+ 217   2                      while(TRH && respond++);
+ 218   2                      //数据接收状态   
+ 219   2                      RH_temp = receive(); 
+ 220   2                      RL_temp = receive(); 
+ 221   2                      TH_temp = receive(); 
+ 222   2                      TL_temp = receive(); 
+ 223   2                      CK_temp = receive();
+ 224   2                      TRH=1;//ST=1;     
+ 225   2                      //数据校验 
+ 226   2                      untemp=(RH_temp+RL_temp+TH_temp+TL_temp);
+ 227   2                      if(untemp==CK_temp)
+ 228   2                      {
+ 229   3                           RH_data = RH_temp;
+ 230   3                           RL_data = RL_temp;
+ 231   3                           TH_data = TH_temp; 
+ 232   3                           TL_data = TL_temp;
+ 233   3                           CK_data = CK_temp;
+ 234   3                      }
+ 235   2              }
+ 236   1                                      //湿度整数部分
+ 237   1                               shis= (char)(0X30+RH_data/10);  //湿度的十位
+ 238   1                               shig= (char)(0X30+RH_data%10);  //湿度的个
+ 239   1                               //温度整数部分
+ 240   1                               wens= (char)(0X30+TH_data/10);   //温度的十位
+ 241   1                               weng= (char)(0X30+TH_data%10);  //温度的个位
+C51 COMPILER V9.00   程序                                                                  06/08/2020 10:11:17 PAGE 5   
+
+ 242   1                               //湿度整数部分
+ 243   1                               shis= (char)(0X30+RH_data/10);  //湿度的十位
+ 244   1                               shig= (char)(0X30+RH_data%10);  //湿度的个
+ 245   1                               //温度整数部分
+ 246   1                               wens= (char)(0X30+TH_data/10);   //温度的十位
+ 247   1                               weng= (char)(0X30+TH_data%10);  //温度的个位
+ 248   1                               //温湿度显示函数
+ 249   1                                       write_com(0x80+0x40+2);
+ 250   1                                       write_date(shis);
+ 251   1                                       write_date(shig);
+ 252   1                                       write_date('%');        //湿度符号
+ 253   1                                       write_com(0x80+0x40+9);
+ 254   1                                       write_date(wens);
+ 255   1                                       write_date(weng);
+ 256   1                                       write_date(0xdf);      //温度符号
+ 257   1                                       write_date('C');
+ 258   1      
+ 259   1      
+ 260   1      }
+ 261          /****按键扫描******/
+ 262          void keyscan()
+ 263          {
+ 264   1              if(k1==0)
+ 265   1              {
+ 266   2                      delay(10);
+ 267   2                      if(k1==0)
+ 268   2                      {
+ 269   3                              s1num++;
+ 270   3                              while(!k1);                     //等待按键释放
+ 271   3                              yyp=0;
+ 272   3                              di();                   
+ 273   3                              switch(s1num)
+ 274   3                              {
+ 275   4                                      case 1: init16021();                            //设置温度上下限初始化
+ 276   4                                                      tr=byte_read(0x2000); 
+ 277   4                                                      shr=byte_read(0x2200);
+ 278   4                                                      stemp=byte_read(0x2400);
+ 279   4                                                      write_tr(9,tr);
+ 280   4                                                      write_H(3,shr);
+ 281   4                                                      write_H(11,stemp);
+ 282   4                                                      write_com(0x80+11);
+ 283   4                                                      write_com(0x0f);                        //打开光标
+ 284   4                                                      break;
+ 285   4                                      case 2: write_com(0X40+0x80+4);
+ 286   4                                                      break;
+ 287   4                                      case 3: write_com(0X40+0x80+12);
+ 288   4                                                      break;
+ 289   4                                      case 4: s1num=0;
+ 290   4                                                      write_com(0x0c);                        //关闭光标
+ 291   4                                                      yyp=1;
+ 292   4                                                      init1602();                                     //上电后显示初始化
+ 293   4                                                      break;
+ 294   4                              }               
+ 295   3                      }
+ 296   2              }
+ 297   1              if(s1num!=0)
+ 298   1              {
+ 299   2                      if(k2==0)
+ 300   2                      {
+ 301   3                              delay(10);
+ 302   3                              if(k2==0)
+ 303   3                              {
+C51 COMPILER V9.00   程序                                                                  06/08/2020 10:11:17 PAGE 6   
+
+ 304   4                                      
+ 305   4                                      while(!k2);             //等待按键释放
+ 306   4                                      di();
+ 307   4                                      switch(s1num)
+ 308   4                              {
+ 309   5                                              case 1: tr++;
+ 310   5                                                              if(tr==255)tr=0;
+ 311   5                                                              write_tr(9,tr);
+ 312   5                                                              write_com(0x80+11);
+ 313   5                                                              SectorErase(0x2000);//擦除扇区
+ 314   5                                                              byte_write(0x2000,tr);//重新写入数据    
+ 315   5                                                              break;
+ 316   5                                              case 2: shr++;
+ 317   5                                                              if(shr==85)shr=0;
+ 318   5                                                              write_H(3,shr);
+ 319   5                                                              write_com(0X40+0x80+4); 
+ 320   5                                                              SectorErase(0x2200);//擦除扇区
+ 321   5                                                              byte_write(0x2200,shr);//重新写入数据   
+ 322   5                                                              break;
+ 323   5                                              case 3: stemp++;
+ 324   5                                                              if(stemp==45)stemp=0;
+ 325   5                                                              write_H(11,stemp);
+ 326   5                                                              write_com(0X40+0x80+12); 
+ 327   5                                                              SectorErase(0x2400);//擦除扇区
+ 328   5                                                              byte_write(0x2400,stemp);//重新写入数据
+ 329   5                                                      break;
+ 330   5                                      } 
+ 331   4                              }
+ 332   3                      }
+ 333   2                      if(k3==0)
+ 334   2                      {
+ 335   3                              delay(10);
+ 336   3                              if(k3==0)
+ 337   3                              {
+ 338   4                              
+ 339   4                                      while(!k3);             //等待按键释放
+ 340   4                                      di();
+ 341   4                                      switch(s1num)
+ 342   4                              {
+ 343   5                                              case 1: tr--;
+ 344   5                                                              if(tr==0)tr=255;
+ 345   5                                                              write_tr(9,tr);
+ 346   5                                                              write_com(0x80+11);
+ 347   5                                                              SectorErase(0x2000);//擦除扇区
+ 348   5                                                              byte_write(0x2000,tr);//重新写入数据            
+ 349   5                                                              break;
+ 350   5                                              case 2: shr--;
+ 351   5                                                              if(shr==0)shr=85;
+ 352   5                                                              write_H(3,shr);
+ 353   5                                                              write_com(0X40+0x80+4); 
+ 354   5                                                              SectorErase(0x2200);//擦除扇区
+ 355   5                                                              byte_write(0x2200,shr);//重新写入数据
+ 356   5                                                              break;
+ 357   5                                              case 3: stemp--;
+ 358   5                                                              if(stemp==0)stemp=45;
+ 359   5                                                              write_H(11,stemp);
+ 360   5                                                              write_com(0X40+0x80+12); 
+ 361   5                                                              SectorErase(0x2400);//擦除扇区
+ 362   5                                                              byte_write(0x2400,stemp);//重新写入数据
+ 363   5                                                      break;
+ 364   5                                      } 
+ 365   4                              }
+C51 COMPILER V9.00   程序                                                                  06/08/2020 10:11:17 PAGE 7   
+
+ 366   3                      }
+ 367   2              }
+ 368   1      }
+ 369          
+ 370          unsigned char adc0832(unsigned char CH) 
+ 371          {        
+ 372   1              unsigned char i,test,adval;      
+ 373   1              adval = 0x00;      
+ 374   1              test = 0x00;       
+ 375   1              Clk = 0;       //初始化      
+ 376   1              DATI = 1;     
+ 377   1              _nop_();     
+ 378   1              CS = 0;     
+ 379   1              _nop_();     
+ 380   1              Clk = 1;    
+ 381   1              _nop_();       
+ 382   1              if ( CH == 0x00 )      //通道选择    
+ 383   1              {         
+ 384   2                      Clk = 0;         
+ 385   2                      DATI = 1;      //通道0的第一位       
+ 386   2                       _nop_();       
+ 387   2                       Clk = 1;         
+ 388   2                       _nop_();          
+ 389   2                       Clk = 0;        
+ 390   2                       DATI = 0;      //通道0的第二位       
+ 391   2                       _nop_();  
+ 392   2                       Clk = 1;       
+ 393   2                       _nop_();     
+ 394   2              }      
+ 395   1              else     
+ 396   1              {         
+ 397   2                      Clk = 0;        
+ 398   2                      DATI = 1;      //通道1的第一位        
+ 399   2                      _nop_();        
+ 400   2                      Clk = 1;        
+ 401   2                      _nop_();        
+ 402   2                      Clk = 0;        
+ 403   2                      DATI = 1;      //通道1的第二位     
+ 404   2                      _nop_();      
+ 405   2                      Clk = 1;      
+ 406   2                      _nop_();     
+ 407   2              }        
+ 408   1                      Clk = 0;       
+ 409   1                      DATI = 1;        
+ 410   1                      for( i = 0;i < 8;i++ )      //读取前8位的值     
+ 411   1                      {         
+ 412   2                              _nop_();         
+ 413   2                              adval <<= 1;        
+ 414   2                              Clk = 1;        
+ 415   2                              _nop_();        
+ 416   2                              Clk = 0;        
+ 417   2                              if (DATO)            
+ 418   2                              adval |= 0x01;       
+ 419   2                              else            
+ 420   2                              adval |= 0x00;     
+ 421   2                      }          
+ 422   1                      for (i = 0; i < 8; i++)      //读取后8位的值       
+ 423   1                      {             
+ 424   2                              test >>= 1;            
+ 425   2                              if (DATO)                
+ 426   2                              test |= 0x80;            
+ 427   2                              else                 
+C51 COMPILER V9.00   程序                                                                  06/08/2020 10:11:17 PAGE 8   
+
+ 428   2                              test |= 0x00;            
+ 429   2                              _nop_();           
+ 430   2                              Clk = 1;           
+ 431   2                              _nop_();           
+ 432   2                              Clk = 0;       
+ 433   2                      }        
+ 434   1                      if (adval == test)      //比较前8位与后8位的值，如果不相同舍去。若一直出现显示为零，请将该行去掉        
+             -     
+ 435   1                      dat = test;        
+ 436   1                      _nop_();         
+ 437   1                      CS = 1;        //释放ADC0832        
+ 438   1                      DATO = 1;        
+ 439   1                      Clk = 1;       
+ 440   1                      return dat; 
+ 441   1      } 
+ 442          void display(uchar Data)
+ 443          {
+ 444   1              uchar bai,shi,ge;
+ 445   1              bai=Data/100;
+ 446   1              shi=Data/10%10;
+ 447   1              ge=Data%10;
+ 448   1              write_com(0x80+9);
+ 449   1              write_date(0X30+bai);
+ 450   1              write_date(0X30+shi);
+ 451   1              write_date(0X30+ge);
+ 452   1      }
+ 453          void baojing()
+ 454          {
+ 455   1                              if(TH_data>stemp||RH_data>shr)//判断温湿度
+ 456   1                              {
+ 457   2                                      lalarm=1;
+ 458   2                                      if(RH_data>shr) //      报警
+ 459   2                                      {
+ 460   3                                                      
+ 461   3                                      }
+ 462   2                                       if(TH_data>stemp) //   报警
+ 463   2                                      {
+ 464   3                                              
+ 465   3                                      }
+ 466   2                              }
+ 467   1                              else                                                     //不报警
+ 468   1                              {
+ 469   2                                      lalarm=0;
+ 470   2                                      if(yyp==1)
+ 471   2                                      {
+ 472   3                                      } 
+ 473   2                              }
+ 474   1                              if(lalarm==1)
+ 475   1                              {
+ 476   2                                      di();
+ 477   2                                      delay(100);
+ 478   2                                      di();
+ 479   2                                      delay(100);
+ 480   2                              } 
+ 481   1                              if(100-(adc0832(0x00)/2.55)<tr)//浇花
+ 482   1                              {
+ 483   2                                      jdq=0;beep=0;
+ 484   2                              }
+ 485   1                              else//停止浇花
+ 486   1                              {
+ 487   2                                      jdq=1;beep=1;
+ 488   2                              }               
+C51 COMPILER V9.00   程序                                                                  06/08/2020 10:11:17 PAGE 9   
+
+ 489   1      } 
+ 490          /****************************************************************************/
+ 491          //主函数
+ 492          //TH,TL,RH,RL分别代表温湿度的整数和小数部分
+ 493          /****************************************************************************/
+ 494          void main()
+ 495          {
+ 496   1                        init1602();
+ 497   1                        
+ 498   1                        tr=byte_read(0x2000); 
+ 499   1                        shr=byte_read(0x2200);
+ 500   1                        stemp=byte_read(0x2400);
+ 501   1                while(1)
+ 502   1                {
+ 503   2      
+ 504   2      
+ 505   2                      
+ 506   2      
+ 507   2                              keyscan();
+ 508   2                              if(yyp==1)
+ 509   2                              {
+ 510   3                                      display(100-adc0832(0X00)/2.55);
+ 511   3                      keyscan();
+ 512   3                                      if(yyp==1)GET_TRH();
+ 513   3                                      baojing();      
+ 514   3                                      
+ 515   3                               }                              
+ 516   2                }      
+ 517   1      } 
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1429    ----
+   CONSTANT SIZE    =     69    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     29       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      2    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

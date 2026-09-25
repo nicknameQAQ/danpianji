@@ -1,0 +1,398 @@
+C51 COMPILER V9.01   蝊度计                                                                06/28/2020 23:28:53 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE 蝊度计
+OBJECT MODULE PLACED IN 温度计.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 温度计.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include<reg51.h>
+   2          #include<intrins.h>          //shiyongyanshi
+   3          #include<math.h>                                                                           
+   4          #define uchar unsigned char
+   5          #define uint unsigned int
+   6          sbit DQ=P3^3;
+   7           
+   8          sbit RS =P2^0;
+   9          sbit RW =P2^1;
+  10          sbit EN =P2^2;
+  11          sbit k=P1^0;
+  12          sbit  k1=P1^4;
+  13          sbit  k2=P1^5;
+  14          sbit  k3=P1^6;
+  15          sbit  k4=P1^7;
+  16          
+  17          sbit led_red=P2^5;
+  18          sbit led_blue=P2^6;
+  19          
+  20          sbit BEEP=P3^7;
+  21          
+  22          uchar bz=1;
+  23          uchar ng=0;  //fuhaobiaoshiwei  
+  24          uchar TempBuffer[] ={"TEMP:           "};
+  25          int temp_value;      //温度值
+  26           
+  27          uchar code  dis_title[]={"--current temp--"};
+  28           
+  29          void xianshi_huashi();
+  30          
+  31          uchar gw=40;
+  32          char dw= 10;
+  33          uchar xianshi_title[]={"  TEMP ALARM     "};
+  34          uchar xianshi_baojing[]={"HI:    LO:    "};       //345   10 `` 12
+  35          
+  36          //----------------延时--------------------------------
+  37           void delayxus(uint x)
+  38           {
+  39   1        uchar i;
+  40   1        while(x--)  for(i=0;i<200;i++);
+  41   1       }
+  42          //*********************LCD  控制********************
+  43          //读lcd 状态
+  44          uchar read_lcd_state()
+  45          {
+  46   1        uchar state ;
+  47   1        RS=0;RW=1;EN=1;delayxus(1);state=P0;EN=0;delayxus(1);
+  48   1        return state;
+  49   1      }                                                                                                                        
+  50          //  忙等待
+  51          void lcd_busy_wait()
+  52          {
+  53   1              while((read_lcd_state()&0x80)==0x80);
+  54   1              delayxus(5);
+  55   1      }
+C51 COMPILER V9.01   蝊度计                                                                06/28/2020 23:28:53 PAGE 2   
+
+  56          //向LCD写数据
+  57           void write_lcd_data(uchar dat)
+  58           {
+  59   1         lcd_busy_wait();
+  60   1         RS=1;RW=0;EN=0;P0=dat;EN=1;delayxus(1);EN=0;
+  61   1       }
+  62          //向LCD写指令
+  63           void write_lcd_cmd(uchar cmd)
+  64           { lcd_busy_wait();
+  65   1         RS=0;RW=0;EN=0;P0=cmd;EN=1;delayxus(1);EN=0;
+  66   1       }
+  67          //-----------------------------------------------------------------------------------------------------
+  68          //LCD初始化
+  69          void init_lcd()
+  70          {
+  71   1         write_lcd_cmd(0x38);  delayxus(1);
+  72   1         write_lcd_cmd(0x01) ; delayxus(1);
+  73   1         write_lcd_cmd(0x06);  delayxus(1);
+  74   1         write_lcd_cmd(0x0C) ;  delayxus(1);
+  75   1      } 
+  76          
+  77           //-----------------------------------------------
+  78           //设置液晶显示位置
+  79           void set_lcd_pos(uchar p)
+  80           {
+  81   1        write_lcd_cmd(p| 0x80);
+  82   1      }
+  83            //---------------------------------------
+  84            //在LCD上显示字符串
+  85            void dis_lcd_string(uchar p,uchar *s)  //位置,字符指针
+  86            {
+  87   1         uchar i;
+  88   1          set_lcd_pos(p);
+  89   1              for(i=0;i<16;i++)      //16*2
+  90   1              {
+  91   2                write_lcd_data(s[i]) ;
+  92   2                delayxus(1);
+  93   2              }
+  94   1        }
+  95           //-------------------------------------------------------------------
+  96           void delay_18B20(unsigned int i)
+  97          {
+  98   1              while(i--);
+  99   1      }
+ 100          //--------------------蜂鸣器---------------------------
+ 101           void beep()
+ 102             {
+ 103   1                uchar i;
+ 104   1                for(i=0;i<100;i++)
+ 105   1                {
+ 106   2                      delayxus(1);
+ 107   2                      BEEP=~BEEP;
+ 108   2                }
+ 109   1               BEEP=1;
+ 110   1         }
+ 111          //延时2
+ 112          void delay2(uint x)
+ 113          {
+ 114   1      while(--x);
+ 115   1      }
+ 116           //==================================================
+ 117           //初始化DS!*
+C51 COMPILER V9.01   蝊度计                                                                06/28/2020 23:28:53 PAGE 3   
+
+ 118           /**********ds18b20初始化函数**********************/
+ 119          void Init_DS18B20(void) 
+ 120          {
+ 121   1               unsigned char x=0;
+ 122   1               DQ = 1;          //DQ复位
+ 123   1               delay_18B20(8);  //稍做延时
+ 124   1               DQ = 0;          //单片机将DQ拉低
+ 125   1               delay_18B20(80); //精确延时 大于 480us
+ 126   1               DQ = 1;          //拉高总线
+ 127   1               delay_18B20(14);
+ 128   1               x=DQ;            //稍做延时后 如果x=0则初始化成功 x=1则初始化失败
+ 129   1               delay_18B20(20);
+ 130   1      }
+ 131          /***********ds18b20读一个字节**************/  
+ 132           uchar ReadOneChar(void)
+ 133          {
+ 134   1              uchar i=0;
+ 135   1              uchar dat = 0;
+ 136   1              for (i=8;i>0;i--)
+ 137   1               {
+ 138   2                        DQ = 0; // 给脉冲信号
+ 139   2                        dat>>=1;
+ 140   2                        DQ = 1; // 给脉冲信号
+ 141   2                        if(DQ)
+ 142   2                        dat|=0x80;
+ 143   2                        delay_18B20(4);
+ 144   2               }
+ 145   1              return(dat);
+ 146   1      }
+ 147          
+ 148          /*************ds18b20写一个字节****************/  
+ 149          void WriteOneChar(uchar dat)
+ 150          {
+ 151   1              unsigned char i=0;
+ 152   1              for (i=8; i>0; i--)
+ 153   1              {
+ 154   2                      DQ = 0;
+ 155   2                      DQ = dat&0x01;
+ 156   2              delay_18B20(5);
+ 157   2                      DQ = 1;
+ 158   2              dat>>=1;
+ 159   2       }
+ 160   1      }
+ 161          /**************读取ds18b20当前温度************/
+ 162          void ReadTemp(void)
+ 163          {
+ 164   1              unsigned char a=0;
+ 165   1              unsigned char b=0;
+ 166   1              unsigned char t=0;
+ 167   1      
+ 168   1              Init_DS18B20();
+ 169   1              WriteOneChar(0xCC);     // 跳过读序号列号的操作
+ 170   1              WriteOneChar(0x44);     // 启动温度转换
+ 171   1      
+ 172   1              delay_18B20(100);       // this message is wery important
+ 173   1      
+ 174   1              Init_DS18B20();
+ 175   1              WriteOneChar(0xCC);     //跳过读序号列号的操作
+ 176   1              WriteOneChar(0xBE);     //读取温度寄存器等（共可读9个寄存器） 前两个就是温度
+ 177   1      
+ 178   1              delay_18B20(100);
+ 179   1      
+C51 COMPILER V9.01   蝊度计                                                                06/28/2020 23:28:53 PAGE 4   
+
+ 180   1              a=ReadOneChar();        //读取温度值低位 aaaaaaaaaaaaaaaaaaaa
+ 181   1              b=ReadOneChar();                //读取温度值高位  bbbbbbbbbb   b.a
+ 182   1        temp_value= b<<4; 
+ 183   1       temp_value+=(a&0xf0)>>4; 
+ 184   1      }
+ 185          void temp_to_str()   //温度数据转换成液晶字符显示
+ 186          {        
+ 187   1         if((temp_value   &  0xE0)==0xE0)
+ 188   1              {
+ 189   2               temp_value =~temp_value +1 ; 
+ 190   2               ng=1;
+ 191   2              }
+ 192   1              else
+ 193   1              ng=0;
+ 194   1               
+ 195   1               if(k1==0) {//while(k1==0);
+ 196   2                bz=(bz+1)  %2;           }
+ 197   1                 if(bz==0)
+ 198   1                {   
+ 199   2            temp_value =(int)(temp_value )*(9.0/5.0)+32;
+ 200   2                }
+ 201   1         
+ 202   1              if(ng==1)
+ 203   1              {
+ 204   2                       TempBuffer[9]=temp_value/100+'0';
+ 205   2                         if(TempBuffer[9]= ' ') 
+*** WARNING C276 IN LINE 205 OF 温度计.C: constant in condition expression
+ 206   2                      TempBuffer[9]='-'; 
+ 207   2      
+ 208   2               TempBuffer[10]=temp_value%100/10+'0';  //十位
+ 209   2                        
+ 210   2               TempBuffer[11]=temp_value%10+'0';  //个位
+ 211   2                TempBuffer[12]=0xdf;              //温度符号
+ 212   2                TempBuffer[13]='C';
+ 213   2               TempBuffer[14]='\0';   
+ 214   2              //TempBuffer[1]=ng %10+ '\0'; 
+ 215   2              }
+ 216   1      if(ng==0)
+ 217   1              {  
+ 218   2               TempBuffer[9]=temp_value/100+'0';
+ 219   2                if(temp_value/100==0)  TempBuffer[9] =' ';
+ 220   2      
+ 221   2           TempBuffer[10]=temp_value % 100/10+'0';  //十位
+ 222   2              if(temp_value % 100/10==0) TempBuffer[10] =' ';
+ 223   2      
+ 224   2                TempBuffer[11]=temp_value%10+'0';  //个位
+ 225   2               // if(temp_value%10==0) TempBuffer[11] =' ';
+ 226   2      
+ 227   2        TempBuffer[13]='C'; //温度符号
+ 228   2        if(bz==0)               TempBuffer[13]='F';   
+ 229   2        TempBuffer[14]='\0';  
+ 230   2         //TempBuffer[1]=ng%10+'\0'; 
+ 231   2         }
+ 232   1      }
+ 233          void Delay1ms(unsigned int count)
+ 234          {
+ 235   1              unsigned int i,j;
+ 236   1              for(i=0;i<count;i++)
+ 237   1              for(j=0;j<120;j++);
+ 238   1      }
+ 239          
+ 240          /*延时子程序*/
+C51 COMPILER V9.01   蝊度计                                                                06/28/2020 23:28:53 PAGE 5   
+
+ 241          void mdelay(uint delay)
+ 242          {       uint i;
+ 243   1              for(;delay>0;delay--)
+ 244   1                      {
+ 245   2      for(i=0;i<62;i++) ;      //1ms延时.
+ 246   2                      }
+ 247   1      }
+ 248          void show_time()   //液晶显示程序
+ 249          { 
+ 250   1        ReadTemp(); 
+ 251   1                        //开启温度采集程序
+ 252   1        temp_to_str();                 //温度数据转换成液晶字符
+ 253   1       dis_lcd_string(0x40,TempBuffer);            //显示温度
+ 254   1        dis_lcd_string(0x00,dis_title);  //
+ 255   1         
+ 256   1        Delay1ms(400);                 //扫描延时
+ 257   1      }
+ 258          void xianshi_dw()
+ 259          {
+ 260   1        if(dw>=0)
+ 261   1        { xianshi_baojing[3]=gw/100+'0';
+ 262   2         xianshi_baojing[4]=gw%100/10+'0';
+ 263   2         xianshi_baojing[5]=gw%10+'0';
+ 264   2      
+ 265   2          xianshi_baojing[10]=dw/100+'0';
+ 266   2         xianshi_baojing[11]=dw%100/10+'0';
+ 267   2         xianshi_baojing[12]=dw%10+'0';
+ 268   2      
+ 269   2              dis_lcd_string(0x00,xianshi_title);
+ 270   2              dis_lcd_string(0x40,xianshi_baojing);
+ 271   2              }
+ 272   1              else
+ 273   1              if(dw<0)
+ 274   1              {
+ 275   2                xianshi_baojing[3]=gw/100+'0';
+ 276   2         xianshi_baojing[4]=gw%100/10+'0';
+ 277   2         xianshi_baojing[5]=gw%10+'0';
+ 278   2      
+ 279   2          xianshi_baojing[10]= '-';
+ 280   2         xianshi_baojing[11]=abs(dw)%100/10+'0';
+ 281   2         xianshi_baojing[12]=abs(dw)%10+'0';
+ 282   2      
+ 283   2              dis_lcd_string(0x00,xianshi_title);
+ 284   2              dis_lcd_string(0x40,xianshi_baojing);
+ 285   2              }
+ 286   1      }
+ 287           
+ 288          void main()
+ 289          {
+ 290   1      
+ 291   1      led_red=0;
+ 292   1      led_blue=0;
+ 293   1       BEEP=0;
+ 294   1       delayxus(10);  
+ 295   1       init_lcd();
+ 296   1      //init_DS();
+ 297   1      Init_DS18B20();
+ 298   1       delay2(500);
+ 299   1       delay2(500);
+ 300   1       while(1)
+ 301   1       { 
+ 302   2               if(  k2==1 &&k3==1 && k4==1)
+C51 COMPILER V9.01   蝊度计                                                                06/28/2020 23:28:53 PAGE 6   
+
+ 303   2                      show_time();
+ 304   2                  }
+ 305   1               if(k2==0)
+ 306   1               {
+ 307   2                while(k2==0);
+ 308   2                xianshi_dw();
+ 309   2         
+ 310   2               }
+ 311   1                 
+ 312   1              if(k3==0 && k2==0 &&k==1)
+ 313   1              {        while(k3==0);
+ 314   2                      gw++;
+ 315   2          }     
+ 316   1               if(k4==0 && k2==0 &&k==1)
+ 317   1               {
+ 318   2               while(k4==0);
+ 319   2              dw++;
+ 320   2           }
+ 321   1                       
+ 322   1                if(k3==0 && k2==0 &&k==0)
+ 323   1                {      
+ 324   2      while(k3==0);
+ 325   2                        gw--;
+ 326   2       }        
+ 327   1              if(k4==0 && k2==0 &&k==0)
+ 328   1                {
+ 329   2                while(k4==0);
+ 330   2               dw--;  
+ 331   2               
+ 332   2               if(dw<0) dw=0;
+ 333   2                      /*      if(dw<0)
+ 334   2                              {
+ 335   2                                xianshi_baojing[10]='-';
+ 336   2                      }         */
+ 337   2               }  
+ 338   1        
+ 339   1               delayxus(100);
+ 340   1      
+ 341   1         //报警设置
+ 342   1         if(bz==1)
+ 343   1        {     if(temp_value>gw  &&bz==1)
+ 344   2               { beep(); delayxus(50);led_red=1;}
+ 345   2               else
+ 346   2               led_red=0;
+ 347   2                       
+ 348   2              if( temp_value<dw  &&bz==1) 
+ 349   2              { beep(); delayxus(50);led_blue=1;}
+ 350   2                      else
+ 351   2                      led_blue=0;
+ 352   2      
+ 353   2         if( (TempBuffer[9]=='-')&& abs( temp_value)>=abs(dw) && bz==1 )
+ 354   2               { beep(); delayxus(50);}
+ 355   2        if(  dw<=0 && abs( temp_value)>=abs(dw) &&bz==1 )
+ 356   2               { beep(); delayxus(50);}                
+ 357   2        if((-abs(temp_value))<=(-abs(dw)) && dw<=0 &&bz==1) 
+ 358   2        
+ 359   2                       { beep(); delayxus(50);}
+ 360   2              }
+ 361   1       }
+ 362                                    
+
+
+C51 COMPILER V9.01   蝊度计                                                                06/28/2020 23:28:53 PAGE 7   
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1004    ----
+   CONSTANT SIZE    =     17    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     56       5
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

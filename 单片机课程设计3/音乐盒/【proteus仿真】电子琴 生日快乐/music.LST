@@ -1,0 +1,154 @@
+C51 COMPILER V9.52.0.0   MUSIC                                                             07/27/2014 18:28:25 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE MUSIC
+OBJECT MODULE PLACED IN music.OBJ
+COMPILER INVOKED BY: D:\Program Files\keil\C51\BIN\C51.EXE music.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include<reg52.h>
+   2          #include<intrins.h>
+   3          
+   4          #define uchar unsigned char 
+   5          #define uint unsigned int
+   6          
+   7          sbit SPK = P2^7;
+   8          
+   9          uchar tone_h;           //¸ßÒô
+  10          uchar tone_l;           //µÍÒô
+  11          uint note = 1;          //Òô·û
+  12          uchar beat;                     //½ÚÅÄ
+  13          
+  14          uchar code chuzhi[3][16]={  //Òôµ÷¶ÔÓ¦µÄ¼ÆÊý³õÖµ
+  15                   0xff,0xff,//Õ¼0Î» 
+  16                   0xf8,0x8c,//µÍ1  
+  17                   0xf9,0x5b,//  2                
+  18                   0xfa,0x15,//  3                
+  19                   0xfa,0x67,//  4                
+  20                   0xfb,0x04,//  5                
+  21                   0xfb,0x90,//  6                
+  22                   0xfc,0x0c,//µÍ7
+  23                  
+  24                   0xff,0xff,//Õ¼0Î» 
+  25                   0xfc,0x44,//ÖÐ1   
+  26                   0xfc,0xac,//  2
+  27                   0xfd,0x09,//  3
+  28                   0xfd,0x34,//  4
+  29                   0xfd,0x82,//  5
+  30                   0xfd,0xc8,//  6
+  31                   0xfe,0x06,//ÖÐ7   
+  32                  
+  33                   0xff,0xff,//Õ¼0Î» 
+  34                   0xfe,0x22,//¸ß1                          
+  35                   0xfe,0x56,//   2               
+  36                   0xfe,0x85,//   3               
+  37                   0xfe,0x9a,//   4               
+  38                   0xfe,0xc1,//   5               
+  39                   0xfe,0xe4,//   6               
+  40                   0xff,0x03 //¸ß7                           
+  41                  };      
+  42          
+  43          //****** ²âÊÔÇúÆ× ****** ¸öÎ»£ºÒôµ÷ £¬Ê®Î»£ºµÍÖÐ¸ßÒô ¶ÔÓ¦ 0 1 2£¬Ç§°ÙÎ»£º½ÚÅÄ 1~16
+  44          uint code test2[] = {   120, //ÇúËÙ ÔÝÊ±Î´ÓÃµ½
+  45                  401,402,403,404,405,406,407,
+  46                  611,612,613,614,615,616,617,
+  47                  821,822,823,824,825,826,827,
+  48                  0xffff  //0xffff±íÊ¾½áÎ²
+  49          };
+  50          
+  51          //****** ÉúÈÕ¿ìÀÖ ******
+  52          uint code test[] = { 120,
+  53                  205,205,406,405,411,807,
+  54                  205,205,406,405,412,811,
+  55                  205,205,415,413,411,407,406,
+C51 COMPILER V9.52.0.0   MUSIC                                                             07/27/2014 18:28:25 PAGE 2   
+
+  56                  314,114,413,411,413,812,
+  57                  305,105,406,405,411,807,
+  58                  305,105,406,405,412,811,
+  59                  305,105,415,413,411,
+  60                  407,406,314,114,413,411,412,811,410,
+  61                  0xffff  
+  62          };
+  63                  
+  64          void delayms(uint ms)     /*ms µÈÓÚ1Ê±£¬ÑÓÊ±1ms µÈÓÚ2Ê±£¬ÑÓÊ±2ms£¬ÒÔ´ËÀàÍÆ*/
+  65          {       
+  66   1              uchar a,b,c;                            //+3
+  67   1              while(ms--)
+  68   1          {
+  69   2               for(c=1;c>0;c--)                       //      1+2 = 3
+  70   2              for(b=142;b>0;b--)              //      1*( 1+142*2)) = 285     
+  71   2                  for(a=2;a>0;a--);   //      142*(1+2*2) = 710
+  72   2              }
+  73   1      }
+  74          
+  75          void delay125ms(uint pai)  //ÑÓÊ± £¿*125ms ¼´£¿¸ö½ÚÅÄ 
+  76          {
+  77   1          uchar a,b,c;
+  78   1              while(pai--)
+  79   1              {
+  80   2              for(c=239;c>0;c--)
+  81   2                      for(b=104;b>0;b--)
+  82   2                              for(a=1;a>0;a--);
+  83   2              }
+  84   1      }
+  85          void timer0() interrupt 1
+  86          {
+  87   1              TH0 = tone_h;
+  88   1              TL0 = tone_l;
+  89   1              SPK = ~SPK;
+  90   1      }
+  91          
+  92          
+  93          void timer_init()
+  94          {
+  95   1              EA = 1;
+  96   1              ET0 = 1;
+  97   1              PT0 = 1;
+  98   1              TMOD = 0x11;
+  99   1              TH0 = 255;
+ 100   1              TL0 = 255;
+ 101   1      }
+ 102          void main()
+ 103          {       
+ 104   1              timer_init();
+ 105   1              note = 1;
+ 106   1              
+ 107   1              while(1)
+ 108   1              {       
+ 109   2                      if(test[note] == 0xffff)
+ 110   2                      {       
+ 111   3                              note = 1;
+ 112   3                      }               
+ 113   2                      if(test[note]%10 != 0)  //Òôµ÷²»Îª0 ¡¾Òôµ÷Îª0Ê±±íÊ¾²»·¢Éù£¬µ«ÓÐ½ÚÅÄ¡¿
+ 114   2                      {
+ 115   3                              tone_h = TH0 = chuzhi[test[note]%100/10][(test[note]%10)*2 ];           //Òôµ÷¸ßÎ» ¡¾¶þÎ¬Êý×é µÚ1Î¬±íÊ¾µÍÖÐ¸ßÒô£
+             -¬µÚ¶þÎ¬±íÊ¾Òôµ÷¡¿
+ 116   3                              tone_l = TL0 = chuzhi[test[note]%100/10][(test[note]%10)*2 + 1];        //Òôµ÷µÍÎ»
+C51 COMPILER V9.52.0.0   MUSIC                                                             07/27/2014 18:28:25 PAGE 3   
+
+ 117   3                              TR0 = 1;
+ 118   3                      }
+ 119   2                      delay125ms(test[note]/100);     //½ÚÅÄ
+ 120   2                      TR0 = 0;
+ 121   2                      delayms(30);
+ 122   2                      note++;                                         //ÏÂÒ»¸öÒô·û
+ 123   2                      
+ 124   2              }
+ 125   1              
+ 126   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    477    ----
+   CONSTANT SIZE    =    200    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      5    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

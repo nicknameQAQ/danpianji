@@ -1,0 +1,652 @@
+C51 COMPILER V8.05a   NEW51JDQ                                                             09/27/2015 14:59:46 PAGE 1   
+
+
+C51 COMPILER V8.05a, COMPILATION OF MODULE NEW51JDQ
+OBJECT MODULE PLACED IN new51jdq.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE new51jdq.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2          基于51单片机的多功能计算器
+   3          
+   4          输入采用4×4矩阵键盘再加上4个独立按键，共20键。
+   5          其中包括：
+   6          0-9，加、减、乘、除、左括号、右括号、等于号、小数点
+   7          一个删除键和蜂鸣器开关键。
+   8          可以进行加、减、乘、除7位带符号数字运算，
+   9          同时支持括号的嵌套使用级浮点数的运算，
+  10          并在LCD1602上显示操作过程
+  11          
+  12          */
+  13          
+  14          #include <reg52.h> 
+  15          #include "stack.h" 
+  16          #include "stdio.h" 
+  17          #include "math.h"  
+  18          sfr ISP_CONTR = 0xe7;
+  19           
+  20          //LCD声明 
+  21          sbit LCD_RS = P2^4;  //定义端口  数据命令选择H/L 
+  22          sbit LCD_RW = P2^5;  //读写 H/L 
+  23          sbit LCD_EN = P2^6;  //使能 
+  24           
+  25          //按键声明 
+  26          extern unsigned char sk; 
+  27          sbit key0=P3^4;  //右括号
+  28          sbit key1=P3^5;  //减号     
+  29          sbit key2=P3^6;  //除号
+  30          sbit key3=P3^7;  //等于号
+  31          sbit beep=P2^7; //蜂鸣器 
+  32           
+  33          //堆栈stack声明  
+  34          unsigned char code yxj[7][7] = {
+  35          // + - * / ( ) #
+  36          2,2,0,0,0,2,2,  // +
+  37          2,2,0,0,0,2,2,  // - 
+  38          2,2,2,2,0,2,2,  // *
+  39          2,2,2,2,0,2,2,  // /
+  40          0,0,0,0,0,1,3,  // (
+  41          2,2,2,2,3,2,2,  // )
+  42          0,0,0,0,0,3,1,  // # 
+  43          }; 
+  44          
+  45          unsigned char code uckey[20] = {
+  46          0x37,0x38,0x39,0x28,0x29,                            
+  47          0x34,0x35,0x36,0x2b,0x2d,          
+  48          0x31,0x32,0x33,0x2a,0x2f, 
+  49          0x30,0x2e,0x64,0xde,0x3d};
+  50           
+  51          char idata TR[20];
+  52          double idata ND[20];  
+  53          unsigned char keycount=0; 
+  54          unsigned char sk=0; 
+  55           
+C51 COMPILER V8.05a   NEW51JDQ                                                             09/27/2015 14:59:46 PAGE 2   
+
+  56          /******************************************************************/
+  57          /* 延时                                                           */
+  58          /******************************************************************/
+  59          void delay_us(unsigned int cnt)      
+  60          { 
+  61   1         while(--cnt);  
+  62   1      } 
+  63          void delay_ms(unsigned int cnt)  
+  64          {
+  65   1              unsigned int i, j;
+  66   1              for (i = 0; i < cnt; i++)
+  67   1              { 
+  68   2                      for (j = 0;j < 65; j++)
+  69   2                      { delay_us(1); }
+  70   2              }  
+  71   1      }  
+  72          /******************************************************************/ 
+  73          /*                   LCD                                          */ 
+  74          /******************************************************************/ 
+  75          /******************************************************************/
+  76          /*检查LCD忙状态                                                   */
+  77          /*LCD_check为1时，忙，等待。LCD_check为0时,闲，可写指令与数据。   */
+  78          /******************************************************************/ 
+  79          bit LCD_check()
+  80          {                          
+  81   1          bit result;
+  82   1          LCD_RS=0;    //指令
+  83   1          LCD_RW=1; //读
+  84   1          LCD_EN=1; //允许读写
+  85   1          delay_us(5); //等待，液晶显示器处理数据
+  86   1          result=(bit)(P0&0x80) ;
+  87   1          LCD_EN=0;//禁止读写
+  88   1          return(result) ; 
+  89   1      }
+  90          /******************************************************************/ 
+  91          /*写指令数据到LCD                                                 */
+  92          /*RS=L，RW=L，E=高脉冲，D0-D7=指令码。                            */ 
+  93          /******************************************************************/ 
+  94          void LCD_write_com(unsigned char com)  
+  95          {
+  96   1              while(LCD_check());     //检查LCD忙状态
+  97   1          LCD_RS=0;
+  98   1          LCD_RW=0;
+  99   1          LCD_EN=0;
+ 100   1              P0 = com;
+ 101   1              LCD_EN=1;
+ 102   1              delay_us(5);
+ 103   1              LCD_EN=0;
+ 104   1      }  
+ 105          /******************************************************************/ 
+ 106          /*写显示数据到LCD                                                  */
+ 107          /*RS=H，RW=L，E=高脉冲，D0-D7=数据。                               */ 
+ 108          /******************************************************************/ 
+ 109          void LCD_write_Data(unsigned char Data)  
+ 110          {
+ 111   1              while(LCD_check());
+ 112   1          LCD_RS=1;
+ 113   1          LCD_RW=0;
+ 114   1          LCD_EN=0;
+ 115   1              P0 = Data;
+ 116   1          LCD_EN=1;
+ 117   1              delay_us(5);
+C51 COMPILER V8.05a   NEW51JDQ                                                             09/27/2015 14:59:46 PAGE 3   
+
+ 118   1              LCD_EN=0;
+ 119   1      }
+ 120          /******************************************************************/ 
+ 121          /* 写入字符串函数                                                 */ 
+ 122          /******************************************************************/ 
+ 123          void LCD_write_str(unsigned char x,unsigned char y,unsigned char *s)  
+ 124          {
+ 125   1              unsigned char i,j;
+ 126   1              if (y == 0)
+ 127   1              {       LCD_write_com(0x80 + x);   }//写在液晶数据缓冲区第一行+x
+ 128   1          
+ 129   1              else
+ 130   1              {       LCD_write_com(0xC0 + x);   }//写在液晶数据缓冲区第二行+x
+ 131   1      
+ 132   1              for(i=4;i>0;i--)
+ 133   1              {
+ 134   2                      if(s[14] == '0' || s[14] == '.')
+ 135   2                      {
+ 136   3                              for(j=14;j>1;j--)
+ 137   3                              {       s[j] = s[j-1];  }
+ 138   3                      }
+ 139   2              else break;
+ 140   2              }
+ 141   1              while (*s) 
+ 142   1                      { 
+ 143   2                LCD_write_Data(*s);
+ 144   2                s++;
+ 145   2                      } 
+ 146   1      }  
+ 147          /******************************************************************/ 
+ 148          /* 写入字节函数                                                   */
+ 149          /******************************************************************/ 
+ 150          void LCD_write_char(unsigned char x,unsigned char y,unsigned char Data)  
+ 151          {
+ 152   1              if (y == 0)
+ 153   1              {       LCD_write_com(0x80 + x);        }
+ 154   1      
+ 155   1              else
+ 156   1              {       LCD_write_com(0xC0 + x);        }
+ 157   1      
+ 158   1              LCD_write_Data(Data);  
+ 159   1      } 
+ 160          /******************************************************************/ 
+ 161          /* 清屏函数                                                       */ 
+ 162          /******************************************************************/ 
+ 163          void LCD_clear(void)  
+ 164          {
+ 165   1              LCD_write_com(0x01);
+ 166   1              delay_ms(5); 
+ 167   1              if(sk == 1)
+ 168   1              {
+ 169   2                      LCD_write_char(0,1,0xde);
+ 170   2                      LCD_write_com(0x80);
+ 171   2              }
+ 172   1              else
+ 173   1              {
+ 174   2                      LCD_write_char(0,1,0x20);
+ 175   2                      LCD_write_com(0x80);
+ 176   2              }  
+ 177   1      }  
+ 178          /******************************************************************/ 
+ 179          /* LCD初始化函数                                                  */ 
+C51 COMPILER V8.05a   NEW51JDQ                                                             09/27/2015 14:59:46 PAGE 4   
+
+ 180          /******************************************************************/ 
+ 181          void LCD_init(void)  
+ 182          {
+ 183   1         LCD_write_com(0x38);    /*显示模式设置16*2显示，5*7点阵，8位数据*/
+ 184   1         delay_ms(5);
+ 185   1         LCD_write_com(0x38);
+ 186   1         delay_ms(5);
+ 187   1         LCD_write_com(0x38);
+ 188   1         delay_ms(5);
+ 189   1         LCD_write_com(0x38);
+ 190   1         LCD_write_com(0x08);    /*显示关闭*/
+ 191   1         LCD_write_com(0x01);    /*显示清屏*/
+ 192   1         LCD_write_com(0x06);    /*显示光标移动设置*/
+ 193   1         delay_ms(5);
+ 194   1         LCD_write_com(0x0C);    /*显示开及光标设置*/ 
+ 195   1      }
+ 196          
+ 197          /******************************************************************/
+ 198          /* 键盘扫描函数，使用行列反转扫描法                               */
+ 199          /******************************************************************/ 
+ 200          unsigned char keyscan(void)  
+ 201          {
+ 202   1              unsigned char cord_h,cord_l;      //行列值中间变量   
+ 203   1              P1=0x0f;                          //行线输出全为1,列线输出全为0
+ 204   1              cord_h=P1&0x0f;                   //读入行线值
+ 205   1              if(cord_h!=0x0f)                    //先检测有无按键按下
+ 206   1              {
+ 207   2                      delay_us(100);                  //去抖
+ 208   2                      if(cord_h!=0x0f)
+ 209   2                      { 
+ 210   3                              cord_h=P1&0x0f;           //读入行线值
+ 211   3                              P1=cord_h|0xf0;            //输出当前行线值
+ 212   3                              cord_l=P1&0xf0;           //读入列线值
+ 213   3                              while(P1 != 0x0f)
+ 214   3                              {
+ 215   4                                      P1 = 0x0f;
+ 216   4                                      beep = !sk;
+ 217   4                              }
+ 218   3                              beep=1;
+ 219   3                              delay_ms(20);
+ 220   3                              return(cord_h+cord_l);       //键盘最后组合码值
+ 221   3                      }
+ 222   2              }
+ 223   1              if(key0 == 0)
+ 224   1              {
+ 225   2                      delay_us(100);
+ 226   2                      if(key0==0)
+ 227   2                      {
+ 228   3                              while(key0 == 0)
+ 229   3                              {       beep = !sk;     }
+ 230   3                              beep = 1;
+ 231   3                              delay_ms(3);
+ 232   3                              return 0x00;
+ 233   3                      }
+ 234   2              }
+ 235   1              if(key1 == 0)
+ 236   1              {
+ 237   2                      delay_us(100);
+ 238   2                      if(key1==0)
+ 239   2                      {
+ 240   3                              while(key1 == 0)
+ 241   3                              {       beep = !sk;     }
+C51 COMPILER V8.05a   NEW51JDQ                                                             09/27/2015 14:59:46 PAGE 5   
+
+ 242   3                              beep = 1;
+ 243   3                              delay_ms(3);
+ 244   3                              return 0x01;
+ 245   3                      }
+ 246   2              }
+ 247   1              if(key2 == 0)
+ 248   1              { 
+ 249   2                      delay_us(100);
+ 250   2                      if(key2==0)
+ 251   2                      {
+ 252   3                              while(key2 == 0)
+ 253   3                              {       beep = !sk;     }
+ 254   3                              beep = 1;
+ 255   3                              delay_ms(3);
+ 256   3                              return 0x02;
+ 257   3                      }
+ 258   2              }
+ 259   1              if(key3 == 0)
+ 260   1              {
+ 261   2                      delay_us(100);
+ 262   2                      if(key3==0)
+ 263   2                      {
+ 264   3                      while(key3 == 0)
+ 265   3                      {       beep = !sk;     }
+ 266   3                      beep = 1;
+ 267   3                      delay_ms(3);
+ 268   3                      return 0x03;
+ 269   3                      }
+ 270   2              }
+ 271   1              return(0xff);   //返回该值
+ 272   1      }
+ 273          /******************************************************************/
+ 274          /* 读按键函数                                                     */
+ 275          /******************************************************************/
+ 276          unsigned char KeyProcess(void) 
+ 277          {
+ 278   1              unsigned char key;
+ 279   1              unsigned char keyvalue = 16;
+ 280   1              key=keyscan();        //调用键盘扫描
+ 281   1              
+ 282   1              switch(key)
+ 283   1              {
+ 284   2                      case 0xee:keyvalue = 0;break;  //0 按下相应的键显示相对应的码值
+ 285   2                      case 0xde:keyvalue = 1;break;  //1 按下相应的键显示相对应的码值
+ 286   2                      case 0xbe:keyvalue = 2;break;  //2
+ 287   2                      case 0x7e:keyvalue = 3;break;  //3
+ 288   2                      case 0xed:keyvalue = 5;break;  //4
+ 289   2                      case 0xdd:keyvalue = 6;break;  //5
+ 290   2                      case 0xbd:keyvalue = 7;break;  //6
+ 291   2                      case 0x7d:keyvalue = 8;break;  //7
+ 292   2                      case 0xeb:keyvalue = 10;break; //8
+ 293   2                      case 0xdb:keyvalue = 11;break; //9
+ 294   2                      case 0xbb:keyvalue = 12;break; //10
+ 295   2                      case 0x7b:keyvalue = 13;break; //11
+ 296   2                      case 0xe7:keyvalue = 15;break; //12
+ 297   2                      case 0xd7:keyvalue = 16;break; //13
+ 298   2                      case 0xb7:keyvalue = 17;break; //14
+ 299   2                      case 0x77:keyvalue = 18;break; //15
+ 300   2                      case 0x00:keyvalue = 4;break;  //key0
+ 301   2                      case 0x01:keyvalue = 9;break;  //key1
+ 302   2                      case 0x02:keyvalue = 14;break; //key2
+ 303   2                      case 0x03:keyvalue = 19;break; //key3
+C51 COMPILER V8.05a   NEW51JDQ                                                             09/27/2015 14:59:46 PAGE 6   
+
+ 304   2                      case 0xff:keyvalue = 20;break;      
+ 305   2              default: 
+ 306   2              
+ 307   2              keyvalue = 20;break;
+ 308   2              }
+ 309   1              return keyvalue; 
+ 310   1      }
+ 311          
+ 312          /******************************************************************/
+ 313          /* 堆栈stack.c                                                    */
+ 314          /******************************************************************/
+ 315          void Init_OPTR(OPTR *s,char *TR1)
+ 316          {
+ 317   1              s->rbase = TR1;  
+ 318   1              s->rtop = s->rbase;
+ 319   1      }   
+ 320          
+ 321          void PUSH_OPTR(OPTR *s,char elem)
+ 322          {
+ 323   1              * (s->rtop) = elem; 
+ 324   1              s->rtop ++; 
+ 325   1      }
+ 326          
+ 327          char POP_OPTR(OPTR *s)
+ 328          {
+ 329   1              char temp;
+ 330   1              s->rtop--;
+ 331   1              temp= *(s->rtop); 
+ 332   1          return temp;
+ 333   1      }  
+ 334          
+ 335          void Init_OPND(OPND *s,double *ND1) 
+ 336          {
+ 337   1              s->dbase = ND1;
+ 338   1              s->dtop = s->dbase; 
+ 339   1      }  
+ 340          
+ 341          void PUSH_OPND(OPND *s,double elem) 
+ 342          {
+ 343   1              * (s->dtop) = elem; 
+ 344   1              s->dtop ++;
+ 345   1      }
+ 346            
+ 347          double POP_OPND(OPND *s)
+ 348          {
+ 349   1              double temp;
+ 350   1              s->dtop--;
+ 351   1              temp= *(s->dtop);
+ 352   1              return temp; 
+ 353   1      }  
+ 354          
+ 355          char Precede(char a,char b)
+ 356          {
+ 357   1              char i,j;
+ 358   1              switch(a)
+ 359   1              {
+ 360   2                      case '+':i=0;break;
+ 361   2                      case '-':i=1;break;
+ 362   2                      case '*':i=2;break;
+ 363   2                      case '/':i=3;break;
+ 364   2                      case '(':i=4;break;
+ 365   2                      case ')':i=5;break;
+C51 COMPILER V8.05a   NEW51JDQ                                                             09/27/2015 14:59:46 PAGE 7   
+
+ 366   2                      case '#':i=6;break;
+ 367   2                      default :i=0;break;
+ 368   2              }
+ 369   1              switch(b)
+ 370   1              {
+ 371   2                      case '+':j=0;break;
+ 372   2                      case '-':j=1;break; 
+ 373   2                      case '*':j=2;break;
+ 374   2                      case '/':j=3;break;
+ 375   2                      case '(':j=4;break;
+ 376   2                      case ')':j=5;break;
+ 377   2                      case '#':j=6;break;
+ 378   2                      default :j=0;break;
+ 379   2              }
+ 380   1              return yxj[i][j]; 
+ 381   1      }
+ 382          
+ 383          double Operate(double num1,char theta,double num2) 
+ 384          {
+ 385   1              double num3;
+ 386   1              switch(theta)
+ 387   1              {
+ 388   2                      case '+':num3 = num1 + num2;break;
+ 389   2                      case '-':num3 = num1 - num2;break; 
+ 390   2                      case '*':num3 = num1 * num2;break;
+ 391   2                      case '/':num3 = num1 / num2;break;
+ 392   2              }
+ 393   1              return num3;
+ 394   1      }  
+ 395          
+ 396          void Pushnum(OPND *sq,double c) 
+ 397          {
+ 398   1              double temp1,temp2;
+ 399   1              temp1 = POP_OPND(sq);
+ 400   1              temp2 = temp1 * 10 + c;
+ 401   1              PUSH_OPND(sq,temp2); 
+ 402   1      }  
+ 403          
+ 404          void Pushdp(OPND *sq,char flag,double c) 
+ 405          {
+ 406   1              double temp3,temp4;
+ 407   1              char i;
+ 408   1              double j = 1;
+ 409   1              for(i=0;i<flag;i++)
+ 410   1              {       j = j * 0.1;    }
+ 411   1              temp3 = POP_OPND(sq);
+ 412   1              temp4 = temp3  + c * j;
+ 413   1              PUSH_OPND(sq,temp4); 
+ 414   1      } 
+ 415          /******************************************************************/
+ 416          /* 错误显示                                                       */
+ 417          /******************************************************************/
+ 418          void ErrorProcess(void) 
+ 419          {
+ 420   1              LCD_clear();
+ 421   1              LCD_write_str(4,1,"ERROR!");
+ 422   1              LCD_write_char(10,1,'!');
+ 423   1              while(KeyProcess() == 20);
+ 424   1              ISP_CONTR = 0x20;      //软件复位
+ 425   1      }
+ 426          
+ 427          /******************************************************************/
+C51 COMPILER V8.05a   NEW51JDQ                                                             09/27/2015 14:59:46 PAGE 8   
+
+ 428          /*                                                           */
+ 429          /******************************************************************/
+ 430          void dispdouble(double value) 
+ 431          {
+ 432   1              char text[15];
+ 433   1              sprintf(text,"%15.3f",value);
+ 434   1              LCD_write_str(1,1,text);
+ 435   1      }  
+ 436          
+ 437          /******************************************************************/
+ 438          /*                                                           */
+ 439          /******************************************************************/
+ 440          double AccProcess(char *s)
+ 441          {
+ 442   1              OPTR str;           //符号栈
+ 443   1              OPND snd;           //数据栈
+ 444   1              char flagnum = 0;
+ 445   1              char flagdp = 0;
+ 446   1              char i=0;
+ 447   1              char c,theta;
+ 448   1              double num1,num2,num;
+ 449   1              Init_OPND(&snd,&ND[0]); 
+ 450   1              Init_OPTR(&str,&TR[0]);
+ 451   1              PUSH_OPTR(&str,'#');
+ 452   1              flagnum = 0;
+ 453   1              c = *(s++);
+ 454   1              while(c!='#' || (*(str.rtop-1) != '#'))
+ 455   1              {
+ 456   2                      if(c>='0' && c<= '9')
+ 457   2                      {
+ 458   3                              c = c - 0x30;
+ 459   3                              if(flagdp ==0)
+ 460   3                              {
+ 461   4                                      if(flagnum ==0)
+ 462   4                                      {
+ 463   5                                              PUSH_OPND(&snd,(double)c);
+ 464   5                                              flagnum++;
+ 465   5                                      }
+ 466   4                              else
+ 467   4                              {
+ 468   5                                      Pushnum(&snd,c);
+ 469   5                                      flagnum++;
+ 470   5                              }                                                    
+ 471   4      
+ 472   4             
+ 473   4                      }
+ 474   3                      if(flagdp == 1)
+ 475   3                      {
+ 476   4                              Pushdp(&snd,flagnum,c);
+ 477   4                              flagnum++;
+ 478   4                      }
+ 479   3                      c=*(s++);
+ 480   3              }
+ 481   2              else if(c=='.')
+ 482   2         {
+ 483   3                      flagdp = 1;
+ 484   3                      if(flagnum ==0 )
+ 485   3                      {       PUSH_OPND(&snd,0x00);   }
+ 486   3                      flagnum = 1;
+ 487   3                      c=*(s++);
+ 488   3              }
+ 489   2              else
+C51 COMPILER V8.05a   NEW51JDQ                                                             09/27/2015 14:59:46 PAGE 9   
+
+ 490   2              switch(Precede(*(str.rtop-1),c))
+ 491   2              {      
+ 492   3                      case 0:  if(flagnum == 0 && c != '(') ErrorProcess();
+ 493   3                                      PUSH_OPTR(&str,c);c=*(s++);
+ 494   3                                      flagnum = 0;
+ 495   3                                      flagdp = 0;
+ 496   3                        break;
+ 497   3                      case 1:   POP_OPTR(&str);c=*(s++);  break;
+ 498   3                      case 2:    theta = POP_OPTR(&str);                           
+ 499   3      
+ 500   3                
+ 501   3                       num2 = POP_OPND(&snd); 
+ 502   3                       num1 = POP_OPND(&snd);                 
+ 503   3                       num =  (double)(Operate(num1,theta,num2));
+ 504   3                                              PUSH_OPND(&snd,num);        break;
+ 505   3                      case 3:   ErrorProcess(); break;
+ 506   3                      default:break;
+ 507   3              }
+ 508   2              }
+ 509   1              while(*s)
+ 510   1              { 
+ 511   2                      *s = '\0';      //清空存放表达式的数组
+ 512   2                      s++;
+ 513   2              }
+ 514   1              return (*(snd.dtop - 1));
+ 515   1      }
+ 516          
+ 517          /******************************************************************/
+ 518          /*                                                           */
+ 519          /******************************************************************/
+ 520          char getonechar()
+ 521          {
+ 522   1              unsigned char key1 = 20;
+ 523   1              keycount++;
+ 524   1              while(key1 == 20)
+ 525   1              {
+ 526   2                      key1 =  KeyProcess();
+ 527   2                      if(keycount==1 && key1==17)
+ 528   2                      {        key1=20;       }
+ 529   2              }
+ 530   1              if(keycount == 1)
+ 531   1              {       LCD_clear();    }
+ 532   1              if(keycount >= 16)
+ 533   1              {        LCD_write_com(0x18); }   //内容左移
+ 534   1              if(keycount == 33)  
+ 535   1              {       ErrorProcess(); }
+ 536   1              if(key1 == 17)
+ 537   1              {
+ 538   2                      LCD_write_char(keycount-2,0,0x20);
+ 539   2                      delay_ms(2);
+ 540   2                      LCD_write_com(0x80+keycount-2);
+ 541   2                      keycount -= 2;
+ 542   2              }
+ 543   1              else if(key1 == 18)  {;}   
+ 544   1              else
+ 545   1              {      LCD_write_Data(uckey[key1]);  }  
+ 546   1              
+ 547   1              return key1;
+ 548   1      }  
+ 549          
+ 550          /******************************************************************/
+ 551          /* 主程序                                                         */
+C51 COMPILER V8.05a   NEW51JDQ                                                             09/27/2015 14:59:46 PAGE 10  
+
+ 552          /******************************************************************/
+ 553          void main(void)  
+ 554          {
+ 555   1              double value;
+ 556   1              unsigned char keyvalue;
+ 557   1              unsigned char ipos = 0;
+ 558   1              char s[32];
+ 559   1              P2 = 0xff;
+ 560   1              delay_ms(100);
+ 561   1              LCD_init();
+ 562   1              LCD_clear();
+ 563   1              while(1)
+ 564   1              {
+ 565   2                      while(1)
+ 566   2                      {
+ 567   3                      keyvalue = getonechar();
+ 568   3                      if(uckey[keyvalue] ==  '=')
+ 569   3                              {
+ 570   4                                      s[ipos++] = '#';
+ 571   4                                      break;
+ 572   4                              }
+ 573   3                              else
+ 574   3                              {
+ 575   4                                      if(uckey[keyvalue] == 'd')  //表示按下退格键
+ 576   4                                      {       s[--ipos] = '0';        }
+ 577   4                              
+ 578   4                              else if(uckey[keyvalue] == 0xde) //表示按下声音控制键
+ 579   4                              {
+ 580   5                                      sk = !sk;
+ 581   5                                      keycount--;
+ 582   5                                      if(sk == 1)
+ 583   5                              {
+ 584   6                              LCD_write_char(0,1,0xde);
+ 585   6                              LCD_write_com(0x80 + keycount);
+ 586   6                      }
+ 587   5                      else
+ 588   5                      {
+ 589   6                              LCD_write_char(0,1,0x20);
+ 590   6                              LCD_write_com(0x80 + keycount);
+ 591   6                      }
+ 592   5              }
+ 593   4                      else
+ 594   4                      {       s[ipos++] = uckey[keyvalue];     }
+ 595   4              }
+ 596   3         }
+ 597   2                      while(keycount >= 16)
+ 598   2                      { 
+ 599   3                              LCD_write_com(0x1c);//右平移
+ 600   3                              delay_ms(5);
+ 601   3                              keycount--;
+ 602   3            }
+ 603   2              s[ipos] = '\0';
+ 604   2              ipos = 0;
+ 605   2              keycount = 0;
+ 606   2              value =  AccProcess(s);
+ 607   2              dispdouble(value);
+ 608   2        }
+ 609   1      }  
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2293    ----
+C51 COMPILER V8.05a   NEW51JDQ                                                             09/27/2015 14:59:46 PAGE 11  
+
+   CONSTANT SIZE    =     83    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2     156
+   IDATA SIZE       =    100    ----
+   BIT SIZE         =   ----       1
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

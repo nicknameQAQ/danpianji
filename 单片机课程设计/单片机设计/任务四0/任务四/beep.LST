@@ -1,0 +1,62 @@
+C51 COMPILER V9.01   BEEP                                                                  07/12/2019 08:59:40 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE BEEP
+OBJECT MODULE PLACED IN beep.OBJ
+COMPILER INVOKED BY: D:\keil\C51\BIN\C51.EXE beep.c COMPACT BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include "beep.h"               
+   2          #include "data.h"
+   3          #include "key.h"
+   4          #include "keypro.h"
+   5          #include"cycle.h"       
+   6          
+   7          int y=2;
+   8          
+   9          typedef unsigned int u16;         //对数据类型进行声明定义
+  10          typedef unsigned char u8;
+  11          
+  12          sbit beep=P1^5;    
+  13          
+  14          
+  15          /*******************************************************************************
+  16          * 函 数 名         : delay
+  17          * 函数功能                 : 延时函数，i=1时，大约延时10us
+  18          *******************************************************************************/
+  19          
+  20          void same()                                                              //闹钟函数
+  21          {  int i;
+  22   1              colock();
+  23   1              if((h==h1&&min==min1)||(y==n&&h==h2&&min==min2))                //条件
+  24   1              {  
+  25   2              for(i=0;i<10000;i++)
+  26   2              {
+  27   3                      beep=~beep;
+  28   3                      delay(10);
+  29   3                      }
+  30   2              }
+  31   1      }
+  32          
+  33          void weeks()    //星期几的限制范围
+  34          {
+  35   1      if(y>6||y<0)
+  36   1      {
+  37   2              y=0;
+  38   2      }
+  39   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    162    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =      2       2
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,117 @@
+C51 COMPILER V9.01   DS18N02                                                               06/19/2020 22:17:23 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE DS18N02
+OBJECT MODULE PLACED IN DS18N02.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE DS18N02.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /**************************************************************** 
+   2          
+   3          *****************************************************************/
+   4          
+   5          #include"reg52.h"
+   6          #define uint unsigned int
+   7          #define uchar unsigned char
+   8          
+   9          uint tempL,tempH;
+  10          
+  11          sbit DQ=P2^0;//数据端
+  12          
+  13          /**********************************************
+  14             DS18B20专用延时子函数
+  15          **********************************************/
+  16          void DDelay(uint t) 
+  17          { 
+  18   1              uint n;
+  19   1              n=0; 
+  20   1              while(n<t) 
+  21   1              {
+  22   2                n++;
+  23   2              } 
+  24   1      }
+  25          
+  26          
+  27          /********************************************************* 
+  28                  DS18B20复位函数
+  29          **********************************************************/
+  30          void Reset() 
+  31          {   
+  32   1              DQ=1;
+  33   1              DDelay(8); 
+  34   1              DQ=0; 
+  35   1              DDelay(85); 
+  36   1              DQ=1;
+  37   1              DDelay(14);
+  38   1      
+  39   1      } 
+  40          /*********************************************************** 
+  41                  DS18B20写一个字节函数
+  42          *********************************************************/
+  43          void WriteChar(uchar dat) 
+  44          { 
+  45   1                uint i; 
+  46   1                for(i=8;i>0;i--) 
+  47   1                { 
+  48   2                      DQ=0;   
+  49   2                      DQ=dat&0x01;
+  50   2                      DDelay(5);
+  51   2                      DQ=1;
+  52   2                      dat>>=1;
+  53   2                 } 
+  54   1               DDelay(4);
+  55   1      } 
+C51 COMPILER V9.01   DS18N02                                                               06/19/2020 22:17:23 PAGE 2   
+
+  56          /**************************************************** 
+  57                   DS18B20读一个字节函数
+  58          ****************************************************/
+  59          uint ReadChar() 
+  60          {                        
+  61   1              uchar i,dat=0;
+  62   1              for (i=8;i>0;i--) 
+  63   1              { 
+  64   2              
+  65   2                      DQ=0;  
+  66   2                      dat>>=1;
+  67   2                      DQ=1; 
+  68   2                      if(DQ)
+  69   2                        dat=dat|0x80;
+  70   2                        DDelay(4);
+  71   2           } 
+  72   1      return(dat);
+  73   1      } 
+  74          /*************************************************** 
+  75                  DS18B20读温度程序
+  76          ****************************************************/ 
+  77          uint ReadTemperature() 
+  78          { 
+  79   1          uint temperature;
+  80   1              Reset(); 
+  81   1              WriteChar(0xcc); 
+  82   1              WriteChar(0x44); 
+  83   1              DDelay(125); 
+  84   1              Reset();
+  85   1              WriteChar(0xcc);
+  86   1              WriteChar(0xbe);
+  87   1              tempL=ReadChar(); 
+  88   1              tempH=ReadChar();
+  89   1              temperature=((tempH*256)+tempL)*0.0625*10;      
+  90   1              DDelay(200);
+  91   1              return(temperature); //返回的是0123格式
+  92   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    207    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      4    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,4 @@
+".\Objects\STARTUP.obj",
+".\Objects\自动调速.obj" 
+TO ".\Objects\自动调速" 
+PRINT(".\Listings\自动调速.m51") RAMSIZE(256) 

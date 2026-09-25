@@ -1,0 +1,366 @@
+C51 COMPILER V9.00   MAIN                                                                  05/21/2020 09:39:24 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: D:\Work\Hardware\C51\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include <reg51.h>
+   2          #define uint unsigned int
+   3          #define uchar unsigned char
+   4          #include "value.h"
+   5          #include "lcd12864bu.h"
+   6          #include<intrins.h>
+   7          
+   8          uchar tt;
+   9          sbit K=P3^2;    //测量频宽
+  10          uint High,Low,n;
+  11          
+  12          bit xitong_init=1;
+  13          bit jishu_init=1;
+  14          
+  15          unsigned long temp_V; 
+  16          
+  17          unsigned long temp;   
+  18          unsigned int shi =9;
+  19          unsigned int zhouqi_xiaoshu;
+  20          unsigned int zhouqi_zengshu;
+  21          /**********************TLC549***************************/
+  22          sbit DI  = P1^6;
+  23          sbit CS  = P1^7;
+  24          sbit CLK = P3^5;
+  25          
+  26          /********************独立按键引脚*****************/
+  27          sbit button1=P1^0;
+  28          sbit button2=P1^1;
+  29          sbit button3=P1^2;
+  30          sbit button4=P1^3;
+  31          sbit button5=P1^4;
+  32          
+  33          
+  34          sbit X10=P1^5;
+  35          
+  36          sbit s0_1=P2^6;
+  37          sbit s1=P2^7;
+  38          sbit s10=P3^0;
+  39          
+  40          sbit us1 =P3^1;
+  41          sbit us10 =P3^6;
+  42          sbit ms1=P3^7;
+  43          
+  44          uchar key_can;   //按键值
+  45          
+  46          
+  47           /************************定义变量***********************/
+  48          uchar i=0;
+  49          unsigned long T0count; 
+  50          unsigned long T1count ;
+  51          unsigned char timecount; 
+  52          bit flag=0; 
+  53          unsigned int x; 
+  54          unsigned char zhameng_time=20;
+  55          unsigned long zhouqi_s;
+C51 COMPILER V9.00   MAIN                                                                  05/21/2020 09:39:24 PAGE 2   
+
+  56          
+  57          /****************************LCD12864显示**********************************/
+  58          void xiaoshu_qian(unsigned char x,unsigned long temp){  //x为第几行  temp为显示的数字
+  59   1              write_shuzi(1,x,32+4*8,shuzi[temp % 10],0);temp/=10;
+  60   1              write_shuzi(1,x,32+3*8,shuzi[temp % 10],0);temp/=10;
+  61   1              write_shuzi(1,x,32+2*8,shuzi[temp % 10],0); temp/=10;
+  62   1              write_shuzi(1,x,32+1*8,shuzi[temp % 10],0); temp/=10;
+  63   1      }
+  64          void xiaoshu_hou(unsigned char x,unsigned long temp){
+  65   1          write_shuzi(1,x,32+8*8,shuzi[temp %10],0); temp/=10;
+  66   1              write_shuzi(1,x,32+7*8,shuzi[temp %10],0);temp/=10;
+  67   1      }
+  68          void shuzixianshi(unsigned char x,unsigned long temp){
+  69   1          write_shuzi(1,x,32+8*8,shuzi[temp %10],0); temp/=10;
+  70   1              write_shuzi(1,x,32+7*8,shuzi[temp %10],0);temp/=10;
+  71   1              write_shuzi(1,x,32+6*8,shuzi[temp % 10],0); temp/=10;
+  72   1              write_shuzi(1,x,32+5*8,shuzi[temp % 10],0);temp/=10;
+  73   1              write_shuzi(1,x,32+4*8,shuzi[temp % 10],0);temp/=10;
+  74   1              write_shuzi(1,x,32+3*8,shuzi[temp % 10],0);temp/=10;
+  75   1              write_shuzi(1,x,32+2*8,shuzi[temp % 10],0); temp/=10;
+  76   1              write_shuzi(1,x,32+1*8,shuzi[temp % 10],0); temp/=10;
+  77   1      }
+  78          void ceping(unsigned char x,unsigned long temp){   //测频
+  79   1      
+  80   1               write_yhanzi(1,x,0*16,hanzi[1]);   //测频
+  81   1               write_yhanzi(1,x,1*16,hanzi[0]);
+  82   1               write_shuzi(1,x,2*16,fuhao[1],0);        //:
+  83   1               write_shuzi(1,x,32+10*8,fuhao[2],0); //HZ
+  84   1               write_shuzi(1,x,32+11*8,fuhao[3],0);    
+  85   1      }
+*** WARNING C280 IN LINE 78 OF MAIN.C: 'temp': unreferenced local variable
+  86          void chezou(unsigned char x,unsigned long temp){
+  87   1           write_yhanzi(1,x,0*16,hanzi[1]);   //测周
+  88   1               write_yhanzi(1,x,1*16,hanzi[2]);
+  89   1               write_shuzi(1,x,2*16,fuhao[1],0);        //:
+  90   1               write_shuzi(1,x,32+6*8,fuhao[4],0);      //.
+  91   1                        write_shuzi(1,x,32+10*8,fuhao[5],0); //HZ
+  92   1               write_shuzi(1,x,32+11*8,fuhao[5],0);     
+  93   1      }
+*** WARNING C280 IN LINE 86 OF MAIN.C: 'temp': unreferenced local variable
+  94          void maikuan(unsigned char x,unsigned long temp){
+  95   1           write_yhanzi(1,x,0*16,hanzi[7]);   //脉宽
+  96   1               write_yhanzi(1,x,1*16,hanzi[8]);
+  97   1               write_shuzi(1,x,2*16,fuhao[1],0);        //:  
+  98   1                write_shuzi(1,x,32+10*8,fuhao[5],0); //HZ
+  99   1               write_shuzi(1,x,32+11*8,fuhao[5],0);
+ 100   1      }
+*** WARNING C280 IN LINE 94 OF MAIN.C: 'temp': unreferenced local variable
+ 101          void pinbi(unsigned char x,unsigned long temp){
+ 102   1           write_yhanzi(1,x,0*16,hanzi[0]);   //频幅
+ 103   1               write_yhanzi(1,x,1*16,hanzi[10]);
+ 104   1               write_shuzi(1,x,2*16,fuhao[1],0);        //: 
+ 105   1                write_shuzi(1,x,32+6*8,fuhao[4],0);     //.
+ 106   1                 write_shuzi(1,x,32+10*8,fuhao[5],0); //HZ
+ 107   1               write_shuzi(1,x,32+11*8,fuhao[5],0);
+ 108   1      
+ 109   1      }
+*** WARNING C280 IN LINE 101 OF MAIN.C: 'temp': unreferenced local variable
+ 110          void jishu(unsigned char x,unsigned long temp){
+ 111   1           write_yhanzi(1,x,0*16,hanzi[5]);   //计数
+ 112   1               write_yhanzi(1,x,1*16,hanzi[6]);
+ 113   1               write_shuzi(1,x,2*16,fuhao[1],0);        //: 
+C51 COMPILER V9.00   MAIN                                                                  05/21/2020 09:39:24 PAGE 3   
+
+ 114   1                write_shuzi(1,x,32+10*8,fuhao[5],0); //HZ
+ 115   1               write_shuzi(1,x,32+11*8,fuhao[5],0);
+ 116   1      }
+*** WARNING C280 IN LINE 110 OF MAIN.C: 'temp': unreferenced local variable
+ 117          
+ 118          
+ 119          /*************************测频宽*********************/
+ 120          void Init_T0()
+ 121          {
+ 122   1              TMOD=0x09;
+ 123   1              TH0=0;
+ 124   1              TL0=0;
+ 125   1      }
+ 126          void Message_Width()       
+ 127          {
+ 128   1              while(K);
+ 129   1              TR0=1;
+ 130   1              while(!K);
+ 131   1              while(K);
+ 132   1              TR0=0;
+ 133   1              High=TH0;
+ 134   1              Low=TL0;
+ 135   1      }
+ 136          /************************tlc594*************************/
+ 137          uchar ad_0;
+ 138          uint AD;
+ 139          
+ 140          //----------------------------------
+ 141          //               延时子程序
+ 142          //----------------------------------
+ 143          void delay(uchar ms)    
+ 144          {       
+ 145   1               uchar i ;
+ 146   1               while(ms--)
+ 147   1               {
+ 148   2                      for(i = 0 ; i<250;i++) ;
+ 149   2               }
+ 150   1      }       
+ 151                     
+ 152          //-----------------------------------------
+ 153          //            TLC549模数转换
+ 154          //-----------------------------------------
+ 155          uchar TLC549_ADC(void)
+ 156          {
+ 157   1                 uchar n, tmp;
+ 158   1      
+ 159   1              CS  = 1;                     //CS置高,片选无效
+ 160   1              CLK = 0;
+ 161   1      
+ 162   1              CS  = 0;                     //CS置低,片选有效,同时DO输出高位
+ 163   1              _nop_();
+ 164   1              _nop_();                     //适当延迟时间1.4us Setup Time
+ 165   1      
+ 166   1              for(n = 0; n < 8; n++) //串行数据移位输入
+ 167   1              { 
+ 168   2                      tmp <<= 1;
+ 169   2                      tmp |=  DI;
+ 170   2      
+ 171   2                      CLK = 1;        //0.4us
+ 172   2                      _nop_();        //延迟0.1us
+ 173   2                      CLK = 0;        //0.4us
+ 174   2              }
+C51 COMPILER V9.00   MAIN                                                                  05/21/2020 09:39:24 PAGE 4   
+
+ 175   1              CS = 1;            //CS置高,片选无效
+ 176   1              for(n = 17; n != 0; n--) _nop_();  //下一次转换需要延迟17us
+ 177   1              return (tmp);
+ 178   1      
+ 179   1      }
+ 180          
+ 181          /****************************************************/
+ 182          
+ 183          void xitongchushihua(){      //系统初始化
+ 184   1              TMOD=0x15;
+ 185   1              TH0=0; 
+ 186   1              TL0=0; 
+ 187   1              TH1=(65536-49989)/256; 
+ 188   1              TL1=(65536-49989)%256; 
+ 189   1              TR1=1;
+ 190   1              ET0=1; 
+ 191   1              ET1=1;
+ 192   1              EA=1;
+ 193   1              TR0=1;
+ 194   1      }
+ 195          void main()
+ 196          {       
+ 197   1         // xitongchushihua();//定时器初始化                           
+ 198   1         Clr_Scr();
+ 199   1              
+ 200   1              
+ 201   1              while(1)
+ 202   1          {
+ 203   2                      if(!button1){ //测频按键
+ 204   3                      ceping(3,X10);
+ 205   3                      }else if(!button2){      //测周按键
+ 206   3                      chezou(3,temp);
+ 207   3                      }else if(!button3){       //幅值按键
+ 208   3                              pinbi(3,temp);
+ 209   3                              EA=0;
+ 210   3                      TR0=0;
+ 211   3                              TR1=0;
+ 212   3                              while(!button3){
+ 213   4                                ad_0=TLC549_ADC();
+ 214   4                            AD=ad_0*1.97;
+ 215   4                          write_shuzi(1,3,32+4*8,shuzi[AD%1000/100],0);  
+ 216   4                                       write_shuzi(1,3,32+8*8,shuzi[AD%100/10],0); 
+ 217   4                          write_shuzi(1,3,32+7*8,shuzi[AD%10],0); 
+ 218   4                              }
+ 219   3                              EA=1;
+ 220   3                      TR0=1;
+ 221   3                              TR1=1;                    
+ 222   3                      }else if(!button4){      //计数按键
+ 223   3                           IT1=1; //设置外部中断1的触发方式为下降沿                    //顺序保证：最后开启总中断
+ 224   3                       EX1=1; //开启外部中断1
+ 225   3                           jishu(3,temp);
+ 226   3                               while(!button4){
+ 227   4                                  shuzixianshi(3,T1count);
+ 228   4                                  TR1=0;         //关闭定时器1的计数
+ 229   4                               }
+ 230   3                               EX1=0; //关闭外部中断1
+ 231   3                               jishu_init=0;
+ 232   3                      }else if(!button5){  //脉宽按键
+ 233   3                       Init_T0();
+ 234   3                        Message_Width();
+ 235   3                        shuzixianshi(3,High*256+TL0);
+ 236   3                          maikuan(3,temp);
+C51 COMPILER V9.00   MAIN                                                                  05/21/2020 09:39:24 PAGE 5   
+
+ 237   3                              xitong_init=0;
+ 238   3                      }
+ 239   2      
+ 240   2              if(xitong_init==0 && button5){   //脉宽菜单退出后进行系统初始化
+ 241   3                xitong_init=1;
+ 242   3                chushihua();
+*** WARNING C206 IN LINE 242 OF MAIN.C: 'chushihua': missing function-prototype
+ 243   3              }
+ 244   2              if(jishu_init==0 && button4){   //计数菜单退出后进行系统初始化
+ 245   3                jishu_init=1;
+ 246   3                chushihua();
+ 247   3              }
+ 248   2      
+ 249   2          if(!s0_1)  //闸门时间0.1s
+ 250   2               {
+ 251   3                      zhameng_time=2;
+ 252   3               }
+ 253   2               else if(!s1) //闸门时间1s
+ 254   2               {
+ 255   3                  zhameng_time=20;
+ 256   3               }
+ 257   2               else if(!s10) ////闸门时间10s
+ 258   2      
+ 259   2               {
+ 260   3                  zhameng_time=200;
+ 261   3               }
+ 262   2      
+ 263   2      
+ 264   2               if(!us1){    //10us测周期
+ 265   3                zhouqi_s=100000;
+ 266   3               }
+ 267   2               else if(!us10){//100us测周期
+ 268   3                zhouqi_s=10000;
+ 269   3               }
+ 270   2               else if(!ms1){ //1ms测周期
+ 271   3                zhouqi_s=1000;
+ 272   3               }
+ 273   2                      if(flag==1) //定时时间按到
+ 274   2              { 
+ 275   3                      flag=0; 
+ 276   3                      x=(T0count*65536+TH0*256+TL0);
+ 277   3                      timecount=0; 
+ 278   3                      T0count=0; 
+ 279   3                      TH0=0;                                                                                                  
+ 280   3                      TL0=0; 
+ 281   3                      TR0=1;
+ 282   3                              
+ 283   3                              if(X10)x=x*100;    //对分频检测后家伙是那个系数
+ 284   3                              else x=x*10;
+ 285   3      
+ 286   3                              if(zhameng_time==2)x=x*10;        //对阀门时间的系数计算
+ 287   3                              if(zhameng_time==200)x=x/10;
+ 288   3                              
+ 289   3                              
+ 290   3                              if(!button1){       // 测频数字量计算
+ 291   4                              shuzixianshi(3,x);
+ 292   4                              }else if(!button2){       //小数位的处理
+ 293   4                                      zhouqi_xiaoshu =zhouqi_s%x;
+ 294   4                                      zhouqi_zengshu =zhouqi_s/x;
+ 295   4                                      xiaoshu_qian(3,zhouqi_zengshu);
+ 296   4                                      xiaoshu_hou(3,zhouqi_xiaoshu); 
+ 297   4                              chezou(3,temp);
+C51 COMPILER V9.00   MAIN                                                                  05/21/2020 09:39:24 PAGE 6   
+
+ 298   4                              }else if(!button3){//频率比数据量计算
+ 299   4                              pinbi(3,temp);
+ 300   4                              }else if(!button4){//计数数据量计算
+ 301   4                               jishu(3,temp);
+ 302   4                              }
+ 303   3              } 
+ 304   2              }
+ 305   1      }
+ 306          
+ 307          void t0(void) interrupt 1 using 0       //计脉冲个数
+ 308          { 
+ 309   1        T0count++; 
+ 310   1      } 
+ 311          
+ 312          void t1(void) interrupt 3 using 0        //定时1s         50ms
+ 313          { 
+ 314   1        TH1=(65536-50045)/256; 
+ 315   1        TL1=(65536-50045)%256; 
+ 316   1        timecount++; 
+ 317   1        if(timecount==zhameng_time)   //阀门时间处理
+ 318   1          { 
+ 319   2            TR0=0;
+ 320   2            timecount=0; 
+ 321   2            flag=1;
+ 322   2          } 
+ 323   1      }
+ 324          void EX1_ISR(void) interrupt 2     //外部中断1的中断在此为2
+ 325          {
+ 326   1              T1count++;                                      //计脉冲个数
+ 327   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   4068    ----
+   CONSTANT SIZE    =    848    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     46     103
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      4    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  6 WARNING(S),  0 ERROR(S)

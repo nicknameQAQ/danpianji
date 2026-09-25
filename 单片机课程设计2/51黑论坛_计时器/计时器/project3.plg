@@ -1,0 +1,17 @@
+构造目标 'Target 1'
+正在汇编 Text3.asm...  
+.\Text3.asm(91): 错误 A9: SYNTAX ERROR
+.\Text3.asm(116): 错误 A45: UNDEFINED SYMBOL (PASS-2)
+.\Text3.asm(117): 错误 A45: UNDEFINED SYMBOL (PASS-2)
+目标没产生
+构造目标 'Target 1'
+正在汇编 Text3.asm...  
+.\Text3.asm(91): 错误 A9: SYNTAX ERROR
+.\Text3.asm(116): 错误 A45: UNDEFINED SYMBOL (PASS-2)
+.\Text3.asm(117): 错误 A45: UNDEFINED SYMBOL (PASS-2)
+目标没产生
+构造目标 'Target 1'
+正在汇编 Text3.asm...  
+连接中... 
+正在从 "project3" 产生 HEX文件...   
+"project3" - 0 错误 (s), 0   警告 (s).

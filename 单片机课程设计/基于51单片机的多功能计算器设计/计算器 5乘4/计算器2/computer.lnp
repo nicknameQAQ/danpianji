@@ -1,0 +1,4 @@
+"STARTUP.obj",
+"computer.obj" 
+TO "computer" 
+RAMSIZE(256) 

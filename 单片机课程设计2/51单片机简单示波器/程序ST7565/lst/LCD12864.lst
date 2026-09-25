@@ -1,0 +1,788 @@
+C51 COMPILER V7.06   LCD12864                     09/11/2014 20:19:53 PAGE 1   
+
+
+C51 COMPILER V7.06, COMPILATION OF MODULE LCD12864
+OBJECT MODULE PLACED IN LCD12864.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE c\LCD12864.c DEBUG OBJECTEXTEND PR
+                    -INT(.\lst\LCD12864.lst) PAGEWIDTH(79) PAGELENGTH(66) OBJECT(LCD12864.obj)
+
+stmt level    source
+
+   1          #include <stdio.h>
+   2          #include <intrins.h>
+   3          #include "Table.h"
+   4          #include "LCD12864.h"
+   5          #include "STC12C5A60S2.h"
+   6          
+   7          #define SET 1;
+   8          #define RESET 0;
+   9          
+  10          sbit SDA=P0^2;          //SI
+  11          sbit SCK=P0^0;          //SCL
+  12          sbit DI=P0^3;           //AO
+  13          sbit CS=P0^1;           //CS
+  14          
+  15          extern unsigned char timpd;             
+  16          extern unsigned char hold;                              //hold¼ü±êÖ¾Î»
+  17          extern unsigned char volpd;                             //Ê¾²¨Æ÷ µçÑ¹/Ã¿¸ñ 1--1V/d 2--0.2V
+             -/d
+  18          extern unsigned long freqin;                    //Ê¾²¨Æ÷ ÐÅºÅÆµÂÊ,µ¥Î»Hz
+  19          extern unsigned char idata wave[];          //Ò»ÆÁ²¨ÐÎ
+  20          //extern unsigned char clrgrid;                 //Íø¸ñÆµÉÁ
+  21          extern unsigned char shap;                                      //²¨ÐÎÊ§ÕæÐÞÕý£¬ÉÏÏÂÂÖÁ÷ÏÔÊ¾
+  22          
+  23          //=============ÕûÐÍxµÄn´Î·½==============//
+  24          unsigned long power(unsigned char x,unsigned char n)
+  25          {
+  26   1              unsigned char i;
+  27   1              unsigned long l=1;
+  28   1              if(n==0)
+  29   1              {
+  30   2                      return 1;
+  31   2              }
+  32   1              else
+  33   1              {
+  34   2                      for(i=0;i<n;i++)
+  35   2                      {
+  36   3                              l = l*x;
+  37   3                      }
+  38   2                      return l;
+  39   2              }
+  40   1      }
+  41          /*========write one byte command==============*/
+  42          void write_command(unsigned char cmd)
+  43          { 
+  44   1              unsigned char i;
+  45   1              DI=RESET;
+  46   1              SCK=RESET;
+  47   1              CS=RESET;
+  48   1              for(i=0;i<8;i++)
+  49   1              {
+  50   2                      SCK=RESET;
+  51   2                      //_nop_();
+  52   2                      SDA=cmd&0x80;
+  53   2                      cmd=cmd<<1;
+  54   2                      //_nop_();
+  55   2                      SCK=SET;
+C51 COMPILER V7.06   LCD12864                     09/11/2014 20:19:53 PAGE 2   
+
+  56   2                      //_nop_();
+  57   2              }
+  58   1              CS=SET;
+  59   1      }
+  60          /*========write one byte data==============*/
+  61          void write_data(unsigned char dat)
+  62          { 
+  63   1              unsigned char i;
+  64   1              DI=SET;
+  65   1              SCK=RESET;
+  66   1              CS=RESET;
+  67   1              for(i=0;i<8;i++)
+  68   1              {
+  69   2                      SCK=RESET;
+  70   2                      //_nop_();
+  71   2                      SDA=dat&0x80;
+  72   2                      dat=dat<<1;
+  73   2                      //_nop_();
+  74   2                      SCK=SET;
+  75   2                      //_nop_();
+  76   2              }
+  77   1              CS=SET;
+  78   1      }
+  79          /*==========lcd12864³õÊ¼»¯==============*/
+  80          void init_st7565(void)
+  81          {
+  82   1              write_command(0xaf);                            //0xaf¿ªÏÔÊ¾£¬0xae¹ØÏÔÊ¾
+  83   1              write_command(0x2f);                            //Ä£¿éÄÚ²¿µçÔ´£¬±ØÐë0x2f        
+  84   1              write_command(0x24);                            //0x20--0x27´Öµ÷¶Ô±È¶È
+  85   1              write_command(0x81);                            //ÓëÏÂ±ßÖ¸ÁîÅäºÏÏ¸µ÷¶Ô±È¶È                      
+  86   1              write_command(0x29);                            //0x01--0x3fÉè¶¨¶Ô±È¶È
+  87   1              write_command(0xa2);                            //0xa2 ¹Ì¶¨1/9Æ«Ñ¹£¬£¨0xa3 1/7 Æ«Ñ¹£©
+  88   1              write_command(0xc8);                            //0xc8ÉÏÏÂÕý³£ÏÔÊ¾£¬0xc0ÉÏÏÂ·´ÏòÏÔÊ¾£¨×Ý
+             -ÒÆ1ÐÐ£©
+  89   1              write_command(0xa1);                            //0xa0×óÓÒÕý³£ÏÔÊ¾£¬0xa1×óÓÒ·´ÏòÏÔÊ¾£¨Æ½
+             -ÒÆ4ÁÐ£©
+  90   1              write_command(0xa4);                            //0xa4Õý³£ÏÔÊ¾£¬0xa5È«ÆÁÏÔÊ¾(+0xae½øÈëµÍ
+             -¹¦ºÄ)
+  91   1              write_command(0xa6);                            //0xa6×ÖÌåÕý³£ÏÔÊ¾£¬0xa7×ÖÌå·´°×ÏÔÊ¾
+  92   1              write_command(0xac);                            //¹Ø±ÕÉÁË¸£¨Ä£¿é±¾ÉíÎÞ´Ë¹¦ÄÜ£¬¹Ø±ÕÊ¡µç£©
+  93   1              write_command(0x40);                            //0x40--0x7FÉèÖÃÆðÊ¼ÐÐ
+  94   1              write_command(0xb0);                    //0xb0--0xb8ÉèÖÃÒ³µØÖ·
+  95   1              write_command(0x10);                            //Éè¶¨ÆðÊ¼ÁÐµØÖ·¸ßÎ»
+  96   1              write_command(0x00);                    //Éè¶¨ÆðÊ¼ÁÐµØÖ·µÍÎ»
+  97   1              disp_clear();                                           //ÇåÆÁ
+  98   1      }
+  99          /*=================ÇåÆÁ==================*/
+ 100          void disp_clear(void)
+ 101          {
+ 102   1              unsigned char i,j,column,page; 
+ 103   1              for(j=0x00;j<0x08;j++) 
+ 104   1              { 
+ 105   2                      page=j+0xb0; 
+ 106   2                      write_command(page);
+ 107   2                      column=0x01; 
+ 108   2                      write_command(column);
+ 109   2                      column=0x10; 
+ 110   2                      write_command(column);
+ 111   2                      for(i=0;i<134;i++)
+ 112   2                      {
+ 113   3                              write_data(0x00);
+ 114   3                      }
+ 115   2              }
+ 116   1      }
+C51 COMPILER V7.06   LCD12864                     09/11/2014 20:19:53 PAGE 3   
+
+ 117          /*========write a char 5*7==============*/
+ 118          //Ö±½ÓÐ´×Ö·û£¬ÀýÈç'A','1','/'µÈ
+ 119          void write_char8(unsigned char page,unsigned char column,unsigned
+             - char chr)
+ 120          {
+ 121   1              unsigned char i;
+ 122   1              write_command(0xb0+page);                                       //page
+ 123   1              write_command(0x10+((0x04+column)>>4));         //column H
+ 124   1              write_command((0x04+column)&0x0f);              //column L
+ 125   1              for(i=0;i<5;i++)
+ 126   1              {
+ 127   2                      //write_data(nAscii[(chr-0x20)*5+i]);   //5*8×ÖÄ£
+ 128   2                      write_data(Fonts[(chr-0x20)*5+i]<<1);   //5*7×ÖÄ£
+ 129   2              }
+ 130   1      }
+ 131          /*========write strings 5*7==============*/
+ 132          //Ö±½ÓÔÚÖ¸¶¨Î»ÖÃÐ´×Ö·û´®£¬Èç"Good Luck!"
+ 133          void write_string8(unsigned char page,unsigned char column,unsign
+             -ed char *chr)
+ 134          {
+ 135   1              unsigned char i,col;
+ 136   1              col=column;
+ 137   1              for(i=0;(i<((127-col)/5))&&(*(chr+i)!='\0');i++)
+ 138   1              {
+ 139   2                      write_char8(page,column,*(chr+i));
+ 140   2                      column = column+5;
+ 141   2              }
+ 142   1      }
+ 143          /*===============ÏÔÊ¾Ê¾²¨Æ÷Íø¸ñ===============*/
+ 144          void disp_grid(unsigned char gridmode)
+ 145          {
+ 146   1              unsigned char i,j,page; 
+ 147   1              unsigned int dz=0;
+ 148   1              for(j=0;j<7;j++)                                //*write 7 page
+ 149   1              { 
+ 150   2                      page=j+0xb0;                                    //*set page address
+ 151   2                      write_command(page);              
+ 152   2                      write_command(0x10);                    //*set column higher address
+ 153   2                      write_command(0x04);                    //*set column lower address
+ 154   2                      for(i=0;i<127;i++)      
+ 155   2                      {
+ 156   3                              dz++;
+ 157   3                              if(gridmode==0){write_data(grid0[dz-1]);}
+ 158   3                              if(gridmode==1){write_data(grid1[dz-1]);}
+ 159   3                              if(gridmode==2){write_data(grid2[dz-1]);}
+ 160   3                              if(gridmode==3){write_data(grid3[dz-1]);}
+ 161   3                              //if(gridmode==4){write_data(grid4[dz-1]);}
+ 162   3                              //if(gridmode==5){write_data(grid5[dz-1]);}
+ 163   3                              //if(gridmode==6){write_data(grid6[dz-1]);}
+ 164   3                      }
+ 165   2              }
+ 166   1      }
+ 167          /*==============ÏÔÊ¾Ê¾²¨Æ÷²ÎÊý==============*/
+ 168          void disp_osc_settings(void)
+ 169          {
+ 170   1              unsigned char i,j,k;
+ 171   1              unsigned long freq0;
+ 172   1              j=0;
+ 173   1              k=0;
+ 174   1              freq0=freqin;
+ 175   1              if(hold==0)
+ 176   1              {       
+ 177   2                      write_string8(7,0,"          ");                //Çå³ýÔ­À´Hold Mode²Ð´æ
+ 178   2                      for(i=0;i<7;i++)
+C51 COMPILER V7.06   LCD12864                     09/11/2014 20:19:53 PAGE 4   
+
+ 179   2                      {
+ 180   3                              if((i==1)||(i==4)){j++;j++;}
+ 181   3                              if((k==0)&&((freq0/power(10,6-i))==0))
+ 182   3                              {
+ 183   4                                      if(i==6){write_char8(7,j,'0');} //È«0×îºóÒ»Î»ÏÔÊ¾0
+ 184   4                                      else{write_char8(7,j,' ');}             //¿ªÍ·0²»ÏÔÊ¾
+ 185   4                              }
+ 186   3                              else
+ 187   3                              {
+ 188   4                                      write_char8(7,j,(unsigned char)(freq0/power(10,6-i))+0x30);
+ 189   4                                      k=1;
+ 190   4                              }
+ 191   3                              freq0 = freq0%power(10,6-i);
+ 192   3                              j+=5;
+ 193   3                      }
+ 194   2                      write_char8(7,40,'H');write_char8(7,45,'z');
+ 195   2              }
+ 196   1              if(hold==1)
+ 197   1              {
+ 198   2                      write_string8(7,2,"Hold Mode ");
+ 199   2              }
+ 200   1              switch(timpd)           
+ 201   1              {
+ 202   2                      case  3:{write_string8(7,56," 10ms/d");break;}
+ 203   2                      case  4:{write_string8(7,56,"  5ms/d");break;}
+ 204   2                      case  5:{write_string8(7,56,"  2ms/d");break;}
+ 205   2                      case  6:{write_string8(7,56,"  1ms/d");break;}
+ 206   2                      case  7:{write_string8(7,56,"500us/d");break;}
+ 207   2                      case  8:{write_string8(7,56,"200us/d");break;}
+ 208   2                      case  9:{write_string8(7,56,"100us/d");break;}
+ 209   2                      case  10:{write_string8(7,56," 50us/d");break;}
+ 210   2                      case  11:{write_string8(7,56," 20us/d");break;}
+ 211   2                      case  12:{write_string8(7,56," 10us/d");break;}
+ 212   2                      case 13:{write_string8(7,56,"  5us/d");break;}
+ 213   2                      case 14:{write_string8(7,56,"  2us/d");break;}
+ 214   2                      case 15:{write_string8(7,56,"  1us/d");break;}
+ 215   2                      case 16:{write_string8(7,56,"500ns/d");break;}
+ 216   2                      default: break;
+ 217   2              }
+ 218   1              switch(volpd)
+ 219   1              {
+ 220   2                      case  1:{write_string8(7,97,"  1V/d");break;}
+ 221   2                      case  2:{write_string8(7,97,"0.5V/d");break;}
+ 222   2                      case  3:{write_string8(7,97,"0.2V/d");break;}
+ 223   2                      case  4:{write_string8(7,97,"0.1V/d");break;}
+ 224   2                      default: break;
+ 225   2              }
+ 226   1      }
+ 227          /*==============ÏÔÊ¾Ò»ÆÁÄ»²¨ÐÎ(Ò»ÁÐÒ»µã)==============*/
+ 228          void dispwave(unsigned char gridmode)
+ 229          {
+ 230   1              unsigned char i;
+ 231   1              disp_osc_settings();
+ 232   1              disp_grid(gridmode);
+ 233   1              for(i=0;i<127;i++)
+ 234   1              {
+ 235   2                      if(wave[i]>47)
+ 236   2                      {
+ 237   3                              write_command(0xb0);              
+ 238   3                              write_command(0x10+((i+0x04)>>4));      //*set column higher addres
+             -s
+ 239   3                              write_command((0x04+i)&0x0f);       //*set column lower addres
+             -s
+ 240   3                              if(gridmode==0){write_data((0x80>>(wave[i]-48))|grid0[i]);}
+C51 COMPILER V7.06   LCD12864                     09/11/2014 20:19:53 PAGE 5   
+
+ 241   3                              if(gridmode==1){write_data((0x80>>(wave[i]-48))|grid1[i]);}
+ 242   3                              if(gridmode==2){write_data((0x80>>(wave[i]-48))|grid2[i]);}
+ 243   3                              if(gridmode==3){write_data((0x80>>(wave[i]-48))|grid3[i]);}
+ 244   3                      }
+ 245   2                      else if(wave[i]>39)
+ 246   2                      {
+ 247   3                              write_command(0xb1);              
+ 248   3                              write_command(0x10+((i+0x04)>>4));      //*set column higher addres
+             -s
+ 249   3                              write_command((0x04+i)&0x0f);       //*set column lower addres
+             -s
+ 250   3                              if(gridmode==0){write_data((0x80>>(wave[i]-40))|grid0[i+127]);
+             -}
+ 251   3                              if(gridmode==1){write_data((0x80>>(wave[i]-40))|grid1[i+127]);
+             -}
+ 252   3                              if(gridmode==2){write_data((0x80>>(wave[i]-40))|grid2[i+127]);
+             -}
+ 253   3                              if(gridmode==3){write_data((0x80>>(wave[i]-40))|grid3[i+127]);
+             -}
+ 254   3                      }
+ 255   2                      else if(wave[i]>31)
+ 256   2                      {
+ 257   3                              write_command(0xb2);              
+ 258   3                              write_command(0x10+((i+0x04)>>4));      //*set column higher addres
+             -s
+ 259   3                              write_command((0x04+i)&0x0f);       //*set column lower addres
+             -s
+ 260   3                              if(gridmode==0){write_data((0x80>>(wave[i]-32))|grid0[i+127*2]
+             -);}
+ 261   3                              if(gridmode==1){write_data((0x80>>(wave[i]-32))|grid1[i+127*2]
+             -);}
+ 262   3                              if(gridmode==2){write_data((0x80>>(wave[i]-32))|grid2[i+127*2]
+             -);}
+ 263   3                              if(gridmode==3){write_data((0x80>>(wave[i]-32))|grid3[i+127*2]
+             -);}
+ 264   3                      }
+ 265   2                      else if(wave[i]>23)
+ 266   2                      {
+ 267   3                              write_command(0xb3);              
+ 268   3                              write_command(0x10+((i+0x04)>>4));      //*set column higher addres
+             -s
+ 269   3                              write_command((0x04+i)&0x0f);       //*set column lower addres
+             -s
+ 270   3                              if(gridmode==0){write_data((0x80>>(wave[i]-24))|grid0[i+127*3]
+             -);}
+ 271   3                              if(gridmode==1){write_data((0x80>>(wave[i]-24))|grid1[i+127*3]
+             -);}
+ 272   3                              if(gridmode==2){write_data((0x80>>(wave[i]-24))|grid2[i+127*3]
+             -);}
+ 273   3                              if(gridmode==3){write_data((0x80>>(wave[i]-24))|grid3[i+127*3]
+             -);}
+ 274   3                      }
+ 275   2                      else if(wave[i]>15)
+ 276   2                      {
+ 277   3                              write_command(0xb4);              
+ 278   3                              write_command(0x10+((i+0x04)>>4));      //*set column higher addres
+             -s
+ 279   3                              write_command((0x04+i)&0x0f);       //*set column lower addres
+             -s
+ 280   3                              if(gridmode==0){write_data((0x80>>(wave[i]-16))|grid0[i+127*4]
+             -);}
+ 281   3                              if(gridmode==1){write_data((0x80>>(wave[i]-16))|grid1[i+127*4]
+             -);}
+ 282   3                              if(gridmode==2){write_data((0x80>>(wave[i]-16))|grid2[i+127*4]
+C51 COMPILER V7.06   LCD12864                     09/11/2014 20:19:53 PAGE 6   
+
+             -);}
+ 283   3                              if(gridmode==3){write_data((0x80>>(wave[i]-16))|grid3[i+127*4]
+             -);}
+ 284   3                      }
+ 285   2                      else if(wave[i]>7)
+ 286   2                      {
+ 287   3                              write_command(0xb5);              
+ 288   3                              write_command(0x10+((i+0x04)>>4));      //*set column higher addres
+             -s
+ 289   3                              write_command((0x04+i)&0x0f);       //*set column lower addres
+             -s
+ 290   3                              if(gridmode==0){write_data((0x80>>(wave[i]-8))|grid0[i+127*5])
+             -;}
+ 291   3                              if(gridmode==1){write_data((0x80>>(wave[i]-8))|grid1[i+127*5])
+             -;}
+ 292   3                              if(gridmode==2){write_data((0x80>>(wave[i]-8))|grid2[i+127*5])
+             -;}
+ 293   3                              if(gridmode==3){write_data((0x80>>(wave[i]-8))|grid3[i+127*5])
+             -;}
+ 294   3                      }
+ 295   2                      else if(wave[i]>=0)
+ 296   2                      {
+ 297   3                              write_command(0xb6);              
+ 298   3                              write_command(0x10+((i+0x04)>>4));      //*set column higher addres
+             -s
+ 299   3                              write_command((0x04+i)&0x0f);       //*set column lower addres
+             -s
+ 300   3                              if(gridmode==0){write_data((0x80>>(wave[i]))|grid0[i+127*6]);}
+ 301   3                              if(gridmode==1){write_data((0x80>>(wave[i]))|grid1[i+127*6]);}
+ 302   3                              if(gridmode==2){write_data((0x80>>(wave[i]))|grid2[i+127*6]);}
+ 303   3                              if(gridmode==3){write_data((0x80>>(wave[i]))|grid3[i+127*6]);}
+ 304   3                      }
+ 305   2              }
+ 306   1      }
+ 307          /*==============ÏÔÊ¾Ò»ÆÁÄ»²¨ÐÎ£¨ÁÐ¿Õ°×²¹Æë£©==============*/
+ 308          void dispwave2(unsigned char gridmode)
+ 309          {
+ 310   1              unsigned char i,j;
+ 311   1              unsigned char min,mid,max;      
+ 312   1              unsigned char srt,lgth,end;             //ÆðÊ¼µã£¬³¤¶È£¬ÖÕµã£¨¹æ¶¨ÆÁÄ»ÏÂÎªÆ
+             -ðµã£¬ÉÏÎªÖÕµã£©
+ 313   1              unsigned char pnts[7];                  //Ò»ÁÐµÄµã×é£¬pnts[0]µÚ6Ò³£¬pnts[6]µÚ0Ò
+             -³
+ 314   1              disp_osc_settings();
+ 315   1              //disp_grid(gridmode);                  //²»ÐèÒª£¬»­µãÊ±Ë³´ø»­ÁËÍø¸ñ
+ 316   1              for(i=0;i<127;i++)
+ 317   1              {
+ 318   2                      if((i==0)||(i==126))
+ 319   2                      {
+ 320   3                              if(wave[i]>47)
+ 321   3                              {
+ 322   4                                      write_command(0xb0);              
+ 323   4                                      write_command(0x10+((i+0x04)>>4));      //*set column higher addre
+             -ss
+ 324   4                                      write_command((0x04+i)&0x0f);       //*set column lower addre
+             -ss
+ 325   4                                      if(gridmode==0){write_data((0x80>>(wave[i]-48))|grid0[i]);}
+ 326   4                                      if(gridmode==1){write_data((0x80>>(wave[i]-48))|grid1[i]);}
+ 327   4                                      if(gridmode==2){write_data((0x80>>(wave[i]-48))|grid2[i]);}
+ 328   4                                      if(gridmode==3){write_data((0x80>>(wave[i]-48))|grid3[i]);}
+ 329   4                              }
+ 330   3                              else if(wave[i]>39)
+ 331   3                              {
+ 332   4                                      write_command(0xb1);              
+C51 COMPILER V7.06   LCD12864                     09/11/2014 20:19:53 PAGE 7   
+
+ 333   4                                      write_command(0x10+((i+0x04)>>4));      //*set column higher addre
+             -ss
+ 334   4                                      write_command((0x04+i)&0x0f);       //*set column lower addre
+             -ss
+ 335   4                                      if(gridmode==0){write_data((0x80>>(wave[i]-40))|grid0[i+127])
+             -;}
+ 336   4                                      if(gridmode==1){write_data((0x80>>(wave[i]-40))|grid1[i+127])
+             -;}
+ 337   4                                      if(gridmode==2){write_data((0x80>>(wave[i]-40))|grid2[i+127])
+             -;}
+ 338   4                                      if(gridmode==3){write_data((0x80>>(wave[i]-40))|grid3[i+127])
+             -;}
+ 339   4                              }
+ 340   3                              else if(wave[i]>31)
+ 341   3                              {
+ 342   4                                      write_command(0xb2);              
+ 343   4                                      write_command(0x10+((i+0x04)>>4));      //*set column higher addre
+             -ss
+ 344   4                                      write_command((0x04+i)&0x0f);       //*set column lower addre
+             -ss
+ 345   4                                      if(gridmode==0){write_data((0x80>>(wave[i]-32))|grid0[i+127*2
+             -]);}
+ 346   4                                      if(gridmode==1){write_data((0x80>>(wave[i]-32))|grid1[i+127*2
+             -]);}
+ 347   4                                      if(gridmode==2){write_data((0x80>>(wave[i]-32))|grid2[i+127*2
+             -]);}
+ 348   4                                      if(gridmode==3){write_data((0x80>>(wave[i]-32))|grid3[i+127*2
+             -]);}
+ 349   4                              }
+ 350   3                              else if(wave[i]>23)
+ 351   3                              {
+ 352   4                                      write_command(0xb3);              
+ 353   4                                      write_command(0x10+((i+0x04)>>4));      //*set column higher addre
+             -ss
+ 354   4                                      write_command((0x04+i)&0x0f);       //*set column lower addre
+             -ss
+ 355   4                                      if(gridmode==0){write_data((0x80>>(wave[i]-24))|grid0[i+127*3
+             -]);}
+ 356   4                                      if(gridmode==1){write_data((0x80>>(wave[i]-24))|grid1[i+127*3
+             -]);}
+ 357   4                                      if(gridmode==2){write_data((0x80>>(wave[i]-24))|grid2[i+127*3
+             -]);}
+ 358   4                                      if(gridmode==3){write_data((0x80>>(wave[i]-24))|grid3[i+127*3
+             -]);}
+ 359   4                              }
+ 360   3                              else if(wave[i]>15)
+ 361   3                              {
+ 362   4                                      write_command(0xb4);              
+ 363   4                                      write_command(0x10+((i+0x04)>>4));      //*set column higher addre
+             -ss
+ 364   4                                      write_command((0x04+i)&0x0f);       //*set column lower addre
+             -ss
+ 365   4                                      if(gridmode==0){write_data((0x80>>(wave[i]-16))|grid0[i+127*4
+             -]);}
+ 366   4                                      if(gridmode==1){write_data((0x80>>(wave[i]-16))|grid1[i+127*4
+             -]);}
+ 367   4                                      if(gridmode==2){write_data((0x80>>(wave[i]-16))|grid2[i+127*4
+             -]);}
+ 368   4                                      if(gridmode==3){write_data((0x80>>(wave[i]-16))|grid3[i+127*4
+             -]);}
+ 369   4                              }
+ 370   3                              else if(wave[i]>7)
+ 371   3                              {
+ 372   4                                      write_command(0xb5);              
+C51 COMPILER V7.06   LCD12864                     09/11/2014 20:19:53 PAGE 8   
+
+ 373   4                                      write_command(0x10+((i+0x04)>>4));      //*set column higher addre
+             -ss
+ 374   4                                      write_command((0x04+i)&0x0f);       //*set column lower addre
+             -ss
+ 375   4                                      if(gridmode==0){write_data((0x80>>(wave[i]-8))|grid0[i+127*5]
+             -);}
+ 376   4                                      if(gridmode==1){write_data((0x80>>(wave[i]-8))|grid1[i+127*5]
+             -);}
+ 377   4                                      if(gridmode==2){write_data((0x80>>(wave[i]-8))|grid2[i+127*5]
+             -);}
+ 378   4                                      if(gridmode==3){write_data((0x80>>(wave[i]-8))|grid3[i+127*5]
+             -);}
+ 379   4                              }
+ 380   3                              else if(wave[i]>=0)
+ 381   3                              {
+ 382   4                                      write_command(0xb6);              
+ 383   4                                      write_command(0x10+((i+0x04)>>4));      //*set column higher addre
+             -ss
+ 384   4                                      write_command((0x04+i)&0x0f);       //*set column lower addre
+             -ss
+ 385   4                                      if(gridmode==0){write_data((0x80>>(wave[i]))|grid0[i+127*6]);
+             -}
+ 386   4                                      if(gridmode==1){write_data((0x80>>(wave[i]))|grid1[i+127*6]);
+             -}
+ 387   4                                      if(gridmode==2){write_data((0x80>>(wave[i]))|grid2[i+127*6]);
+             -}
+ 388   4                                      if(gridmode==3){write_data((0x80>>(wave[i]))|grid3[i+127*6]);
+             -}
+ 389   4                              }
+ 390   3                      }
+ 391   2                      else
+ 392   2                      {
+ 393   3                              //±È½ÏÏàÁÚÈýÁÐÈý¸öµãµÄÎ»ÖÃ£¬min=×îµÍµã£¬mid=ÖÐ¼äµã£¬max=×î¸ßµã
+ 394   3                              if(wave[i]>=wave[i-1]){min=wave[i-1];max=wave[i];}
+ 395   3                              else{min=wave[i];max=wave[i-1];}
+ 396   3                              if(min>=wave[i+1])
+ 397   3                              {
+ 398   4                                      mid=min;                                //Á½¸ö¸³ÖµÓï¾äË³Ðò²»ÄÜµßµ¹
+ 399   4                                      min=wave[i+1];  
+ 400   4                              }
+ 401   3                              else
+ 402   3                              {
+ 403   4                                      if(max>=wave[i+1]){mid=wave[i+1];}
+ 404   4                                      else{mid=max;max=wave[i+1];}
+ 405   4                              }
+ 406   3                              //È·¶¨¸ÃÁÐ»­µãµÄÊ¼Ä©Î»ÖÃ¼°Ïß¶Î³¤¶È
+ 407   3                              if((wave[i+1]<wave[i])&&(wave[i-1]<wave[i]))
+ 408   3                              {
+ 409   4                                      if(((min+max)%2)){srt=((min+max)/2)+1;}
+ 410   4                                      else{srt=((min+max)/2);}
+ 411   4                                      end=max;
+ 412   4                                      lgth=end-srt+1;
+ 413   4                              }
+ 414   3                              else if((wave[i+1]>wave[i])&&(wave[i-1]>wave[i]))
+ 415   3                              {
+ 416   4                                      srt=min;
+ 417   4                                      end=((min+max)/2);
+ 418   4                                      lgth=end-srt+1;
+ 419   4                              }
+ 420   3                              else
+ 421   3                              {
+ 422   4                                      //×¢Òâ Òª·ÀÖ¹ÏÔÊ¾Ô½½ç@@@@@@@@@@@@@@@@@@@@@@1
+ 423   4                                      if(((min+mid)/2)>=1){srt=((min+mid)/2)-1;}
+ 424   4                                      else{srt=((min+mid)/2);}
+C51 COMPILER V7.06   LCD12864                     09/11/2014 20:19:53 PAGE 9   
+
+ 425   4                                      if(((mid+max)/2)<=54){end=((mid+max)/2)+1;}
+ 426   4                                      else{end=((mid+max)/2);}
+ 427   4                              }
+ 428   3                              //¸ù¾ÝÒÔÉÏÅÐ¶Ï¸³Öµ¸ÃÁÐµÄÏÔÊ¾Êý×é
+ 429   3                              for(j=0;j<7;j++)
+ 430   3                              {
+ 431   4                                      pnts[j]=0;
+ 432   4                              }
+ 433   3                              //×¢Òâ Òª·ÀÖ¹ÏÔÊ¾Ô½½ç@@@@@@@@@@@@@@@@@@@@@@2
+ 434   3                              if(end<=55)                                                     //Õý³££¬Ô½½çÊ±·ÀÖ¹µÚÒ»ÐÐÏÔÊ¾
+ 435   3                              {
+ 436   4                                      if((end==1)&&(wave[i-1]==0)&&(wave[i+1]==0)){end=0;}
+ 437   4                          for(j=srt;j<=end;j++)
+ 438   4                                      {
+ 439   5                                              pnts[j/8]|=pnts[j/8]|(0x80>>(j%8));
+ 440   5                                      }
+ 441   4                              }
+ 442   3                              else
+ 443   3                              {
+ 444   4                                      if((srt<55)&&(srt>28))        //ÉÏ½ç³¬¹ýÆÁÄ»Ê±»­Ïßµ½LCDÉÏ±ß½ç
+ 445   4                                      {
+ 446   5                                              for(j=srt;j<=55;j++)
+ 447   5                                              {
+ 448   6                                                      pnts[j/8]|=pnts[j/8]|(0x80>>(j%8));
+ 449   6                                              }
+ 450   5                                      }
+ 451   4                              }
+ 452   3                              
+ 453   3                              for(j=0;j<7;j++)
+ 454   3                              {
+ 455   4                                      //if((pnts[6-j]|grid0[i+127*j])!=0)
+ 456   4                                      {
+ 457   5                                              write_command(0xb0+j);              
+ 458   5                                              write_command(0x10+((i+0x04)>>4));      //*set column higher addr
+             -ess
+ 459   5                                              write_command((0x04+i)&0x0f);       //*set column lower addr
+             -ess
+ 460   5                                              if(gridmode==0){write_data(pnts[6-j]|grid0[i+127*j]);}
+ 461   5                                              if(gridmode==1){write_data(pnts[6-j]|grid1[i+127*j]);}
+ 462   5                                              if(gridmode==2){write_data(pnts[6-j]|grid2[i+127*j]);}
+ 463   5                                              if(gridmode==3){write_data(pnts[6-j]|grid3[i+127*j]);}
+ 464   5                                      }
+ 465   4                              }
+ 466   3                      }
+ 467   2              }
+ 468   1      }
+ 469          /*==============ÏÔÊ¾16*16ºº×Ö»òÕß16*8×ÖÄ¸==============*/
+ 470          //Ò³£¬ÁÐ£¬ºº×Ö£¨16£©»ò×ÖÄ¸£¨8£©£¬ÏÔÊ¾¸öÊý£¬×ÖÄ£Êý×é
+ 471          //hzÊÇºº×Ö»ò×Ö·ûµÄµÄ¿í¶È£¨×Ö·ûÊÇºº×ÖµÄÒ»°ë£©
+ 472          //¸Ãº¯ÊýÒ²ÄÜÏÔÊ¾12*12£¨12*6£©µÄ×Ö·û£¬µ«4ÐÐ¿Õ°×ÎÞ·¨Ìî³ä
+ 473          void dispchar16(unsigned char page,unsigned char column,unsigned 
+             -char hz,unsigned char n,unsigned char *p)
+ 474          {
+ 475   1              unsigned char i,j;
+ 476   1              for(j=0;j<n;j++)
+ 477   1              {
+ 478   2                      write_command(0xb0+page);                       
+ 479   2                      write_command(0x10+((column+0x04+hz*j)>>4));//*set column highe
+             -r address        
+ 480   2                      write_command((column+0x04+hz*j)&0x0f);         //*set column lower
+             - address
+ 481   2                      for(i=0;i<hz;i++)
+ 482   2                      {
+ 483   3                          write_data(*(p+i+hz*2*j));
+C51 COMPILER V7.06   LCD12864                     09/11/2014 20:19:53 PAGE 10  
+
+ 484   3                      }
+ 485   2                      write_command(0xb1+page);                       
+ 486   2                      write_command(0x10+((column+0x04+hz*j)>>4));            
+ 487   2                      write_command((column+0x04+hz*j)&0x0f); 
+ 488   2                      for(i=0;i<hz;i++)
+ 489   2                  {
+ 490   3                              write_data(*(p+i+hz*2*j+hz));
+ 491   3                      }
+ 492   2              }
+ 493   1      }
+ 494          //------------------------------------------end------------------
+             -----------------------------//
+ 495          /*                      //È·¶¨¸ÃÁÐ»­µãµÄÊ¼Ä©Î»ÖÃ¼°Ïß¶Î³¤¶È
+ 496                                  if(wave[i]>=28)
+ 497                                  {
+ 498                                          if((wave[i+1]<wave[i])&&(wave[i-1]<wave[i]))
+ 499                                          {
+ 500                                                  if(((min+max)%2)){srt=((min+max)/2)+1;}
+ 501                                                  else{srt=((min+max)/2);}
+ 502                                                  end=max;
+ 503                                                  lgth=end-srt+1;
+ 504                                          }
+ 505                                          else
+ 506                                          {
+ 507                                                  srt=((min+mid)/2);
+ 508                                                  end=((mid+max)/2);
+ 509                                                  lgth=end-srt+1;
+ 510                                                  //lgth=max-min;
+ 511                                          }
+ 512                                  }
+ 513                                  else if(wave[i]<28)
+ 514                                  {
+ 515                                          if((wave[i+1]>wave[i])&&(wave[i-1]>wave[i]))
+ 516                                          {
+ 517                                                  srt=min;
+ 518                                                  end=((min+max)/2);
+ 519                                                  lgth=end-srt+1;
+ 520                                          }
+ 521                                          else
+ 522                                          {
+ 523                                                  if(((min+mid)%2)){srt=((min+mid)/2)+1;}
+ 524                                                  else{srt=((min+mid)/2);}
+ 525                                                  if(((mid+max)%2)){end=((mid+max)/2)+1;}
+ 526                                                  else{end=((mid+max)/2);}
+ 527                                                  lgth=end-srt+1;
+ 528                                          }
+ 529                                  }
+ 530                                  else
+ 531                                  {
+ 532                                          srt=((min+mid)/2);
+ 533                                          if(((mid+max)%2)){end=((mid+max)/2)+1;}
+ 534                                          else{end=((mid+max)/2);}
+ 535                                          lgth=end-srt+1;
+ 536                                  }
+ 537                                  //È·¶¨¸ÃÁÐ»­µãµÄÊ¼Ä©Î»ÖÃ¼°Ïß¶Î³¤¶È
+ 538                                  if(wave[i-1]<wave[i])
+ 539                                  {
+ 540                                          if(wave[i+1]<wave[i])
+ 541                                          {
+ 542                                                  srt=((min+max)/2);
+ 543                                                  end=max;
+ 544                                                  lgth=end-srt+1;
+ 545                                          }
+ 546                                          else if(wave[i+1]>wave[i])
+C51 COMPILER V7.06   LCD12864                     09/11/2014 20:19:53 PAGE 11  
+
+ 547                                          {
+ 548                                                  srt=((min+mid)/2);
+ 549                                                  end=((mid+max)/2);
+ 550                                                  lgth=end-srt+1;
+ 551                                                  //lgth=max-min;
+ 552                                          }
+ 553                                          else
+ 554                                          {
+ 555                                                  srt=((min+mid)/2);
+ 556                                                  end=((mid+max)/2);
+ 557                                                  lgth=end-srt+1;
+ 558                                                  //lgth=max-min;
+ 559                                          }
+ 560                                  }
+ 561                                  else if(wave[i-1]>wave[i])
+ 562                                  {
+ 563                                          if(wave[i+1]<wave[i])
+ 564                                          {
+ 565                                                  srt=((min+max)/2);
+ 566                                                  end=max;
+ 567                                                  lgth=end-srt+1;
+ 568                                          }
+ 569                                          else if(wave[i+1]>wave[i])
+ 570                                          {
+ 571                                                  if(((min+mid)%2)){srt=((min+mid)/2)+1;}
+ 572                                                  else{srt=((min+mid)/2);}
+ 573                                                  if(((mid+max)%2)){end=((mid+max)/2)+1;}
+ 574                                                  end=((mid+max)/2);
+ 575                                                  lgth=end-srt+1;
+ 576                                                  //lgth=max-min;
+ 577                                          }
+ 578                                          else
+ 579                                          {
+ 580                                                  srt=((min+mid)/2);
+ 581                                                  end=((mid+max)/2);
+ 582                                                  lgth=end-srt+1;
+ 583                                                  //lgth=max-min;
+ 584                                          }
+ 585                                  }
+ 586                                  else
+ 587                                  {
+ 588                                          if(wave[i+1]<wave[i])
+ 589                                          {
+ 590                                                  srt=((min+mid)/2)+1;
+ 591                                                  lgth=max-min;
+ 592                                                  end=(mid+max)/2;
+ 593                                          }
+ 594                                          else if(wave[i+1]>wave[i])
+ 595                                          {
+ 596                                                  srt=((min+mid)/2);
+ 597                                                  lgth=max-min;
+ 598                                                  end=((mid+max)/2)+1;
+ 599                                          }
+ 600                                          else
+ 601                                          {
+ 602                                                  srt=((min+mid)/2)+1;
+ 603                                                  lgth=max-min;
+ 604                                                  end=((mid+max)/2)+1;
+ 605                                          }
+ 606                                  }
+ 607          //È·¶¨¸ÃÁÐ»­µãµÄÊ¼Ä©Î»ÖÃ¼°Ïß¶Î³¤¶È
+ 608                                  if(wave[i-1]<wave[i])
+ 609                                  {
+ 610                                          if(wave[i+1]<wave[i])
+C51 COMPILER V7.06   LCD12864                     09/11/2014 20:19:53 PAGE 12  
+
+ 611                                          {
+ 612                                                  srt=((min+mid)/2)+1;
+ 613                                                  lgth=max-min;
+ 614                                                  end=(mid+max)/2;
+ 615                                          }
+ 616                                          else if(wave[i+1]>wave[i])
+ 617                                          {
+ 618                                                  srt=((min+mid)/2);
+ 619                                                  lgth=max-min;
+ 620                                                  end=((mid+max)/2)+1;
+ 621                                          }
+ 622                                          else
+ 623                                          {
+ 624                                                  srt=((min+mid)/2)+1;
+ 625                                                  lgth=max-min;
+ 626                                                  end=((mid+max)/2)+1;
+ 627                                          }
+ 628                                  }
+ 629                                  else if(wave[i-1]>wave[i])
+ 630                                  {
+ 631                                          srt=((min+mid)/2)+1;
+ 632                                          lgth=max-min;
+ 633                                          end=((mid+max)/2)+1;
+ 634                                  }
+ 635                                  else
+ 636                                  {
+ 637                                          if(wave[i+1]<wave[i])
+ 638                                          {
+ 639                                                  srt=((min+mid)/2)+1;
+ 640                                                  lgth=max-min;
+ 641                                                  end=(mid+max)/2;
+ 642                                          }
+ 643                                          else if(wave[i+1]>wave[i])
+ 644                                          {
+ 645                                                  srt=((min+mid)/2);
+ 646                                                  lgth=max-min;
+ 647                                                  end=((mid+max)/2)+1;
+ 648                                          }
+ 649                                          else
+ 650                                          {
+ 651                                                  srt=((min+mid)/2)+1;
+ 652                                                  lgth=max-min;
+ 653                                                  end=((mid+max)/2)+1;
+ 654                                          }
+ 655                                  }
+ 656          */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   4376    ----
+   CONSTANT SIZE    =   4678    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----      45
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

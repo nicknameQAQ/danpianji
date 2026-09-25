@@ -1,0 +1,5 @@
+-c --cpu Cortex-M4.fp -g -O2 --apcs=interwork --asm --interleave --asm_dir ".\\lst\\" -I..\CMSIS\Include -I..\M451Series\Include -I..\StdDriver\inc -I..\user
+-I D:\Keil_v5\ARM\RV31\INC
+-I D:\Keil_v5\ARM\CMSIS\Include
+-D__UVISION_VERSION="515"
+-o .\obj\nuadc.o --list_dir ".\\lst\\" --list --omf_browse .\obj\nuadc.crf --depend .\obj\nuadc.d --feedback ".\obj\template.fed" "..\user\nuadc.c"

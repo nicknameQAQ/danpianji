@@ -1,0 +1,106 @@
+C51 COMPILER V9.01   AD0832                                                                04/23/2013 12:11:37 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE AD0832
+OBJECT MODULE PLACED IN AD0832.OBJ
+COMPILER INVOKED BY: E:\KEIL4\C51\BIN\C51.EXE AD0832.C BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include"AD0832.h"
+   2          #include<intrins.h>
+   3          unsigned char ReadAdc0832(unsigned char channel)
+   4          {       
+   5   1          unsigned char i=0;
+   6   1          unsigned char j;
+   7   1          unsigned dat=0;
+   8   1          unsigned ndat=0;
+   9   1          if(channel==0)channel=2;
+  10   1          if(channel==1)channel=3;
+  11   1          ADDI=1;
+  12   1          _nop_();
+  13   1          _nop_();
+  14   1              _nop_();
+  15   1          _nop_();
+  16   1          ADCS=0;//拉低CS端
+  17   1          _nop_();
+  18   1          _nop_();
+  19   1              _nop_();
+  20   1          _nop_();
+  21   1          ADCLK=1;//拉高CLK端
+  22   1          _nop_();
+  23   1          _nop_();
+  24   1          ADCLK=0;//拉低CLK端,形成下降沿1
+  25   1          _nop_();
+  26   1          _nop_();
+  27   1          ADCLK=1;//拉高CLK端
+  28   1          ADDI=channel&0x1;
+  29   1          _nop_();
+  30   1          _nop_();
+  31   1          ADCLK=0;//拉低CLK端,形成下降沿2
+  32   1          _nop_();
+  33   1          _nop_();
+  34   1                  _nop_();
+  35   1          _nop_();
+  36   1          ADCLK=1;//拉高CLK端
+  37   1          ADDI=(channel>>1)&0x1;
+  38   1          _nop_();
+  39   1          _nop_();
+  40   1                  _nop_();
+  41   1          _nop_();
+  42   1          ADCLK=0;//拉低CLK端,形成下降沿3
+  43   1          ADDI=1;//控制命令结束 
+  44   1          _nop_();
+  45   1          _nop_();
+  46   1                 _nop_();
+  47   1          _nop_();
+  48   1          dat=0;
+  49   1          for(i=0;i<8;i++)
+  50   1          {
+  51   2              dat|=ADDO;//收数据
+  52   2              ADCLK=1;
+  53   2              _nop_();
+  54   2              _nop_();
+  55   2              ADCLK=0;//形成一次时钟脉冲
+C51 COMPILER V9.01   AD0832                                                                04/23/2013 12:11:37 PAGE 2   
+
+  56   2              _nop_();
+  57   2              _nop_();
+  58   2              dat<<=1;
+  59   2              if(i==7)dat|=ADDO;
+  60   2          }  
+  61   1          for(i=0;i<8;i++)
+  62   1          {
+  63   2              j=0;
+  64   2              j=j|ADDO;//收数据
+  65   2              ADCLK=1;
+  66   2              _nop_();
+  67   2              _nop_();
+  68   2              ADCLK=0;//形成一次时钟脉冲
+  69   2              _nop_();
+  70   2              _nop_();
+  71   2              j=j<<7;
+  72   2              ndat=ndat|j;
+  73   2              if(i<7)ndat>>=1;
+  74   2          }
+  75   1          ADCS=1;//拉低CS端
+  76   1          ADCLK=0;//拉低CLK端
+  77   1          ADDO=1;//拉高数据端,回到初始状态
+  78   1          dat<<=8;
+  79   1          dat|=ndat;
+  80   1          return(dat);            //return ad k
+  81   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    160    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       2
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

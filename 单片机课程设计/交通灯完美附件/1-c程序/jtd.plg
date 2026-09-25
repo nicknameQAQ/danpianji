@@ -1,0 +1,16 @@
+<html>
+<body>
+<pre>
+<h1>礦ision Build Log</h1>
+<h2>Project:</h2>
+\\Pcshare\套件资料\2-245驱动交通灯\211-交通灯（宏博电子）\其他要求\东西20，南北15\1-c程序\jtd.uvproj
+Project File Date:  04/04/2014
+
+<h2>Output:</h2>
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling jtd.c...
+linking...
+Program Size: data=21.4 xdata=0 code=885
+creating hex file from "jtd"...
+"jtd" - 0 Error(s), 0 Warning(s).

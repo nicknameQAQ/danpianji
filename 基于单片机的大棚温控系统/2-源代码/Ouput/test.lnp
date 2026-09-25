@@ -1,3 +1,0 @@
-".\Ouput\main.obj" 
-TO ".\Ouput\test" 
-PRINT(".\test.m51") RAMSIZE(256) 

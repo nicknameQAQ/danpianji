@@ -1,0 +1,36 @@
+C51 COMPILER V8.02   DELAY                                                                 07/05/2013 23:45:42 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE DELAY
+OBJECT MODULE PLACED IN delay.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE delay.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include "delay.h"
+   2          #include <intrins.h>
+   3          void delay()    //ÑÓÊ±4-5¸öÎ¢Ãë  
+   4          {;;}  
+   5            
+   6          void delay_1ms(uint z)  
+   7          {  
+   8   1          uint x,y;  
+   9   1          for(x=z;x>0;x--)  
+  10   1              for(y=100;y>0;y--)  
+  11   1                  ;  
+  12   1      }  
+  13            
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     31    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

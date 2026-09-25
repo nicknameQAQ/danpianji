@@ -1,0 +1,195 @@
+BL51 BANKED LINKER/LOCATER V6.22                                                        04/23/2018  21:59:28  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22, INVOKED BY:
+D:\KEIL5\C51\BIN\BL51.EXE 小车前进.obj TO 小车前进
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  小车前进.obj (________)
+  D:\KEIL5\C51\LIB\C51S.LIB (?C_STARTUP)
+  D:\KEIL5\C51\LIB\C51S.LIB (?C_INIT)
+
+
+LINK MAP OF MODULE:  小车前进 (________)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0006H     UNIT         ?DT?________
+                    000EH     0012H                  *** GAP ***
+            BIT     0020H.0   0000H.1   UNIT         ?BI?________
+                    0020H.1   0000H.7                *** GAP ***
+            IDATA   0021H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+                    0003H     0008H                  *** GAP ***
+            CODE    000BH     0003H     ABSOLUTE     
+                    000EH     07F2H                  *** GAP ***
+            CODE    0800H     008CH     UNIT         ?C_C51STARTUP
+            CODE    088CH     0027H     UNIT         ?PR?RUN?________
+            CODE    08B3H     0022H     UNIT         ?PR?_DELAY?________
+            CODE    08D5H     001CH     UNIT         ?PR?PWM_OUT_LEFT_MOTO?________
+            CODE    08F1H     001CH     UNIT         ?PR?MAIN?________
+            CODE    090DH     0014H     UNIT         ?PR?TIMER0?________
+            CODE    0921H     000DH     UNIT         ?C_INITSEG
+
+
+
+OVERLAY MAP OF MODULE:   小车前进 (________)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?PR?TIMER0?________
+  +--> ?PR?PWM_OUT_LEFT_MOTO?________
+
+*** NEW ROOT ***************************************************
+
+?C_C51STARTUP
+  +--> ?PR?MAIN?________
+  +--> ?C_INITSEG
+
+?PR?MAIN?________
+BL51 BANKED LINKER/LOCATER V6.22                                                      04/23/2018  21:59:28  PAGE 2
+
+
+  +--> ?PR?RUN?________
+
+?PR?RUN?________
+  +--> ?PR?_DELAY?________
+
+
+
+SYMBOL TABLE OF MODULE:  小车前进 (________)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        ________
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:00B0H         PUBLIC        P3
+  B:00A8H.7       PUBLIC        EA
+  D:0008H         PUBLIC        pwm_val_left
+  B:0090H.0       PUBLIC        P1_0
+  C:08B7H         PUBLIC        _delay
+  B:0090H.1       PUBLIC        P1_1
+  B:0090H.2       PUBLIC        P1_2
+  B:0090H.3       PUBLIC        P1_3
+  C:08F1H         PUBLIC        main
+  D:0009H         PUBLIC        time
+  D:0089H         PUBLIC        TMOD
+  D:000BH         PUBLIC        temp
+  C:08D5H         PUBLIC        pwm_out_left_moto
+  B:00A8H.1       PUBLIC        ET0
+  D:008CH         PUBLIC        TH0
+  D:008AH         PUBLIC        TL0
+  C:090DH         PUBLIC        timer0
+  C:088CH         PUBLIC        run
+  B:0088H.4       PUBLIC        TR0
+  B:0020H.0       PUBLIC        Left_moto_stop
+  D:000CH         PUBLIC        i
+  D:000DH         PUBLIC        push_val_left
+  B:00B0H.0       PUBLIC        K1
+  B:00B0H.1       PUBLIC        K2
+  B:00B0H.2       PUBLIC        K3
+  C:08B3H         SYMBOL        L?0028
+  -------         PROC          L?0027
+  -------         ENDPROC       L?0027
+  C:08B3H         SYMBOL        L?0028
+  -------         PROC          _DELAY
+  D:0006H         SYMBOL        k
+  -------         DO            
+  D:0006H         SYMBOL        x
+  D:0004H         SYMBOL        y
+  -------         ENDDO         
+  C:08B7H         LINE#         20
+  C:08B7H         LINE#         21
+  C:08B7H         LINE#         23
+  C:08C0H         LINE#         24
+  C:08D4H         LINE#         25
+  -------         ENDPROC       _DELAY
+  -------         PROC          RUN
+  C:088CH         LINE#         27
+BL51 BANKED LINKER/LOCATER V6.22                                                      04/23/2018  21:59:28  PAGE 3
+
+
+  C:088CH         LINE#         28
+  C:088CH         LINE#         29
+  C:088FH         LINE#         30
+  C:088FH         LINE#         31
+  C:0892H         LINE#         32
+  C:0895H         LINE#         33
+  C:0898H         LINE#         34
+  C:0899H         LINE#         35
+  C:089CH         LINE#         36
+  C:089CH         LINE#         37
+  C:089FH         LINE#         38
+  C:08A2H         LINE#         39
+  C:08A5H         LINE#         40
+  C:08A6H         LINE#         41
+  C:08A9H         LINE#         42
+  C:08A9H         LINE#         43
+  C:08ACH         LINE#         44
+  C:08AFH         LINE#         45
+  C:08B2H         LINE#         46
+  C:08B2H         LINE#         48
+  -------         ENDPROC       RUN
+  -------         PROC          PWM_OUT_LEFT_MOTO
+  C:08D5H         LINE#         51
+  C:08D5H         LINE#         52
+  C:08D5H         LINE#         54
+  C:08DCH         LINE#         55
+  C:08DCH         LINE#         56
+  C:08DEH         LINE#         57
+  C:08E0H         LINE#         58
+  C:08E2H         LINE#         60
+  C:08E2H         LINE#         61
+  C:08E4H         LINE#         62
+  C:08E6H         LINE#         63
+  C:08E6H         LINE#         64
+  C:08EDH         LINE#         65
+  C:08F0H         LINE#         68
+  -------         ENDPROC       PWM_OUT_LEFT_MOTO
+  -------         PROC          TIMER0
+  C:090DH         LINE#         71
+  C:0911H         LINE#         73
+  C:0914H         LINE#         74
+  C:0917H         LINE#         76
+  C:0919H         LINE#         77
+  C:091CH         LINE#         79
+  -------         ENDPROC       TIMER0
+  -------         PROC          MAIN
+  C:08F1H         LINE#         81
+  C:08F1H         LINE#         82
+  C:08F1H         LINE#         84
+  C:08F4H         LINE#         85
+  C:08F7H         LINE#         86
+  C:08FAH         LINE#         87
+  C:08FCH         LINE#         88
+  C:08FEH         LINE#         89
+  C:0900H         LINE#         91
+  C:0908H         LINE#         92
+  C:0908H         LINE#         93
+BL51 BANKED LINKER/LOCATER V6.22                                                      04/23/2018  21:59:28  PAGE 4
+
+
+  C:0908H         LINE#         95
+  C:090BH         LINE#         97
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        ________
+
+******************************************************************************
+* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 00A4H BYTE ( 8%) *
+******************************************************************************
+
+Program Size: data=15.1 xdata=0 code=308
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

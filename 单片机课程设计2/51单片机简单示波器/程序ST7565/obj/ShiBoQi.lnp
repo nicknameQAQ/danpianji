@@ -1,0 +1,7 @@
+".\obj\Main.obj",
+".\obj\LCD12864.obj",
+".\obj\ADC.obj",
+".\obj\PCA.obj",
+".\obj\EEPROM.obj" 
+TO ".\obj\ShiBoQi" 
+PRINT(".\lst\ShiBoQi.m51") RAMSIZE(256) 

@@ -1,0 +1,65 @@
+C51 COMPILER V7.50   SMG7_4                                                                06/12/2012 17:41:31 PAGE 1   
+
+
+C51 COMPILER V7.50, COMPILATION OF MODULE SMG7_4
+OBJECT MODULE PLACED IN SMG7-4.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE SMG7-4.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          
+   2          //-----------------------------------------------------------------------------------
+   3          //程序名：  SMG7-4.ASM
+   4          //程序功能：P0端口输出，一位数码管循环显示0~9
+   5          //-----------------------------------------------------------------------------------
+   6          #include <reg51.h>
+   7          //定义位操作
+   8          //sbit ls1=P2^0;                                     //个位公共极
+   9          #define Out P0                                     //定义数据输出端口
+  10          void delay10ms(unsigned int count); 
+  11          unsigned char i=0;
+  12          
+  13          //共阳数码管数字显示表
+  14          unsigned char tab[]={0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90}; 
+  15          // 对应显示            0    1    2    3    4    5    6    7    8    9
+  16          
+  17          //-----------------------------------  主函数 ----------------------------------
+  18          main()
+  19           { 
+  20   1         //ls1=0;                                         //个位共阳极数码管供电 
+  21   1         while(1)                                       //无限循环
+  22   1          {
+  23   2            Out=tab[i];                                 //输出
+  24   2            i=(i+1)%10;                                 //i加1，指向表中下一个码
+  25   2                delay10ms(300);                             //调用延时函数
+  26   2              }
+  27   1       }
+  28          
+  29          //------------------------------------ 延时函数 ----------------------------------
+  30          
+  31          void delay10ms(unsigned int count)               //总延时时间为10ms*count 
+  32              {  
+  33   1            unsigned int i,j,k;          
+  34   1                for(i=0; i<count; i++)
+  35   1              for(j=0; j<10; j++)    
+  36   1                         for(k=0; k<120; k++);
+  37   1          }
+  38          //-------------------------------------------------------------------------------------
+  39          
+  40          
+  41          
+  42          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     71    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     11    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

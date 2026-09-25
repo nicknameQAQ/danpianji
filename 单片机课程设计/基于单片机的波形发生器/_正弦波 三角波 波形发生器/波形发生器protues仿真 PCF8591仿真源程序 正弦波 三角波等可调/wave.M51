@@ -1,0 +1,393 @@
+BL51 BANKED LINKER/LOCATER V6.00                                                        01/08/2013  23:32:40  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.00, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE DA转换.obj, wave.obj, keyscan.obj, PCF8591.obj, delay.obj TO wave RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  DA转换.obj (DA转换)
+  wave.obj (WAVE)
+  keyscan.obj (KEYSCAN)
+  PCF8591.obj (PCF8591)
+  delay.obj (DELAY)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_INIT)
+
+
+LINK MAP OF MODULE:  wave (DA转换)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0005H     UNIT         _DATA_GROUP_
+            DATA    000DH     0004H     UNIT         ?DT?WAVE
+            DATA    0011H     0002H     UNIT         ?DT?SIN?DA转换
+            DATA    0013H     0001H     UNIT         ?DT?PCF8591
+            IDATA   0014H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     0100H     UNIT         ?CO?DA转换
+            CODE    0103H     008CH     UNIT         ?C_C51STARTUP
+            CODE    018FH     003CH     UNIT         ?PR?KEYSCAN?KEYSCAN
+            CODE    01CBH     002DH     UNIT         ?PR?_WRITE_BYTE?PCF8591
+            CODE    01F8H     0028H     UNIT         ?PR?SIN?DA转换
+            CODE    0220H     0026H     UNIT         ?PR?MAIN?DA转换
+            CODE    0246H     0022H     UNIT         ?PR?SQUARE?WAVE
+            CODE    0268H     0022H     UNIT         ?PR?_WRITE_ADD?PCF8591
+            CODE    028AH     001EH     UNIT         ?PR?_DELAY_1MS?DELAY
+            CODE    02A8H     0018H     UNIT         ?PR?RESPONS?PCF8591
+            CODE    02C0H     0014H     UNIT         ?PR?TRIANGULAR?WAVE
+            CODE    02D4H     000FH     UNIT         ?PR?START?PCF8591
+            CODE    02E3H     000FH     UNIT         ?PR?STOP?PCF8591
+            CODE    02F2H     000AH     UNIT         ?PR?INIT?PCF8591
+            CODE    02FCH     0007H     UNIT         ?C_INITSEG
+            CODE    0303H     0005H     UNIT         ?PR?DELAY?DELAY
+
+
+
+OVERLAY MAP OF MODULE:   wave (DA转换)
+
+
+SEGMENT                           DATA_GROUP 
+  +--> CALLED SEGMENT           START    LENGTH
+-----------------------------------------------
+BL51 BANKED LINKER/LOCATER V6.00                                                      01/08/2013  23:32:40  PAGE 2
+
+
+?C_C51STARTUP                   -----    -----
+  +--> ?PR?MAIN?DA转换
+  +--> ?C_INITSEG
+
+?PR?MAIN?DA转换                 0008H    0001H
+  +--> ?PR?INIT?PCF8591
+  +--> ?PR?KEYSCAN?KEYSCAN
+  +--> ?PR?TRIANGULAR?WAVE
+  +--> ?PR?SQUARE?WAVE
+
+?PR?INIT?PCF8591                -----    -----
+  +--> ?PR?DELAY?DELAY
+
+?PR?TRIANGULAR?WAVE             -----    -----
+  +--> ?PR?_WRITE_ADD?PCF8591
+
+?PR?_WRITE_ADD?PCF8591          0009H    0002H
+  +--> ?PR?START?PCF8591
+  +--> ?PR?_WRITE_BYTE?PCF8591
+  +--> ?PR?RESPONS?PCF8591
+  +--> ?PR?STOP?PCF8591
+
+?PR?START?PCF8591               -----    -----
+  +--> ?PR?DELAY?DELAY
+
+?PR?_WRITE_BYTE?PCF8591         000BH    0002H
+  +--> ?PR?DELAY?DELAY
+
+?PR?RESPONS?PCF8591             000BH    0001H
+  +--> ?PR?DELAY?DELAY
+
+?PR?STOP?PCF8591                -----    -----
+  +--> ?PR?DELAY?DELAY
+
+?PR?SQUARE?WAVE                 -----    -----
+  +--> ?PR?_WRITE_ADD?PCF8591
+  +--> ?PR?_DELAY_1MS?DELAY
+
+
+
+SYMBOL TABLE OF MODULE:  wave (DA转换)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        DA转换
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0090H         PUBLIC        P1
+  D:00A0H         PUBLIC        P2
+  D:00B0H         PUBLIC        P3
+  D:00A8H         PUBLIC        IE
+  D:00B8H         PUBLIC        IP
+  C:0220H         PUBLIC        main
+  D:0098H         PUBLIC        SCON
+  D:0088H         PUBLIC        TCON
+  C:01F8H         PUBLIC        sin
+  B:00A0H.7       PUBLIC        Key5
+BL51 BANKED LINKER/LOCATER V6.00                                                      01/08/2013  23:32:40  PAGE 3
+
+
+  C:0003H         PUBLIC        sin_tab
+  D:00C8H         PUBLIC        T2CON
+  D:00D0H         PUBLIC        PSW
+  -------         PROC          SIN
+  -------         DO            
+  D:0011H         SYMBOL        i
+  -------         ENDDO         
+  C:01F8H         LINE#         32
+  C:01F8H         LINE#         33
+  C:01F8H         LINE#         35
+  C:01FDH         LINE#         36
+  C:01FDH         LINE#         37
+  C:0209H         LINE#         39
+  C:0210H         LINE#         40
+  C:021FH         LINE#         41
+  -------         ENDPROC       SIN
+  -------         PROC          MAIN
+  -------         DO            
+  D:0008H         SYMBOL        wave_select
+  -------         ENDDO         
+  C:0220H         LINE#         43
+  C:0220H         LINE#         44
+  C:0220H         LINE#         45
+  C:0223H         LINE#         46
+  C:0226H         LINE#         47
+  C:0226H         LINE#         48
+  C:0226H         LINE#         49
+  C:0229H         LINE#         50
+  C:022CH         LINE#         51
+  C:022CH         LINE#         52
+  C:022EH         LINE#         53
+  C:0231H         LINE#         54
+  C:0236H         LINE#         55
+  C:0239H         LINE#         56
+  C:0239H         LINE#         58
+  C:023CH         LINE#         59
+  C:0241H         LINE#         60
+  C:0244H         LINE#         69
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        DA转换
+
+  -------         MODULE        WAVE
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0090H         PUBLIC        P1
+  D:00B0H         PUBLIC        P3
+  D:00A8H         PUBLIC        IE
+  D:000DH         PUBLIC        range
+  C:0246H         PUBLIC        square
+  D:00B8H         PUBLIC        IP
+  D:0098H         PUBLIC        SCON
+  D:0088H         PUBLIC        TCON
+  C:02C0H         PUBLIC        triangular
+  D:000EH         PUBLIC        a
+  D:000FH         PUBLIC        time1
+  D:00C8H         PUBLIC        T2CON
+  D:00D0H         PUBLIC        PSW
+  -------         PROC          TRIANGULAR
+BL51 BANKED LINKER/LOCATER V6.00                                                      01/08/2013  23:32:40  PAGE 4
+
+
+  C:02C0H         LINE#         8
+  C:02C0H         LINE#         9
+  C:02C0H         LINE#         10
+  C:02C7H         LINE#         12
+  C:02C9H         LINE#         13
+  C:02D0H         LINE#         14
+  C:02D3H         LINE#         15
+  -------         ENDPROC       TRIANGULAR
+  -------         PROC          SQUARE
+  C:0246H         LINE#         16
+  C:0246H         LINE#         17
+  C:0246H         LINE#         18
+  C:0249H         LINE#         19
+  C:0250H         LINE#         20
+  C:0257H         LINE#         21
+  C:025AH         LINE#         22
+  C:0261H         LINE#         23
+  -------         ENDPROC       SQUARE
+  -------         ENDMOD        WAVE
+
+  -------         MODULE        KEYSCAN
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0090H         PUBLIC        P1
+  D:00A0H         PUBLIC        P2
+  D:00B0H         PUBLIC        P3
+  D:00A8H         PUBLIC        IE
+  D:00B8H         PUBLIC        IP
+  D:0098H         PUBLIC        SCON
+  D:0088H         PUBLIC        TCON
+  B:00A0H.3       PUBLIC        Key1
+  B:00A0H.4       PUBLIC        Key2
+  B:00A0H.5       PUBLIC        Key3
+  B:00A0H.6       PUBLIC        Key4
+  D:00C8H         PUBLIC        T2CON
+  C:018FH         PUBLIC        keyscan
+  D:00D0H         PUBLIC        PSW
+  -------         PROC          KEYSCAN
+  C:018FH         LINE#         8
+  C:018FH         LINE#         9
+  C:018FH         LINE#         10
+  C:0192H         LINE#         11
+  C:0192H         LINE#         12
+  C:019DH         LINE#         13
+  C:01A0H         LINE#         14
+  C:01A0H         LINE#         15
+  C:01A3H         LINE#         16
+  C:01A3H         LINE#         17
+  C:01AFH         LINE#         18
+  C:01B2H         LINE#         19
+  C:01B2H         LINE#         20
+  C:01B5H         LINE#         21
+  C:01B5H         LINE#         22
+  C:01BBH         LINE#         23
+  C:01BEH         LINE#         24
+  C:01BEH         LINE#         25
+  C:01C1H         LINE#         26
+  C:01C1H         LINE#         27
+BL51 BANKED LINKER/LOCATER V6.00                                                      01/08/2013  23:32:40  PAGE 5
+
+
+  C:01C7H         LINE#         28
+  C:01CAH         LINE#         29
+  C:01CAH         LINE#         31
+  -------         ENDPROC       KEYSCAN
+  -------         ENDMOD        KEYSCAN
+
+  -------         MODULE        PCF8591
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0090H         PUBLIC        P1
+  D:00A0H         PUBLIC        P2
+  D:00B0H         PUBLIC        P3
+  D:00A8H         PUBLIC        IE
+  C:02A8H         PUBLIC        respons
+  C:0268H         PUBLIC        _write_add
+  D:00B8H         PUBLIC        IP
+  D:0013H         PUBLIC        flag
+  B:00D0H.7       PUBLIC        CY
+  C:01CBH         PUBLIC        _write_byte
+  C:02D4H         PUBLIC        start
+  D:0098H         PUBLIC        SCON
+  D:0088H         PUBLIC        TCON
+  C:02F2H         PUBLIC        init
+  C:02E3H         PUBLIC        stop
+  B:00A0H.0       PUBLIC        SDA
+  B:00A0H.1       PUBLIC        SCL
+  D:00C8H         PUBLIC        T2CON
+  D:00D0H         PUBLIC        PSW
+  -------         PROC          START
+  C:02D4H         LINE#         9
+  C:02D4H         LINE#         10
+  C:02D4H         LINE#         11
+  C:02D6H         LINE#         12
+  C:02D9H         LINE#         13
+  C:02DBH         LINE#         14
+  C:02DEH         LINE#         15
+  C:02E0H         LINE#         16
+  -------         ENDPROC       START
+  -------         PROC          STOP
+  C:02E3H         LINE#         19
+  C:02E3H         LINE#         20
+  C:02E3H         LINE#         21
+  C:02E5H         LINE#         22
+  C:02E8H         LINE#         23
+  C:02EAH         LINE#         24
+  C:02EDH         LINE#         25
+  C:02EFH         LINE#         26
+  -------         ENDPROC       STOP
+  -------         PROC          RESPONS
+  -------         DO            
+  D:000BH         SYMBOL        i
+  -------         ENDDO         
+  C:02A8H         LINE#         30
+  C:02A8H         LINE#         31
+  C:02A8H         LINE#         33
+  C:02AAH         LINE#         34
+  C:02ADH         LINE#         35
+  C:02B7H         LINE#         36
+BL51 BANKED LINKER/LOCATER V6.00                                                      01/08/2013  23:32:40  PAGE 6
+
+
+  C:02BBH         LINE#         37
+  C:02BDH         LINE#         38
+  -------         ENDPROC       RESPONS
+  -------         PROC          INIT
+  C:02F2H         LINE#         41
+  C:02F2H         LINE#         42
+  C:02F2H         LINE#         43
+  C:02F4H         LINE#         44
+  C:02F7H         LINE#         45
+  C:02F9H         LINE#         46
+  -------         ENDPROC       INIT
+  -------         PROC          _WRITE_BYTE
+  D:0007H         SYMBOL        date
+  -------         DO            
+  D:000BH         SYMBOL        i
+  D:000CH         SYMBOL        temp
+  -------         ENDDO         
+  C:01CBH         LINE#         49
+  C:01CBH         LINE#         50
+  C:01CBH         LINE#         52
+  C:01CDH         LINE#         53
+  C:01D0H         LINE#         54
+  C:01D0H         LINE#         55
+  C:01D6H         LINE#         56
+  C:01D8H         LINE#         57
+  C:01DBH         LINE#         58
+  C:01DDH         LINE#         59
+  C:01E0H         LINE#         60
+  C:01E2H         LINE#         61
+  C:01E5H         LINE#         62
+  C:01EEH         LINE#         63
+  C:01F0H         LINE#         64
+  C:01F3H         LINE#         65
+  C:01F5H         LINE#         66
+  -------         ENDPROC       _WRITE_BYTE
+  -------         PROC          _WRITE_ADD
+  D:0009H         SYMBOL        control
+  D:000AH         SYMBOL        date
+  C:0268H         LINE#         71
+  C:026CH         LINE#         72
+  C:026CH         LINE#         73
+  C:026FH         LINE#         74
+  C:0274H         LINE#         75
+  C:0277H         LINE#         76
+  C:027CH         LINE#         77
+  C:027FH         LINE#         78
+  C:0284H         LINE#         79
+  C:0287H         LINE#         80
+  -------         ENDPROC       _WRITE_ADD
+  -------         ENDMOD        PCF8591
+
+  -------         MODULE        DELAY
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0090H         PUBLIC        P1
+  D:00B0H         PUBLIC        P3
+  D:00A8H         PUBLIC        IE
+  C:0303H         PUBLIC        delay
+BL51 BANKED LINKER/LOCATER V6.00                                                      01/08/2013  23:32:40  PAGE 7
+
+
+  D:00B8H         PUBLIC        IP
+  D:0098H         PUBLIC        SCON
+  D:0088H         PUBLIC        TCON
+  C:028AH         PUBLIC        _delay_1ms
+  D:00C8H         PUBLIC        T2CON
+  D:00D0H         PUBLIC        PSW
+  -------         PROC          DELAY
+  C:0303H         LINE#         3
+  C:0303H         LINE#         4
+  -------         ENDPROC       DELAY
+  -------         PROC          _DELAY_1MS
+  D:0006H         SYMBOL        z
+  -------         DO            
+  D:0006H         SYMBOL        x
+  D:0004H         SYMBOL        y
+  -------         ENDDO         
+  C:028AH         LINE#         6
+  C:028AH         LINE#         7
+  C:028AH         LINE#         9
+  C:0293H         LINE#         10
+  C:02A7H         LINE#         12
+  -------         ENDPROC       _DELAY_1MS
+  -------         ENDMOD        DELAY
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?SIN?DA转换
+
+Program Size: data=21.0 xdata=0 code=776
+LINK/LOCATE RUN COMPLETE.  1 WARNING(S),  0 ERROR(S)

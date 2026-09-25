@@ -1,4 +1,0 @@
-"..\hex文件\STARTUP.obj",
-"..\hex文件\main.obj" 
-TO "..\hex文件\obj" 
-PRINT("..\list\obj.m51") RAMSIZE(256) 
